@@ -49,5 +49,10 @@ module.exports = function applySourceFormTransform(html) {
     'try{window.openCaseForm=openCaseForm;window.submitCase=submitCase;}catch(e){}'
   ].join('\n');
 
+  html = html.replace(
+    '<div class="field"><label>Area</label><input name="area_name" placeholder="Contoh: Area Sulawesi"></div>',
+    '<div class="field"><label>HUB</label><input name="hub_code" placeholder="Contoh: MKS / BPP / MND" autocapitalize="characters"></div>'
+  );
+
   return html.slice(0,start)+replacement+'\n'+html.slice(end);
 };
