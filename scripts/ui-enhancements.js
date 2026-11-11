@@ -121,11 +121,20 @@ async function saveEditedCaseOption(event,kind,index){
 }
 function deleteCaseOption(kind,index){if(!isAdmin())return;const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()},value=next[kind][index];if(!confirm('Hapus '+(kind==='categories'?'kategori ':'divisi ')+value+' dari pilihan baru? Case lama tetap menyimpan nilai sebelumnya.'))return;next[kind].splice(index,1);saveCaseOptions(next);}
 function renderUsers(){
-  if(!isAdmin()){$('pageContent').innerHTML=pageHead('ACCESS CONTROL','Manajemen Pengguna','Menu ini khusus Admin.');return;}
-  const rows=state.profiles.filter(u=>u.deleted!==true).slice().sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
-  $('pageContent').innerHTML=pageHead('ACCESS CONTROL','Manajemen Pengguna','Kelola profil, role, dan status akses pengguna.','<button class="btn btn-primary" onclick="openUserForm()">＋ Buat Pengguna</button>')+
-  '<section class="card"><div class="card-head"><div><h3>Daftar Akun</h3><p>'+rows.length+' akun terdaftar</p></div><span class="pill">Firebase Authentication</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Nama</th><th>ID Login</th><th>HUB</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>'+
-  (rows.map(u=>'<tr><td><b>'+esc(u.full_name)+'</b></td><td>'+esc(u.login_id||u.employee_id||'—')+'</td><td>'+esc(u.hub_code||'—')+'</td><td>'+esc(roleLabel[u.role]||u.role)+'</td><td>'+(u.active===false?'<span class="status s-overdue">Nonaktif</span>':'<span class="status s-closed">Aktif</span>')+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn btn-sm" onclick="editUserProfile(\''+u.id+'\')">Edit</button>'+(u.id!==currentUser.id?'<button class="btn btn-sm" onclick="toggleUserActive(\''+u.id+'\','+(u.active===false?'true':'false')+')">'+(u.active===false?'Aktifkan':'Nonaktifkan')+'</button><button class="btn btn-sm" onclick="softDeleteUser(\''+u.id+'\')">Hapus akses</button>':'<span class="sub">Akun Anda</span>')+'</div></td></tr>').join('')||'<tr><td colspan="6"><div class="empty">Belum ada akun tim.</div></td></tr>')+'</tbody></table></div></section>';
+ if(!isAdmin()){$('pageContent').innerHTML=pageHead('ACCESS CONTROL','Manajemen Pengguna','Menu ini khusus Admin.');return;}
+ const rows=state.profiles.slice().sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
+ const activeCount=rows.filter(u=>u.deleted!==true&&u.active!==false).length;
+ $('pageContent').innerHTML=pageHead('ACCESS CONTROL','Manajemen Pengguna','Kelola profil, role, HUB, dan status akses pengguna.','<button class="btn btn-primary" onclick="openUserForm()">＋ Buat Pengguna</button>')+
+ '<section class="card"><div class="card-head"><div><h3>Daftar Akun</h3><p>'+activeCount+' akun aktif · '+rows.length+' total akun</p></div><span class="pill">Firebase Authentication</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Nama</th><th>ID Login</th><th>HUB</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>'+
+ (rows.map(u=>'<tr class="'+(u.deleted===true?'wct-user-deleted':'')+'"><td><b>'+esc(u.full_name)+'</b></td><td>'+esc(u.login_id||u.employee_id||'—')+'</td><td>'+esc(u.hub_code||'—')+'</td><td>'+esc(roleLabel[u.role]||u.role)+'</td><td>'+(u.deleted===true?'<span class="status s-overdue">Dihapus</span>':u.active===false?'<span class="status s-overdue">Nonaktif</span>':'<span class="status s-closed">Aktif</span>')+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap">'+
+ (u.id===currentUser.id?'<span class="sub">Akun Anda</span>':u.deleted===true?'<button class="btn btn-sm" onclick="restoreUser(\''+u.id+'\')">Pulihkan</button>':'<button class="btn btn-sm" onclick="editUserProfile(\''+u.id+'\')">Edit</button><button class="btn btn-sm" onclick="toggleUserActive(\''+u.id+'\','+(u.active===false?'true':'false')+')">'+(u.active===false?'Aktifkan':'Nonaktifkan')+'</button><button class="btn btn-sm" onclick="softDeleteUser(\''+u.id+'\')">Hapus akses</button>')+
+ '</div></td></tr>').join('')||'<tr><td colspan="6"><div class="empty">Belum ada akun tim.</div></td></tr>')+'</tbody></table></div><div class="card-body"><p class="sub">Hapus akses menonaktifkan profil login. Akun Firebase Authentication tidak dihapus oleh browser; akun yang dihapus dapat dipulihkan dari sini.</p></div></section>';
+}
+async function restoreUser(uid){
+ if(!isAdmin())return;const u=state.profiles.find(x=>x.id===uid&&x.deleted===true);if(!u)return;
+ if(!confirm('Pulihkan akses '+u.full_name+'? Pengguna dapat login kembali.'))return;
+ try{await fireDb.collection('users').doc(uid).update({active:true,deleted:false,restored_at:new Date().toISOString(),updated_at:new Date().toISOString()});await refreshData();renderUsers();toast('Akses pengguna berhasil dipulihkan.');}
+ catch(err){toast('Gagal memulihkan pengguna: '+err.message);}
 }
 function editUserProfile(uid){
   if(!isAdmin())return;const u=state.profiles.find(x=>x.id===uid&&x.deleted!==true);if(!u)return;
@@ -164,7 +173,7 @@ function renderSettings(){
   if(isAdmin())out+='<div class="grid dashboard-grid" style="margin-top:15px">'+optionCard('categories','Kategori',opts.categories)+optionCard('divisions','Divisi',opts.divisions)+'</div>';
   $('pageContent').innerHTML=out;
 }
-Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,selectCasePriority,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption});
+Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,selectCasePriority,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,restoreUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption});
 window.wctSetPriority=window.wctSetPriority;
 document.addEventListener('click',function(event){
   const button=event.target&&event.target.closest?event.target.closest('[onclick*="openCaseForm"]'):null;
