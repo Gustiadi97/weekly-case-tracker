@@ -49,21 +49,6 @@ function selectCasePriority(value){
   btn.setAttribute('aria-pressed',active?'true':'false');
  });
 }
-function wctHandlePriorityClick(event){
- const button=event.target&&event.target.closest?event.target.closest('.wct-priority-choice'):null;
- if(!button)return;
- event.preventDefault();
- const value=(button.dataset.value||button.textContent||'').trim();
- if(!['High','Medium','Low'].includes(value))return;
- const field=document.getElementById('selectedCasePriority');
- if(field)field.value=value;
- document.querySelectorAll('.wct-priority-choice').forEach(item=>{
-  const selected=(item.dataset.value||item.textContent||'').trim()===value;
-  item.classList.toggle('is-selected',selected);
-  item.setAttribute('aria-pressed',selected?'true':'false');
- });
-}
-document.addEventListener('click',wctHandlePriorityClick,true);
 function resetCaseFilters(){['caseSearch','hubFilter','statusFilter','categoryFilter','divisionFilter'].forEach(id=>{const el=$(id);if(el)el.value='';});renderCases();}
 function openCaseForm(){
   if(!isCoordinator()){toast('Hanya koordinator atau admin yang dapat membuat case.');return;}
@@ -73,7 +58,7 @@ function openCaseForm(){
   out+='<div class="field"><label>Kategori *</label><select name="category" required><option value="">Pilih kategori</option>'+cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select></div>';
   out+='<div class="field"><label>Divisi *</label><select name="division" required><option value="">Pilih divisi</option>'+divisions.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select></div>';
   out+='<div class="field"><label>Judul Case *</label><input name="title" required placeholder="Ringkas dan jelas"></div>';
-  out+='<div class="field span-2"><label>Prioritas *</label><input type="hidden" name="priority" id="selectedCasePriority" value="Medium"><div class="wct-priority-buttons"><button type="button" data-value="High" class="wct-priority-choice high" aria-pressed="false" onclick="window.wctSelectPriority(this);return false;">High</button><button type="button" data-value="Medium" class="wct-priority-choice medium is-selected" aria-pressed="true" onclick="window.wctSelectPriority(this);return false;">Medium</button><button type="button" data-value="Low" class="wct-priority-choice low" aria-pressed="false" onclick="window.wctSelectPriority(this);return false;">Low</button></div></div>';
+  out+='<div class="field span-2"><label>Prioritas *</label><input type="hidden" name="priority" id="selectedCasePriority" value="Medium"><div class="wct-priority-buttons"><button type="button" data-value="High" class="wct-priority-choice high" aria-pressed="false">High</button><button type="button" data-value="Medium" class="wct-priority-choice medium is-selected" aria-pressed="true">Medium</button><button type="button" data-value="Low" class="wct-priority-choice low" aria-pressed="false">Low</button></div></div>';
   out+='<div class="field span-2"><label>Problem Identification *</label><textarea name="problem_identification" required placeholder="Jelaskan apa yang terjadi, kapan, dampak, dan bukti awal."></textarea></div>';
   out+='<div class="field"><label>Target penyelesaian awal</label><input type="date" name="target_date"></div><div class="field"><label>Pelapor</label><input name="reporter" value="'+esc(currentUser.full_name||currentUser.login_id||'')+'" placeholder="Nama pelapor"></div>';
   out+='</div><div class="section-title">Corrective Action (opsional)</div><div class="form-grid"><div class="field span-2"><label>Tindakan perbaikan langsung</label><input name="ca_title" placeholder="Apa yang dilakukan untuk menyelesaikan masalah saat ini?"></div><div class="field"><label>PIC Corrective Action</label>'+profileSelect('ca_assigned')+'</div><div class="field"><label>Target Corrective Action</label><input type="date" name="ca_due"></div></div>';
@@ -106,7 +91,7 @@ function editCaseForm(id){
  const currentStatus=['open','in_progress','review','closed'].includes(c.status)?c.status:'open';
  out+='<div class="field"><label>Status *</label><select name="status"><option value="open" '+(currentStatus==='open'?'selected':'')+'>Open</option><option value="in_progress" '+(currentStatus==='in_progress'?'selected':'')+'>On Progress</option><option value="review" '+(currentStatus==='review'?'selected':'')+'>Need Review</option><option value="closed" '+(currentStatus==='closed'?'selected':'')+'>Closed</option></select></div>';
  const priority=['High','Medium','Low'].includes(c.priority)?c.priority:'Medium';
- out+='<div class="field"><label>Prioritas *</label><input type="hidden" name="priority" value="'+priority+'"><div class="wct-priority-buttons">'+['High','Medium','Low'].map(v=>'<button type="button" data-value="'+v+'" class="wct-priority-choice '+v.toLowerCase()+(priority===v?' is-selected':'')+'" aria-pressed="'+(priority===v?'true':'false')+'" onclick="window.wctSelectPriority(this);return false;">'+v+'</button>').join('')+'</div></div>';
+ out+='<div class="field"><label>Prioritas *</label><input type="hidden" name="priority" value="'+priority+'"><div class="wct-priority-buttons">'+['High','Medium','Low'].map(v=>'<button type="button" data-value="'+v+'" class="wct-priority-choice '+v.toLowerCase()+(priority===v?' is-selected':'')+'" aria-pressed="'+(priority===v?'true':'false')+'">'+v+'</button>').join('')+'</div></div>';
  out+='<div class="field span-2"><label>Problem Identification *</label><textarea name="problem_identification" required>'+esc(c.problem_identification||'')+'</textarea></div>';
  out+='<div class="field"><label>Target penyelesaian awal</label><input type="date" name="target_date" value="'+esc(c.target_date||'')+'"></div>';
  out+='<div class="field"><label>Pelapor</label><input name="reporter" value="'+esc(c.reporter||'')+'"></div>';
@@ -258,8 +243,7 @@ function renderSettings(){
   if(isAdmin())out+='<div class="grid dashboard-grid" style="margin-top:15px">'+optionCard('categories','Kategori',opts.categories)+optionCard('divisions','Divisi',opts.divisions)+'</div>';
   $('pageContent').innerHTML=out;
 }
-Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,editCaseForm,editCaseFormFromButton,saveEditedCase,selectCasePriority,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,restoreUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption});
-window.wctSetPriority=window.wctSetPriority;
+Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,editCaseForm,editCaseFormFromButton,saveEditedCase,selectCasePriority,renderSettings,renderUsers,openUserForm:window.openUserForm,editUserProfile,saveUserProfile,softDeleteUser,restoreUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption});
 document.addEventListener('click',function(event){
   const button=event.target&&event.target.closest?event.target.closest('[onclick*="openCaseForm"]'):null;
   if(!button)return;
@@ -282,33 +266,6 @@ document.addEventListener('click',function(event){
 },true);
 
 document.documentElement.dataset.wctUiEnhancement='reviewed-mobile-modal-v3';
-window.wctSetPriority=function(value,button){
- const allowed=['High','Medium','Low'];if(!allowed.includes(value))return false;
- const form=button&&button.closest?button.closest('form'):document.getElementById('caseForm');
- const field=form&&form.querySelector('input[name="priority"]');if(!field)return false;
- field.value=value;
- const buttons=form.querySelectorAll('.wct-priority-choice');
- buttons.forEach(item=>{const selected=(item.dataset.value||item.textContent||'').trim()===value;item.classList.toggle('is-selected',selected);item.setAttribute('aria-pressed',selected?'true':'false');});
- return true;
-};
-window.wctSelectPriority=function(button){
- if(!button)return false;
- const form=button.closest('form');if(!form)return false;
- const field=form.querySelector('input[name="priority"]');if(!field)return false;
- const value=button.dataset.value||button.textContent.trim();
- if(!['High','Medium','Low'].includes(value))return false;
- field.value=value;
- form.querySelectorAll('.wct-priority-choice').forEach(item=>{
-  const active=item===button;item.classList.toggle('is-selected',active);item.setAttribute('aria-pressed',active?'true':'false');
- });
- return true;
-};
-window.selectCasePriority=function(value){return window.wctSetPriority(value,null);};
-document.addEventListener('click',function(event){
- const button=event.target&&event.target.closest?event.target.closest('.wct-priority-choice'):null;
- if(!button)return;
- event.preventDefault();window.wctSetPriority(button.dataset.value||button.textContent.trim(),button);
-},true);
 function wctGetVisibleModalPanel(){
  const head=[...document.querySelectorAll('.modal-head')].find(el=>el.getClientRects().length);
  if(!head)return null;
