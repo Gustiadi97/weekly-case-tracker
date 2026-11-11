@@ -71,6 +71,7 @@ try {
   html = require('./ui-enhancements')(html);
   html = require('./design-refresh')(html);
   html = require('./priority-runtime')(html);
+  html = require('./admin-settings-runtime')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -93,7 +94,12 @@ try {
     ['admin settings option editor', 'async function saveEditedCaseOption'],
     ['empty option lists remain empty', 'categories: Array.isArray(saved.categories) ? saved.categories'],
     ['user profile editor', 'function editUserProfile'],
-    ['HUB profile field', 'name="hub_code"']
+    ['HUB profile field', 'name="hub_code"'],
+    ['standalone Admin settings runtime', 'id="wct-admin-settings-runtime"'],
+    ['Admin settings page replacement', 'window.renderSettings=open'],
+    ['Firestore category/division storage', "collection('app_settings').doc('case_options')"],
+    ['settings CRUD delegated handler', 'data-settings-action'],
+    ['settings add/edit forms', 'data-settings-form']
   ];
   const missingUiChecks = uiChecks.filter(([name, marker]) => !html.includes(marker)).map(([name]) => name);
   if (missingUiChecks.length) {
