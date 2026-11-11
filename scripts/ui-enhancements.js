@@ -100,7 +100,7 @@ async function saveCaseOptions(next){
   try{await fireDb.collection('app_settings').doc('case_options').set({...clean,updated_at:new Date().toISOString(),updated_by:currentUser.id},{merge:true});state.caseOptions=clean;toast('Pengaturan kategori dan divisi disimpan.');renderSettings();}
   catch(err){toast('Gagal menyimpan pengaturan: '+err.message);}
 }
-function addCaseOption(event,kind){event.preventDefault();const input=$('new-'+kind),value=String(input&&input.value||'').trim();if(!value){toast('Masukkan nama terlebih dahulu.');return;}const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};next[kind].push(value);saveCaseOptions(next);}
+function addCaseOption(event,kind){event.preventDefault();const input=$('new-'+kind),value=String(input&&input.value||'').trim();if(!value){toast('Masukkan nama terlebih dahulu.');return;}const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};if(!next[kind]){toast('Jenis pengaturan tidak dikenali.');return;}if(next[kind].some(item=>item.toLowerCase()===value.toLowerCase())){toast('Nama tersebut sudah ada.');if(input){input.select();}return;}next[kind].push(value);saveCaseOptions(next);}
 function editCaseOption(kind,index){
  if(!isAdmin())return;
  const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};
