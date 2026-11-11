@@ -45,7 +45,8 @@ module.exports = function applySourceFormTransform(html) {
     "  await fireDb.runTransaction(async tx=>{const snap=await tx.get(counterRef),next=(snap.exists?Number(snap.data().value||0):0)+1;saved={...row,id:caseRef.id,case_code:'CASE-'+String(next).padStart(3,'0')};tx.set(counterRef,{value:next,updated_at:new Date().toISOString()});tx.set(caseRef,rowWithCode(saved));actions.forEach((a,i)=>tx.set(refs[i],{...a,case_id:caseRef.id}));});",
     "  state.cases.unshift(saved);actions.forEach((a,i)=>state.actions.push({...a,id:refs[i].id,case_id:caseRef.id}));closeModal();toast('Case berhasil dibuat.');renderPage();",
     " }catch(err){console.error('Save case error:',err);toast('Gagal menyimpan case: '+(err.message||err));}",
-    '}'
+    '}',
+    'try{window.openCaseForm=openCaseForm;window.submitCase=submitCase;}catch(e){}'
   ].join('\n');
 
   return html.slice(0,start)+replacement+'\n'+html.slice(end);
