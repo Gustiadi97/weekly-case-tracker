@@ -2,66 +2,47 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function userDocExists() {
-      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
-    }
-    function activeUser() {
-      return userDocExists() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.active == true;
-    }
-    function role() { return request.auth.token.role; }
-    function isAdmin() { return activeUser() && role() == 'admin'; }
-    function isLead() { return activeUser() && (role() in ['admin', 'coordinator']); }
+    function profilePath(uid) { return /databases/$(database)/documents/users/$(uid); }
+    function hasProfile() { return signedIn() && exists(profilePath(request.auth.uid)); }
+    function profile() { return get(profilePath(request.auth.uid)).data; }
+    function activeUser() { return hasProfile() && profile().active == true; }
+    function isAdmin() { return activeUser() && profile().role == 'admin'; }
+    function isLead() { return activeUser() && profile().role in ['admin', 'coordinator']; }
 
     match /users/{uid} {
       allow read: if activeUser();
-      // User documents are provisioned and maintained only by trusted Cloud Functions.
-      allow create, update, delete: if false;
+      // First Admin profile is provisioned once in Firebase Console. Afterwards only Admins manage profiles.
+      allow create: if isAdmin() && request.resource.data.role in ['admin','coordinator','member','viewer'] && request.resource.data.active == true;
+      allow update: if isAdmin() && request.resource.data.role in ['admin','coordinator','member','viewer'];
+      allow delete: if false;
     }
-
     match /cases/{caseId} {
       allow read: if activeUser();
       allow create: if isLead() && request.resource.data.created_by == request.auth.uid;
       allow update, delete: if isLead();
     }
-
     match /actions/{actionId} {
       allow read: if activeUser();
       allow create: if isLead() && request.resource.data.created_by == request.auth.uid;
-      allow update: if isLead() || (
-        activeUser() && resource.data.assigned_to == request.auth.uid &&
-        request.resource.data.assigned_to == resource.data.assigned_to &&
-        request.resource.data.case_id == resource.data.case_id &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['progress', 'status', 'updated_at']) &&
-        request.resource.data.progress is int &&
-        request.resource.data.progress >= 0 && request.resource.data.progress <= 100
-      );
+      allow update: if isLead() || (activeUser() && resource.data.assigned_to == request.auth.uid && request.resource.data.assigned_to == resource.data.assigned_to && request.resource.data.case_id == resource.data.case_id && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['progress','status','updated_at']) && request.resource.data.progress is int && request.resource.data.progress >= 0 && request.resource.data.progress <= 100);
       allow delete: if isLead();
     }
-
     match /progress_logs/{logId} {
       allow read: if activeUser();
-      allow create: if activeUser() && request.resource.data.created_by == request.auth.uid &&
-        exists(/databases/$(database)/documents/actions/$(request.resource.data.action_id)) &&
-        (isLead() || get(/databases/$(database)/documents/actions/$(request.resource.data.action_id)).data.assigned_to == request.auth.uid);
+      allow create: if activeUser() && request.resource.data.created_by == request.auth.uid && exists(/databases/$(database)/documents/actions/$(request.resource.data.action_id)) && (isLead() || get(/databases/$(database)/documents/actions/$(request.resource.data.action_id)).data.assigned_to == request.auth.uid);
       allow update, delete: if false;
     }
-
     match /meetings/{meetingId} {
       allow read: if activeUser();
       allow create: if isLead() && request.resource.data.created_by == request.auth.uid;
       allow update, delete: if isLead();
     }
-
     match /counters/{counterId} {
       allow read: if isLead();
       allow create: if isLead() && counterId == 'case_sequence' && request.resource.data.value == 1;
-      allow update: if isLead() && counterId == 'case_sequence' &&
-        request.resource.data.value == resource.data.value + 1;
+      allow update: if isLead() && counterId == 'case_sequence' && request.resource.data.value == resource.data.value + 1;
       allow delete: if false;
     }
-
-    match /_system/{document=**} {
-      allow read, write: if false;
-    }
+    match /_system/{document=**} { allow read, write: if false; }
   }
 }
