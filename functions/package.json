@@ -1,0 +1,11 @@
+{
+  "name": "weekly-case-tracker-functions",
+  "description": "Trusted account management functions for Weekly Case Tracker",
+  "main": "index.js",
+  "engines": { "node": "22" },
+  "scripts": { "lint": "node --check index.js" },
+  "dependencies": {
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.3.2"
+  }
+}
