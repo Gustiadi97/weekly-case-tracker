@@ -1,17 +1,7 @@
 {
-  "firestore": {
-    "rules": "firestore.rules"
-  },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs22"
-  },
+  "firestore": { "rules": "firestore.rules" },
   "hosting": {
     "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ]
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   }
 }
