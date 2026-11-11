@@ -310,24 +310,31 @@ document.addEventListener('click',function(event){
  event.preventDefault();window.wctSetPriority(button.dataset.value||button.textContent.trim(),button);
 },true);
 function wctGetVisibleModalPanel(){
- const head=[...document.querySelectorAll('.modal-head')].find(el=>el.getClientRects().length);if(!head)return null;
- const byClass=head.closest('.modal');if(byClass)return byClass;
- let node=head.parentElement,candidate=null;
+ const head=[...document.querySelectorAll('.modal-head')].find(el=>el.getClientRects().length);
+ if(!head)return null;
+ let node=head.parentElement;
  while(node&&node!==document.body){
-  if(node.querySelector&&node.querySelector('.modal-body')&&node.querySelector('.modal-foot'))candidate=node;
-  if(node.classList&&node.classList.contains('modal-backdrop'))break;
+  if(node.querySelector&&node.querySelector('.modal-body')&&node.querySelector('.modal-foot'))return node;
   node=node.parentElement;
  }
- return candidate;
+ return null;
 }
 function wctApplySingleModalScroll(){
  if(!window.matchMedia||!window.matchMedia('(max-width: 680px)').matches)return;
  const panel=wctGetVisibleModalPanel();if(!panel)return;
- const body=panel.querySelector('.modal-body'),form=body&&body.closest('form'),overlay=panel.parentElement;
+ const head=panel.querySelector('.modal-head');
+ const body=panel.querySelector('.modal-body');
+ const form=body&&body.closest('form');
+ const foot=panel.querySelector('.modal-foot');
+ const overlay=panel.parentElement;
  const set=(el,styles)=>{if(!el)return;Object.entries(styles).forEach(([key,value])=>el.style.setProperty(key,value,'important'));};
- set(panel,{'display':'block','box-sizing':'border-box','width':'calc(100vw - 16px)','max-width':'none','height':'auto','max-height':'calc(100dvh - 16px)','overflow-x':'hidden','overflow-y':'auto','-webkit-overflow-scrolling':'touch','overscroll-behavior-y':'contain','touch-action':'pan-y','position':'relative','margin':'0 auto','border-radius':'16px'});
- set(form,{'display':'block','height':'auto','max-height':'none','min-height':'0','overflow':'visible'});
- set(body,{'display':'block','height':'auto','max-height':'none','min-height':'0','overflow':'visible','touch-action':'auto','padding-bottom':'24px'});
+
+ // Keep title and action footer in place; only the long form body scrolls.
+ set(panel,{'display':'flex','flex-direction':'column','box-sizing':'border-box','width':'calc(100vw - 16px)','max-width':'none','height':'auto','max-height':'calc(100dvh - 16px)','min-height':'0','overflow':'hidden','position':'relative','margin':'0 auto','border-radius':'16px'});
+ set(head,{'flex':'0 0 auto','position':'sticky','top':'0','z-index':'6','background':'#fff'});
+ set(form,{'display':'flex','flex-direction':'column','flex':'1 1 auto','height':'auto','max-height':'none','min-height':'0','overflow':'hidden'});
+ set(body,{'display':'block','flex':'1 1 auto','height':'auto','max-height':'none','min-height':'0','overflow-x':'hidden','overflow-y':'auto','-webkit-overflow-scrolling':'touch','overscroll-behavior-y':'contain','touch-action':'pan-y','padding-bottom':'24px'});
+ set(foot,{'flex':'0 0 auto','position':'sticky','bottom':'0','z-index':'6','background':'#fff','padding-bottom':'max(12px, env(safe-area-inset-bottom))'});
  set(overlay,{'position':'fixed','inset':'0','height':'100dvh','max-height':'100dvh','box-sizing':'border-box','display':'flex','align-items':'flex-start','justify-content':'center','overflow':'hidden','touch-action':'pan-y','padding':'max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom))'});
 }
 const wctOriginalOpenModalReviewed=openModal;
@@ -340,6 +347,25 @@ openModal=function(){
 };
 window.addEventListener('resize',wctApplySingleModalScroll,{passive:true});
 window.addEventListener('orientationchange',()=>setTimeout(wctApplySingleModalScroll,160),{passive:true});
+let wctTouchScrollBody=null,wctTouchLastY=0,wctTouchStartY=0;
+document.addEventListener('touchstart',function(event){
+ const target=event.target;
+ if(!target||!target.closest)return;
+ const body=target.closest('.modal-body');
+ if(!body){wctTouchScrollBody=null;return;}
+ wctApplySingleModalScroll();
+ wctTouchScrollBody=body;
+ if(event.touches&&event.touches[0])wctTouchLastY=wctTouchStartY=event.touches[0].clientY;
+},{passive:true,capture:true});
+document.addEventListener('touchmove',function(event){
+ if(!wctTouchScrollBody||!event.touches||!event.touches[0])return;
+ const y=event.touches[0].clientY,delta=wctTouchLastY-y;
+ wctTouchLastY=y;
+ if(Math.abs(y-wctTouchStartY)<4)return;
+ wctTouchStartY=y;
+ wctTouchScrollBody.scrollTop+=delta;
+ if(event.cancelable)event.preventDefault();
+},{passive:false,capture:true});
 if(typeof MutationObserver!=='undefined'){
  const wctModalLayoutObserver=new MutationObserver(()=>requestAnimationFrame(wctApplySingleModalScroll));
  wctModalLayoutObserver.observe(document.body,{childList:true,subtree:true});
