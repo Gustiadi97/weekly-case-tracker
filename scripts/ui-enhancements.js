@@ -9,8 +9,8 @@ refreshData = async function() {
     const snap = await fireDb.collection('app_settings').doc('case_options').get();
     const saved = snap.exists ? snap.data() : {};
     state.caseOptions = {
-      categories: Array.isArray(saved.categories) && saved.categories.length ? saved.categories : WCT_DEFAULT_CATEGORIES.slice(),
-      divisions: Array.isArray(saved.divisions) && saved.divisions.length ? saved.divisions : WCT_DEFAULT_DIVISIONS.slice()
+      categories: Array.isArray(saved.categories) ? saved.categories : WCT_DEFAULT_CATEGORIES.slice(),
+      divisions: Array.isArray(saved.divisions) ? saved.divisions : WCT_DEFAULT_DIVISIONS.slice()
     };
   } catch (err) {
     console.warn('Case options unavailable; using defaults:', err);
@@ -165,31 +165,103 @@ async function submitCase(e){
   }catch(err){if(submitButton){submitButton.disabled=false;submitButton.textContent=submitButton.dataset.originalLabel||'Simpan Case';}toast('Gagal menyimpan case: '+(err.message||err));}
 }
 async function saveCaseOptions(next){
-  if(!isAdmin()){toast('Hanya Admin yang dapat mengubah kategori dan divisi.');return;}
-  const clean={categories:[...new Set((next.categories||[]).map(x=>String(x).trim()).filter(Boolean))],divisions:[...new Set((next.divisions||[]).map(x=>String(x).trim()).filter(Boolean))]};
-  try{await fireDb.collection('app_settings').doc('case_options').set({...clean,updated_at:new Date().toISOString(),updated_by:currentUser.id},{merge:true});state.caseOptions=clean;toast('Pengaturan kategori dan divisi disimpan.');renderSettings();}
-  catch(err){toast('Gagal menyimpan pengaturan: '+err.message);}
+  if(!isAdmin()){toast('Hanya Admin yang dapat mengubah kategori dan divisi.');return false;}
+  const clean={
+    categories:[...new Set((next.categories||[]).map(x=>String(x).trim()).filter(Boolean))],
+    divisions:[...new Set((next.divisions||[]).map(x=>String(x).trim()).filter(Boolean))]
+  };
+  try{
+    await fireDb.collection('app_settings').doc('case_options').set({
+      categories:clean.categories,
+      divisions:clean.divisions,
+      updated_at:new Date().toISOString(),
+      updated_by:currentUser.id
+    },{merge:true});
+    state.caseOptions=clean;
+    toast('Pengaturan Kategori dan Divisi berhasil disimpan.');
+    renderSettings();
+    return true;
+  }catch(err){
+    console.error('Save case options failed:',err);
+    toast('Gagal menyimpan pengaturan: '+(err.message||err));
+    return false;
+  }
 }
-function addCaseOption(event,kind){event.preventDefault();const input=$('new-'+kind),value=String(input&&input.value||'').trim();if(!value){toast('Masukkan nama terlebih dahulu.');return;}const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};if(!next[kind]){toast('Jenis pengaturan tidak dikenali.');return;}if(next[kind].some(item=>item.toLowerCase()===value.toLowerCase())){toast('Nama tersebut sudah ada.');if(input){input.select();}return;}next[kind].push(value);saveCaseOptions(next);}
+async function addCaseOption(event,kind,form){
+  event.preventDefault();
+  if(!isAdmin())return;
+  form=form||event.target;
+  const input=form&&form.querySelector('[name="option_name"]');
+  const value=String(input&&input.value||'').trim();
+  if(!['categories','divisions'].includes(kind)){toast('Jenis pengaturan tidak dikenali.');return;}
+  if(!value){toast('Masukkan nama terlebih dahulu.');input&&input.focus();return;}
+  const current=wctOptions();
+  const next={categories:current.categories.slice(),divisions:current.divisions.slice()};
+  if(next[kind].some(item=>item.toLocaleLowerCase()===value.toLocaleLowerCase())){
+    toast('Nama tersebut sudah ada.');
+    if(input){input.focus();input.select();}
+    return;
+  }
+  const button=form.querySelector('button[type="submit"]');
+  if(button&&button.disabled)return;
+  if(button){button.disabled=true;button.dataset.originalLabel=button.textContent;button.textContent='Menyimpan...';}
+  next[kind].push(value);
+  const saved=await saveCaseOptions(next);
+  if(!saved&&button){button.disabled=false;button.textContent=button.dataset.originalLabel||'Tambah';}
+}
 function editCaseOption(kind,index){
- if(!isAdmin())return;
- const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};
- if(!next[kind]||typeof next[kind][index]!=='string')return;
- const current=next[kind][index],title=kind==='categories'?'Kategori':'Divisi';
- const html='<div class="modal-head"><div><div class="eyebrow">PENGATURAN CASE</div><h2>Edit '+title+'</h2></div><button class="close" type="button" onclick="closeModal()">×</button></div>'+
- '<form onsubmit="saveEditedCaseOption(event,\''+kind+'\','+index+')"><div class="modal-body"><div class="field"><label>Nama '+title+' *</label><input name="option_name" required maxlength="60" value="'+esc(current)+'" autofocus></div></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary" type="submit">Simpan Perubahan</button></div></form>';
- openModal(html);
+  if(!isAdmin())return;
+  if(!['categories','divisions'].includes(kind))return;
+  const list=wctOptions()[kind]||[];
+  if(!Number.isInteger(Number(index))||!list[Number(index)])return;
+  const value=list[Number(index)];
+  const title=kind==='categories'?'Kategori':'Divisi';
+  const html=
+    '<div class="modal-head"><div><div class="eyebrow">PENGATURAN ADMIN</div><h2>Edit '+title+'</h2><p class="sub">Perubahan akan digunakan pada form case berikutnya.</p></div><button class="close" type="button" onclick="closeModal()">×</button></div>'+
+    '<form class="wct-option-edit-form" data-wct-option-form="edit" data-kind="'+kind+'" data-index="'+Number(index)+'">'+
+    '<div class="modal-body"><div class="field"><label>Nama '+title+' *</label><input name="option_name" required maxlength="60" value="'+esc(value)+'" autocomplete="off"></div></div>'+
+    '<div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary" type="submit">Simpan Perubahan</button></div></form>';
+  openModal(html);
 }
-async function saveEditedCaseOption(event,kind,index){
- event.preventDefault();if(!isAdmin())return;
- const value=String(new FormData(event.target).get('option_name')||'').trim();
- if(!value){toast('Nama tidak boleh kosong.');return;}
- const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};
- if(!next[kind]||typeof next[kind][index]!=='string')return;
- if(next[kind].some((item,i)=>i!==index&&item.toLowerCase()===value.toLowerCase())){toast('Nama tersebut sudah digunakan.');return;}
- next[kind][index]=value;closeModal();await saveCaseOptions(next);
+async function saveEditedCaseOption(event,form){
+  event.preventDefault();
+  if(!isAdmin())return;
+  form=form||event.target;
+  const kind=form.dataset.kind,index=Number(form.dataset.index);
+  if(!['categories','divisions'].includes(kind)||!Number.isInteger(index)){toast('Data pilihan tidak valid.');return;}
+  const value=String(new FormData(form).get('option_name')||'').trim();
+  if(!value){toast('Nama tidak boleh kosong.');return;}
+  const current=wctOptions();
+  const next={categories:current.categories.slice(),divisions:current.divisions.slice()};
+  if(index<0||index>=next[kind].length){toast('Pilihan sudah berubah. Muat ulang Pengaturan.');return;}
+  if(next[kind].some((item,i)=>i!==index&&item.toLocaleLowerCase()===value.toLocaleLowerCase())){
+    toast('Nama tersebut sudah digunakan.');
+    return;
+  }
+  const button=form.querySelector('button[type="submit"]');
+  if(button&&button.disabled)return;
+  if(button){button.disabled=true;button.textContent='Menyimpan...';}
+  next[kind][index]=value;
+  const saved=await saveCaseOptions(next);
+  if(saved)closeModal();
+  else if(button){button.disabled=false;button.textContent='Simpan Perubahan';}
 }
-function deleteCaseOption(kind,index){if(!isAdmin())return;const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()},value=next[kind][index];if(!confirm('Hapus '+(kind==='categories'?'kategori ':'divisi ')+value+' dari pilihan baru? Case lama tetap menyimpan nilai sebelumnya.'))return;next[kind].splice(index,1);saveCaseOptions(next);}
+async function deleteCaseOption(kind,index){
+  if(!isAdmin())return;
+  if(!['categories','divisions'].includes(kind))return;
+  const current=wctOptions();
+  const next={categories:current.categories.slice(),divisions:current.divisions.slice()};
+  index=Number(index);
+  if(!Number.isInteger(index)||index<0||index>=next[kind].length)return;
+  const value=next[kind][index];
+  const type=kind==='categories'?'kategori':'divisi';
+  const inUse=state.cases.some(c=>String(c[kind==='categories'?'category':'division']||'').toLowerCase()===value.toLowerCase());
+  const note=inUse?' Nilai pada case lama tidak akan diubah; hanya pilihan untuk case baru yang dihapus.':'';
+  if(!confirm('Hapus '+type+' "'+value+'" dari daftar pilihan?'+note))return;
+  next[kind].splice(index,1);
+  await saveCaseOptions(next);
+}
+
 function renderUsers(){
  if(!isAdmin()){$('pageContent').innerHTML=pageHead('ACCESS CONTROL','Manajemen Pengguna','Menu ini khusus Admin.');return;}
  const rows=state.profiles.slice().sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
@@ -232,18 +304,64 @@ async function changeOwnPassword(event){
 }
 function renderSettings(){
   const opts=wctOptions();
-  function optionCard(kind,title,items){
-    let s='<section class="card"><div class="card-head"><div><h3>'+title+'</h3><p>Tambahkan, ubah, atau hapus pilihan untuk form case baru.</p></div></div><div class="card-body"><form class="wct-add-option" onsubmit="addCaseOption(event,\''+kind+'\')"><input id="new-'+kind+'" placeholder="Nama '+title.toLowerCase()+' baru" required><button class="btn btn-primary">＋ Tambah</button></form><div class="wct-option-list">';
-    s+=(items.map((x,i)=>'<div class="wct-option-row"><span>'+esc(x)+'</span><div><button class="btn btn-sm" type="button" onclick="editCaseOption(\''+kind+'\','+i+')">Edit</button> <button class="btn btn-sm" type="button" onclick="deleteCaseOption(\''+kind+'\','+i+')">Hapus</button></div></div>').join('')||'<div class="empty">Belum ada pilihan.</div>');
-    return s+'</div></div></section>';
+  function optionCard(kind,title,items,description){
+    const rows=items.map((value,index)=>
+      '<div class="wct-setting-option-row">'+
+        '<div class="wct-setting-option-name"><span class="wct-setting-option-index">'+String(index+1).padStart(2,'0')+'</span><span>'+esc(value)+'</span></div>'+
+        '<div class="wct-setting-option-actions">'+
+          '<button class="btn btn-sm" type="button" data-wct-option-action="edit" data-kind="'+kind+'" data-index="'+index+'">Edit</button>'+
+          '<button class="btn btn-sm wct-danger-btn" type="button" data-wct-option-action="delete" data-kind="'+kind+'" data-index="'+index+'">Hapus</button>'+
+        '</div>'+
+      '</div>'
+    ).join('');
+    return '<section class="card wct-settings-option-card">'+
+      '<div class="card-head"><div><div class="wct-settings-card-kicker">MASTER DATA</div><h3>'+title+'</h3><p>'+description+'</p></div><span class="wct-settings-count">'+items.length+' pilihan</span></div>'+
+      '<div class="card-body">'+
+        '<form class="wct-setting-add-form" data-wct-option-form="add" data-kind="'+kind+'">'+
+          '<div class="wct-setting-add-input"><label>Tambah '+title+'</label><input name="option_name" required maxlength="60" placeholder="Ketik nama '+title.toLowerCase()+' baru..." autocomplete="off"></div>'+
+          '<button class="btn btn-primary" type="submit"><span aria-hidden="true">＋</span> Tambah</button>'+
+        '</form>'+
+        '<div class="wct-setting-list-heading"><strong>Daftar '+title+'</strong><span>Dikelola Admin</span></div>'+
+        '<div class="wct-setting-option-list">'+(rows||'<div class="wct-setting-empty"><span class="wct-setting-empty-icon">＋</span><b>Belum ada '+title.toLowerCase()+'</b><small>Tambahkan pilihan pertama melalui kolom di atas.</small></div>')+'</div>'+
+      '</div></section>';
   }
-  let passwordCard='<section class="card"><div class="card-head"><div><h3>Keamanan Akun</h3><p>Ganti password akun yang sedang digunakan.</p></div></div><div class="card-body"><form class="form-grid" onsubmit="changeOwnPassword(event)"><div class="field span-2"><label>Password saat ini</label><input name="current_password" type="password" required autocomplete="current-password"></div><div class="field"><label>Password baru (minimal 6 karakter)</label><input name="new_password" type="password" required minlength="6" autocomplete="new-password"></div><div class="field"><label>Ulangi password baru</label><input name="confirm_password" type="password" required minlength="6" autocomplete="new-password"></div><div class="span-2"><button class="btn btn-primary">Simpan Password Baru</button></div></form><p class="sub">Password pengguna lain tidak dapat diubah dari browser tanpa backend tepercaya.</p></div></section>';
-  let out=pageHead('SYSTEM SETTINGS','Pengaturan','Kelola pilihan case dan keamanan akun.');
-  out+='<div class="grid dashboard-grid"><section class="card"><div class="card-head"><div><h3>Koneksi Database</h3><p>Status penyimpanan aplikasi</p></div><span class="pill live">FIREBASE CONNECTED</span></div><div class="card-body"><div class="meeting-row"><div><strong>Firebase Project</strong><small>weekly-case-tracker</small></div></div><div class="meeting-row"><div><strong>Database</strong><small>Cloud Firestore</small></div></div><div class="meeting-row"><div><strong>Login</strong><small>ID Pengguna + Password</small></div></div></div></section>'+passwordCard+'</div>';
-  if(isAdmin())out+='<div class="grid dashboard-grid" style="margin-top:15px">'+optionCard('categories','Kategori',opts.categories)+optionCard('divisions','Divisi',opts.divisions)+'</div>';
+  const passwordCard='<section class="card"><div class="card-head"><div><h3>Keamanan Akun</h3><p>Ganti password akun yang sedang digunakan.</p></div></div><div class="card-body"><form class="form-grid" onsubmit="changeOwnPassword(event)"><div class="field span-2"><label>Password saat ini</label><input name="current_password" type="password" required autocomplete="current-password"></div><div class="field"><label>Password baru (minimal 6 karakter)</label><input name="new_password" type="password" required minlength="6" autocomplete="new-password"></div><div class="field"><label>Ulangi password baru</label><input name="confirm_password" type="password" required minlength="6" autocomplete="new-password"></div><div class="span-2"><button class="btn btn-primary" type="submit">Simpan Password Baru</button></div></form><p class="sub">Password pengguna lain tidak dapat diubah dari browser tanpa backend tepercaya.</p></div></section>';
+  let out=pageHead('ADMIN SETTINGS','Pengaturan Admin','Kelola master data Kategori dan Divisi yang digunakan pada form PICAPA.');
+  if(isAdmin()){
+    out+='<section class="wct-settings-intro"><div class="wct-settings-intro-icon">⚙</div><div><strong>Pengaturan Form Case</strong><p>Daftar di bawah ini menjadi pilihan pada form Create New Case dan Edit Case. Perubahan tersimpan ke Cloud Firestore.</p></div><span class="wct-settings-saved"><i></i> Tersimpan di database</span></section>';
+    out+='<div class="wct-settings-master-grid">'+
+      optionCard('categories','Kategori',opts.categories,'Kelompok jenis permasalahan operasional.')+
+      optionCard('divisions','Divisi',opts.divisions,'Unit atau fungsi yang menangani permasalahan.')+
+    '</div>';
+  }else{
+    out+='<section class="card"><div class="card-body"><b>Pengaturan master data khusus Admin.</b><p class="sub">Hubungi Admin untuk menambah atau mengubah Kategori dan Divisi.</p></div></section>';
+  }
+  out+='<div class="wct-settings-lower">'+
+    '<section class="card"><div class="card-head"><div><h3>Koneksi Database</h3><p>Status penyimpanan aplikasi</p></div><span class="pill live">FIREBASE CONNECTED</span></div><div class="card-body"><div class="meeting-row"><div><strong>Firebase Project</strong><small>weekly-case-tracker</small></div></div><div class="meeting-row"><div><strong>Database</strong><small>Cloud Firestore</small></div></div><div class="meeting-row"><div><strong>Login</strong><small>ID Pengguna + Password</small></div></div></div></section>'+
+    passwordCard+
+  '</div>';
   $('pageContent').innerHTML=out;
 }
-Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,editCaseForm,editCaseFormFromButton,saveEditedCase,selectCasePriority,renderSettings,renderUsers,openUserForm:window.openUserForm,editUserProfile,saveUserProfile,softDeleteUser,restoreUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption});
+
+Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,editCaseForm,editCaseFormFromButton,saveEditedCase,selectCasePriority,renderSettings,renderUsers,openUserForm:window.openUserForm,editUserProfile,saveUserProfile,softDeleteUser,restoreUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption,saveCaseOptions});
+
+document.addEventListener('submit',function(event){
+  const form=event.target;
+  if(!form||!form.matches||!form.matches('[data-wct-option-form]'))return;
+  event.preventDefault();
+  const kind=form.dataset.kind;
+  if(form.dataset.wctOptionForm==='add')addCaseOption(event,kind,form);
+  else if(form.dataset.wctOptionForm==='edit')saveEditedCaseOption(event,form);
+},true);
+document.addEventListener('click',function(event){
+  const button=event.target&&event.target.closest?event.target.closest('[data-wct-option-action]'):null;
+  if(!button)return;
+  event.preventDefault();
+  const kind=button.dataset.kind,index=Number(button.dataset.index);
+  if(button.dataset.wctOptionAction==='edit')editCaseOption(kind,index);
+  else if(button.dataset.wctOptionAction==='delete')deleteCaseOption(kind,index);
+},true);
+
 document.addEventListener('click',function(event){
   const button=event.target&&event.target.closest?event.target.closest('[onclick*="openCaseForm"]'):null;
   if(!button)return;
