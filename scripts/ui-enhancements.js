@@ -92,18 +92,18 @@ function renderUsers(){
   if(!isAdmin()){$('pageContent').innerHTML=pageHead('ACCESS CONTROL','Manajemen Pengguna','Menu ini khusus Admin.');return;}
   const rows=state.profiles.filter(u=>u.deleted!==true).slice().sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
   $('pageContent').innerHTML=pageHead('ACCESS CONTROL','Manajemen Pengguna','Kelola profil, role, dan status akses pengguna.','<button class="btn btn-primary" onclick="openUserForm()">＋ Buat Pengguna</button>')+
-  '<section class="card"><div class="card-head"><div><h3>Daftar Akun</h3><p>'+rows.length+' akun terdaftar</p></div><span class="pill">Firebase Authentication</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Nama</th><th>ID Login</th><th>Area</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>'+
-  (rows.map(u=>'<tr><td><b>'+esc(u.full_name)+'</b></td><td>'+esc(u.login_id||u.employee_id||'—')+'</td><td>'+esc(u.area_name||'Semua area')+'</td><td>'+esc(roleLabel[u.role]||u.role)+'</td><td>'+(u.active===false?'<span class="status s-overdue">Nonaktif</span>':'<span class="status s-closed">Aktif</span>')+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn btn-sm" onclick="editUserProfile(\''+u.id+'\')">Edit</button>'+(u.id!==currentUser.id?'<button class="btn btn-sm" onclick="toggleUserActive(\''+u.id+'\','+(u.active===false?'true':'false')+')">'+(u.active===false?'Aktifkan':'Nonaktifkan')+'</button><button class="btn btn-sm" onclick="softDeleteUser(\''+u.id+'\')">Hapus akses</button>':'<span class="sub">Akun Anda</span>')+'</div></td></tr>').join('')||'<tr><td colspan="6"><div class="empty">Belum ada akun tim.</div></td></tr>')+'</tbody></table></div></section>';
+  '<section class="card"><div class="card-head"><div><h3>Daftar Akun</h3><p>'+rows.length+' akun terdaftar</p></div><span class="pill">Firebase Authentication</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Nama</th><th>ID Login</th><th>HUB</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>'+
+  (rows.map(u=>'<tr><td><b>'+esc(u.full_name)+'</b></td><td>'+esc(u.login_id||u.employee_id||'—')+'</td><td>'+esc(u.hub_code||'—')+'</td><td>'+esc(roleLabel[u.role]||u.role)+'</td><td>'+(u.active===false?'<span class="status s-overdue">Nonaktif</span>':'<span class="status s-closed">Aktif</span>')+'</td><td><div style="display:flex;gap:5px;flex-wrap:wrap"><button class="btn btn-sm" onclick="editUserProfile(\''+u.id+'\')">Edit</button>'+(u.id!==currentUser.id?'<button class="btn btn-sm" onclick="toggleUserActive(\''+u.id+'\','+(u.active===false?'true':'false')+')">'+(u.active===false?'Aktifkan':'Nonaktifkan')+'</button><button class="btn btn-sm" onclick="softDeleteUser(\''+u.id+'\')">Hapus akses</button>':'<span class="sub">Akun Anda</span>')+'</div></td></tr>').join('')||'<tr><td colspan="6"><div class="empty">Belum ada akun tim.</div></td></tr>')+'</tbody></table></div></section>';
 }
 function editUserProfile(uid){
   if(!isAdmin())return;const u=state.profiles.find(x=>x.id===uid&&x.deleted!==true);if(!u)return;
   let out='<div class="modal-head"><div><div class="eyebrow">EDIT USER</div><h2>Edit Profil Pengguna</h2></div><button class="close" onclick="closeModal()">×</button></div>';
-  out+='<form onsubmit="saveUserProfile(event,\''+uid+'\')"><div class="modal-body"><div class="form-grid"><div class="field span-2"><label>Nama lengkap *</label><input name="full_name" required minlength="2" value="'+esc(u.full_name||'')+'"></div><div class="field"><label>ID Login (tidak dapat diubah)</label><input value="'+esc(u.login_id||u.employee_id||'')+'" disabled></div><div class="field"><label>Area</label><input name="area_name" value="'+esc(u.area_name||'')+'"></div><div class="field span-2"><label>Role *</label><select name="role"><option value="admin" '+(u.role==='admin'?'selected':'')+'>Admin</option><option value="coordinator" '+(u.role==='coordinator'?'selected':'')+'>Koordinator</option><option value="member" '+(u.role==='member'?'selected':'')+'>Anggota / PIC</option><option value="viewer" '+(u.role==='viewer'?'selected':'')+'>Management / Viewer</option></select></div></div><p class="sub">Login ID tidak diubah karena terhubung ke Firebase Authentication.</p></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary">Simpan Perubahan</button></div></form>';
+  out+='<form onsubmit="saveUserProfile(event,\''+uid+'\')"><div class="modal-body"><div class="form-grid"><div class="field span-2"><label>Nama lengkap *</label><input name="full_name" required minlength="2" value="'+esc(u.full_name||'')+'"></div><div class="field"><label>ID Login (tidak dapat diubah)</label><input value="'+esc(u.login_id||u.employee_id||'')+'" disabled></div><div class="field"><label>HUB</label><input name="hub_code" value="'+esc(u.area_name||'')+'"></div><div class="field span-2"><label>Role *</label><select name="role"><option value="admin" '+(u.role==='admin'?'selected':'')+'>Admin</option><option value="coordinator" '+(u.role==='coordinator'?'selected':'')+'>Koordinator</option><option value="member" '+(u.role==='member'?'selected':'')+'>Anggota / PIC</option><option value="viewer" '+(u.role==='viewer'?'selected':'')+'>Management / Viewer</option></select></div></div><p class="sub">Login ID tidak diubah karena terhubung ke Firebase Authentication.</p></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary">Simpan Perubahan</button></div></form>';
   openModal(out);
 }
 async function saveUserProfile(event,uid){
   event.preventDefault();if(!isAdmin())return;const f=new FormData(event.target);const u=state.profiles.find(x=>x.id===uid);if(!u)return;
-  const changes={full_name:String(f.get('full_name')||'').trim(),area_name:String(f.get('area_name')||'').trim(),role:String(f.get('role')||'member'),updated_at:new Date().toISOString()};
+  const changes={full_name:String(f.get('full_name')||'').trim(),hub_code:String(f.get('hub_code')||'').trim().toUpperCase(),role:String(f.get('role')||'member'),updated_at:new Date().toISOString()};
   try{await fireDb.collection('users').doc(uid).update(changes);if(currentUser.id===uid)currentUser={...currentUser,...changes};await refreshData();closeModal();renderUsers();toast('Profil pengguna berhasil diperbarui.');if(currentUser.id===uid)showApp();}
   catch(err){toast('Gagal mengubah profil: '+err.message);}
 }
@@ -146,6 +146,14 @@ document.addEventListener('click',function(event){
     if(typeof toast==='function')toast('Create Case gagal dibuka: '+(error.message||error));
   }
 },true);
+
+document.addEventListener('click',function(event){
+ const nav=event.target&&event.target.closest?event.target.closest('button,a'):null;if(!nav)return;
+ const label=(nav.innerText||nav.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+ if(label==='pengaturan')setTimeout(()=>{if(window.renderSettings)window.renderSettings();},120);
+ if(label==='manajemen pengguna')setTimeout(()=>{if(window.renderUsers)window.renderUsers();},120);
+},true);
+
 document.documentElement.dataset.wctUiEnhancement='89c29b7-ui2';
 function wctApplyModalTouchScroll(){
   const heads=[...document.querySelectorAll('.modal-head')];
