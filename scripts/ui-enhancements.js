@@ -84,6 +84,9 @@ async function submitCase(e){
   e.preventDefault();const f=new FormData(e.target);
   const row={hub_code:String(f.get('hub_code')||'').trim().toUpperCase(),category:String(f.get('category')||'').trim(),division:String(f.get('division')||'').trim(),title:String(f.get('title')||'').trim(),priority:String(f.get('priority')||'Medium'),problem_identification:String(f.get('problem_identification')||'').trim(),reporter:String(f.get('reporter')||currentUser.full_name||currentUser.login_id||'').trim(),status:'open',target_date:f.get('target_date')||null,created_by:currentUser.id,created_at:new Date().toISOString()};
   if(!row.hub_code||!row.category||!row.division||!row.title||!row.problem_identification){toast('Lengkapi HUB, kategori, divisi, judul, dan problem identification.');return;}
+  const submitButton=e.submitter||e.target.querySelector('button[type="submit"]');
+  if(submitButton&&submitButton.disabled)return;
+  if(submitButton){submitButton.disabled=true;submitButton.dataset.originalLabel=submitButton.textContent;submitButton.textContent='Menyimpan...';}
   try{
     const caseRef=fireDb.collection('cases').doc(),counterRef=fireDb.collection('counters').doc('case_sequence');
     const actions=[],ca=String(f.get('ca_title')||'').trim(),pa=String(f.get('pa_title')||'').trim();
@@ -92,7 +95,7 @@ async function submitCase(e){
     const refs=actions.map(()=>fireDb.collection('actions').doc());let saved;
     await fireDb.runTransaction(async tx=>{const snap=await tx.get(counterRef),next=(snap.exists?Number(snap.data().value||0):0)+1;saved={...row,id:caseRef.id,case_code:'CASE-'+String(next).padStart(3,'0')};tx.set(counterRef,{value:next,updated_at:new Date().toISOString()});tx.set(caseRef,saved);actions.forEach((a,i)=>tx.set(refs[i],{...a,case_id:caseRef.id}));});
     state.cases.unshift(saved);actions.forEach((a,i)=>state.actions.push({...a,id:refs[i].id,case_id:caseRef.id}));closeModal();toast('Case berhasil dibuat.');renderPage();
-  }catch(err){toast('Gagal menyimpan case: '+(err.message||err));}
+  }catch(err){if(submitButton){submitButton.disabled=false;submitButton.textContent=submitButton.dataset.originalLabel||'Simpan Case';}toast('Gagal menyimpan case: '+(err.message||err));}
 }
 async function saveCaseOptions(next){
   if(!isAdmin()){toast('Hanya Admin yang dapat mengubah kategori dan divisi.');return;}
