@@ -1,0 +1,10 @@
+{
+  "name": "weekly-case-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Weekly PICAPA and operational case tracking application",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "deploy:firebase": "npm run build && firebase deploy --only firestore:rules,functions,hosting"
+  }
+}
