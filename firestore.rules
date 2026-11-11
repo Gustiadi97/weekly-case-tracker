@@ -10,7 +10,7 @@ service cloud.firestore {
     function isLead() { return activeUser() && profile().role in ['admin', 'coordinator']; }
 
     match /users/{uid} {
-      allow read: if activeUser();
+      allow read: if signedIn() && (request.auth.uid == uid || activeUser());
       // First Admin profile is provisioned once in Firebase Console. Afterwards only Admins manage profiles.
       allow create: if isAdmin() && request.resource.data.role in ['admin','coordinator','member','viewer'] && request.resource.data.active == true;
       allow update: if isAdmin() && request.resource.data.role in ['admin','coordinator','member','viewer'];
