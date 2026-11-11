@@ -85,7 +85,13 @@ try {
     ['case editor list action', 'onclick="editCaseFormFromButton(this)"'],
     ['mobile case card layout', 'wct-case-mobile-cards'],
     ['design refresh stylesheet', 'id="wct-design-refresh"'],
-    ['admin settings option editor', 'function saveEditedCaseOption'],
+    ['admin settings renderer', 'function renderSettings()'],
+    ['admin categories and divisions section', 'wct-settings-master-grid'],
+    ['category/division add form handler', 'data-wct-option-form'],
+    ['category/division edit and delete controls', 'data-wct-option-action'],
+    ['category/division save to Firestore', 'Pengaturan Kategori dan Divisi berhasil disimpan.'],
+    ['admin settings option editor', 'async function saveEditedCaseOption'],
+    ['empty option lists remain empty', 'categories: Array.isArray(saved.categories) ? saved.categories'],
     ['user profile editor', 'function editUserProfile'],
     ['HUB profile field', 'name="hub_code"']
   ];
