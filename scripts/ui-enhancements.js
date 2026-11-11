@@ -124,6 +124,19 @@ function renderSettings(){
   $('pageContent').innerHTML=out;
 }
 Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,changeOwnPassword,addCaseOption,editCaseOption,deleteCaseOption});
+document.addEventListener('click',function(event){
+  const button=event.target&&event.target.closest?event.target.closest('[onclick*="openCaseForm"]'):null;
+  if(!button)return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  try{
+    if(typeof window.openCaseForm!=='function')throw new Error('Handler Create Case belum termuat.');
+    window.openCaseForm();
+  }catch(error){
+    console.error('Create Case click failed:',error);
+    if(typeof toast==='function')toast('Create Case gagal dibuka: '+(error.message||error));
+  }
+},true);
 document.documentElement.dataset.wctUiEnhancement='89c29b7-ui2';
 function wctApplyModalTouchScroll(){
   const heads=[...document.querySelectorAll('.modal-head')];
