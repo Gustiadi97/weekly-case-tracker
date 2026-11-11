@@ -35,7 +35,7 @@ function renderCases(){
   out+='<select class="filter" id="categoryFilter" onchange="renderCases()"><option value="">Semua Kategori</option>'+cats.map(x=>'<option value="'+esc(x)+'" '+(x===cat?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';
   out+='<select class="filter" id="divisionFilter" onchange="renderCases()"><option value="">Semua Divisi</option>'+divisions.map(x=>'<option value="'+esc(x)+'" '+(x===division?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select><button class="btn btn-sm filter-reset" type="button" onclick="resetCaseFilters()">Reset filter</button></div>';
   out+='<section class="card"><div class="card-head"><div><h3>Daftar Permasalahan</h3><p>'+arr.length+' case ditampilkan</p></div><span class="pill">Lintas HUB</span></div><div class="table-wrap"><table class="table"><thead><tr><th>Case / Problem</th><th>HUB</th><th>Divisi</th><th>Kategori</th><th>Prioritas</th><th>Progress</th><th>Target</th><th>Status</th><th></th></tr></thead><tbody>';
-  out+=arr.map(c=>'<tr><td><div class="case-title">'+esc(c.case_code)+' · '+esc(c.title)+'</div><div class="sub">Pelapor: '+esc(c.reporter||ownerName(c.created_by)||'—')+' · '+fmtDate((c.created_at||'').slice(0,10))+'</div></td><td><b>'+esc(c.hub_code||'—')+'</b></td><td>'+esc(c.division||'—')+'</td><td>'+esc(c.category||'—')+'</td><td><span class="priority '+String(c.priority||'').toLowerCase()+'">'+esc(c.priority||'—')+'</span></td><td><div class="progress-wrap"><div class="progress-track"><span style="width:'+caseProgress(c.id)+'%"></span></div><b>'+caseProgress(c.id)+'%</b></div></td><td>'+fmtDate(c.target_date)+'</td><td>'+statusBadge(caseStatus(c))+'</td><td><button class="btn btn-sm" onclick="openCaseDetail(\''+c.id+'\')">Detail ↗</button></td></tr>').join('')||'<tr><td colspan="9"><div class="empty"><b>Belum ada case yang cocok.</b>Ubah filter atau buat case baru.</div></td></tr>';
+  out+=arr.map(c=>'<tr><td><div class="case-title">'+esc(c.case_code)+' · '+esc(c.title)+'</div><div class="sub">Pelapor: '+esc(c.reporter||ownerName(c.created_by)||'—')+' · '+fmtDate((c.created_at||'').slice(0,10))+'</div></td><td><b>'+esc(c.hub_code||'—')+'</b></td><td>'+esc(c.division||'—')+'</td><td>'+esc(c.category||'—')+'</td><td><span class="priority '+String(c.priority||'').toLowerCase()+'">'+esc(c.priority||'—')+'</span></td><td><div class="progress-wrap"><div class="progress-track"><span style="width:'+caseProgress(c.id)+'%"></span></div><b>'+caseProgress(c.id)+'%</b></div></td><td>'+fmtDate(c.target_date)+'</td><td>'+statusBadge(caseStatus(c))+'</td><td><div class="wct-row-actions"><button class="btn btn-sm" onclick="openCaseDetail(\''+c.id+'\')">Detail</button>'+(isCoordinator()?'<button class="btn btn-sm btn-primary" data-case-id="'+esc(c.id)+'" onclick="editCaseFormFromButton(this)">Edit</button>':'')+'</div></td></tr>').join('')||'<tr><td colspan="9"><div class="empty"><b>Belum ada case yang cocok.</b>Ubah filter atau buat case baru.</div></td></tr>';
   out+='</tbody></table></div></section>';
   $('pageContent').innerHTML=out;
   if(['caseSearch','hubFilter','statusFilter','categoryFilter','divisionFilter'].includes(activeId)){const el=$(activeId);if(el){el.focus();if(activeId==='caseSearch'&&cursor!==null)el.setSelectionRange(cursor,cursor);}}
@@ -73,13 +73,95 @@ function openCaseForm(){
   out+='<div class="field"><label>Kategori *</label><select name="category" required><option value="">Pilih kategori</option>'+cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select></div>';
   out+='<div class="field"><label>Divisi *</label><select name="division" required><option value="">Pilih divisi</option>'+divisions.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select></div>';
   out+='<div class="field"><label>Judul Case *</label><input name="title" required placeholder="Ringkas dan jelas"></div>';
-  out+='<div class="field span-2"><label>Prioritas *</label><input type="hidden" name="priority" id="selectedCasePriority" value="Medium"><div class="wct-priority-buttons"><button type="button" data-value="High" class="wct-priority-choice high" aria-pressed="false" onclick="window.wctSetPriority(&#39;High&#39;,this);return false;">High</button><button type="button" data-value="Medium" class="wct-priority-choice medium is-selected" aria-pressed="true" onclick="window.wctSetPriority(&#39;Medium&#39;,this);return false;">Medium</button><button type="button" data-value="Low" class="wct-priority-choice low" aria-pressed="false" onclick="window.wctSetPriority(&#39;Low&#39;,this);return false;">Low</button></div></div>';
+  out+='<div class="field span-2"><label>Prioritas *</label><input type="hidden" name="priority" id="selectedCasePriority" value="Medium"><div class="wct-priority-buttons"><button type="button" data-value="High" class="wct-priority-choice high" aria-pressed="false" onclick="window.wctSelectPriority(this);return false;">High</button><button type="button" data-value="Medium" class="wct-priority-choice medium is-selected" aria-pressed="true" onclick="window.wctSelectPriority(this);return false;">Medium</button><button type="button" data-value="Low" class="wct-priority-choice low" aria-pressed="false" onclick="window.wctSelectPriority(this);return false;">Low</button></div></div>';
   out+='<div class="field span-2"><label>Problem Identification *</label><textarea name="problem_identification" required placeholder="Jelaskan apa yang terjadi, kapan, dampak, dan bukti awal."></textarea></div>';
   out+='<div class="field"><label>Target penyelesaian awal</label><input type="date" name="target_date"></div><div class="field"><label>Pelapor</label><input name="reporter" value="'+esc(currentUser.full_name||currentUser.login_id||'')+'" placeholder="Nama pelapor"></div>';
   out+='</div><div class="section-title">Corrective Action (opsional)</div><div class="form-grid"><div class="field span-2"><label>Tindakan perbaikan langsung</label><input name="ca_title" placeholder="Apa yang dilakukan untuk menyelesaikan masalah saat ini?"></div><div class="field"><label>PIC Corrective Action</label>'+profileSelect('ca_assigned')+'</div><div class="field"><label>Target Corrective Action</label><input type="date" name="ca_due"></div></div>';
   out+='<div class="section-title">Preventive Action (opsional)</div><div class="form-grid"><div class="field span-2"><label>Tindakan pencegahan</label><input name="pa_title" placeholder="Apa yang dilakukan agar masalah tidak terulang?"></div><div class="field"><label>PIC Preventive Action</label>'+profileSelect('pa_assigned')+'</div><div class="field"><label>Target Preventive Action</label><input type="date" name="pa_due"></div></div></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary" type="submit">Simpan Case</button></div></form>';
   openModal(out,true);
 }
+function editCaseFormFromButton(button){
+ const id=button&&button.dataset?button.dataset.caseId:'';
+ if(id)editCaseForm(id);
+}
+function editCaseForm(id){
+ if(!isCoordinator()){toast('Hanya Admin atau Koordinator yang dapat mengubah case.');return;}
+ const c=state.cases.find(x=>x.id===id);if(!c){toast('Case tidak ditemukan.');return;}
+ const opts=wctOptions();
+ const cats=[...new Set([...(opts.categories||[]),c.category].filter(Boolean))];
+ const divisions=[...new Set([...(opts.divisions||[]),c.division].filter(Boolean))];
+ const actions=state.actions.filter(a=>a.case_id===id);
+ const ca=actions.find(a=>a.action_type==='corrective')||null;
+ const pa=actions.find(a=>a.action_type==='preventive')||null;
+ const people=(state.profiles||[]).filter(p=>p.active!==false&&p.deleted!==true&&p.role!=='viewer');
+ const selectPic=function(name,selected){
+  return '<select name="'+name+'"><option value="">Belum ditentukan</option>'+people.map(p=>'<option value="'+esc(p.id)+'" '+(selected===p.id?'selected':'')+'>'+esc(p.full_name||p.login_id)+'</option>').join('')+'</select>';
+ };
+ let out='<div class="modal-head"><div><div class="eyebrow">CASE EDITOR · '+esc(c.case_code||'')+'</div><h2>Edit Case</h2><p class="sub">Perubahan akan disimpan ke database.</p></div><button class="close" type="button" onclick="closeModal()">×</button></div>';
+ out+='<form id="editCaseForm" onsubmit="saveEditedCase(event)"><input type="hidden" name="case_id" value="'+esc(id)+'"><div class="modal-body"><div class="form-grid">';
+ out+='<div class="field"><label>HUB *</label><input name="hub_code" required value="'+esc(c.hub_code||'')+'" placeholder="MKS / BPP / MND"></div>';
+ out+='<div class="field"><label>Kategori *</label><select name="category" required>'+cats.map(x=>'<option value="'+esc(x)+'" '+(x===c.category?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></div>';
+ out+='<div class="field"><label>Divisi *</label><select name="division" required>'+divisions.map(x=>'<option value="'+esc(x)+'" '+(x===c.division?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></div>';
+ out+='<div class="field"><label>Judul Case *</label><input name="title" required value="'+esc(c.title||'')+'"></div>';
+ const currentStatus=['open','in_progress','review','closed'].includes(c.status)?c.status:'open';
+ out+='<div class="field"><label>Status *</label><select name="status"><option value="open" '+(currentStatus==='open'?'selected':'')+'>Open</option><option value="in_progress" '+(currentStatus==='in_progress'?'selected':'')+'>On Progress</option><option value="review" '+(currentStatus==='review'?'selected':'')+'>Need Review</option><option value="closed" '+(currentStatus==='closed'?'selected':'')+'>Closed</option></select></div>';
+ const priority=['High','Medium','Low'].includes(c.priority)?c.priority:'Medium';
+ out+='<div class="field"><label>Prioritas *</label><input type="hidden" name="priority" value="'+priority+'"><div class="wct-priority-buttons">'+['High','Medium','Low'].map(v=>'<button type="button" data-value="'+v+'" class="wct-priority-choice '+v.toLowerCase()+(priority===v?' is-selected':'')+'" aria-pressed="'+(priority===v?'true':'false')+'" onclick="window.wctSelectPriority(this);return false;">'+v+'</button>').join('')+'</div></div>';
+ out+='<div class="field span-2"><label>Problem Identification *</label><textarea name="problem_identification" required>'+esc(c.problem_identification||'')+'</textarea></div>';
+ out+='<div class="field"><label>Target penyelesaian awal</label><input type="date" name="target_date" value="'+esc(c.target_date||'')+'"></div>';
+ out+='<div class="field"><label>Pelapor</label><input name="reporter" value="'+esc(c.reporter||'')+'"></div>';
+ out+='</div><div class="section-title">Corrective Action</div><div class="form-grid">';
+ out+='<div class="field span-2"><label>Tindakan perbaikan langsung</label><input name="ca_title" value="'+esc(ca&&ca.title||'')+'" placeholder="Tindakan perbaikan"></div><div class="field"><label>PIC Corrective Action</label>'+selectPic('ca_assigned',ca&&ca.assigned_to)+'</div><div class="field"><label>Target Corrective Action</label><input type="date" name="ca_due" value="'+esc(ca&&ca.due_date||'')+'"></div>';
+ out+='</div><div class="section-title">Preventive Action</div><div class="form-grid">';
+ out+='<div class="field span-2"><label>Tindakan pencegahan</label><input name="pa_title" value="'+esc(pa&&pa.title||'')+'" placeholder="Tindakan pencegahan"></div><div class="field"><label>PIC Preventive Action</label>'+selectPic('pa_assigned',pa&&pa.assigned_to)+'</div><div class="field"><label>Target Preventive Action</label><input type="date" name="pa_due" value="'+esc(pa&&pa.due_date||'')+'"></div>';
+ out+='</div></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary" type="submit">Simpan Perubahan</button></div></form>';
+ openModal(out);
+}
+async function saveEditedCase(event){
+ event.preventDefault();if(!isCoordinator())return;
+ const form=event.target,values=new FormData(form),id=String(values.get('case_id')||'');
+ const c=state.cases.find(x=>x.id===id);if(!c){toast('Case tidak ditemukan.');return;}
+ const changes={
+  hub_code:String(values.get('hub_code')||'').trim().toUpperCase(),
+  category:String(values.get('category')||'').trim(),
+  division:String(values.get('division')||'').trim(),
+  title:String(values.get('title')||'').trim(),
+  status:String(values.get('status')||'open'),
+  priority:String(values.get('priority')||'Medium'),
+  problem_identification:String(values.get('problem_identification')||'').trim(),
+  target_date:String(values.get('target_date')||'')||null,
+  reporter:String(values.get('reporter')||'').trim(),
+  updated_at:new Date().toISOString(),
+  updated_by:currentUser.id
+ };
+ if(!changes.hub_code||!changes.category||!changes.division||!changes.title||!changes.problem_identification){toast('Lengkapi HUB, kategori, divisi, judul, dan uraian masalah.');return;}
+ if(!['High','Medium','Low'].includes(changes.priority)){toast('Pilih prioritas case.');return;}
+ const button=event.submitter||form.querySelector('button[type="submit"]');if(button&&button.disabled)return;
+ if(button){button.disabled=true;button.dataset.originalLabel=button.textContent;button.textContent='Menyimpan perubahan...';}
+ try{
+  const batch=fireDb.batch(),caseRef=fireDb.collection('cases').doc(id);
+  batch.update(caseRef,changes);
+  const existing=state.actions.filter(a=>a.case_id===id);
+  const specs=[
+   {type:'corrective',title:String(values.get('ca_title')||'').trim(),assigned:String(values.get('ca_assigned')||'')||null,due:String(values.get('ca_due')||'')||null,old:existing.find(a=>a.action_type==='corrective')},
+   {type:'preventive',title:String(values.get('pa_title')||'').trim(),assigned:String(values.get('pa_assigned')||'')||null,due:String(values.get('pa_due')||'')||null,old:existing.find(a=>a.action_type==='preventive')}
+  ];
+  specs.forEach(spec=>{
+   if(spec.old){
+    batch.update(fireDb.collection('actions').doc(spec.old.id),{title:spec.title,assigned_to:spec.assigned,due_date:spec.due,updated_at:new Date().toISOString()});
+   }else if(spec.title){
+    const ref=fireDb.collection('actions').doc();
+    batch.set(ref,{case_id:id,action_type:spec.type,title:spec.title,description:'',assigned_to:spec.assigned,due_date:spec.due,status:'open',progress:0,created_by:currentUser.id,created_at:new Date().toISOString()});
+   }
+  });
+  await batch.commit();
+  await refreshData();closeModal();toast('Case berhasil diperbarui.');renderCases();
+ }catch(err){
+  if(button){button.disabled=false;button.textContent=button.dataset.originalLabel||'Simpan Perubahan';}
+  console.error('Edit case failed:',err);toast('Gagal memperbarui case: '+(err.message||err));
+ }
+}
+
 async function submitCase(e){
   e.preventDefault();const f=new FormData(e.target);
   const row={hub_code:String(f.get('hub_code')||'').trim().toUpperCase(),category:String(f.get('category')||'').trim(),division:String(f.get('division')||'').trim(),title:String(f.get('title')||'').trim(),priority:String(f.get('priority')||'Medium'),problem_identification:String(f.get('problem_identification')||'').trim(),reporter:String(f.get('reporter')||currentUser.full_name||currentUser.login_id||'').trim(),status:'open',target_date:f.get('target_date')||null,created_by:currentUser.id,created_at:new Date().toISOString()};
@@ -176,7 +258,7 @@ function renderSettings(){
   if(isAdmin())out+='<div class="grid dashboard-grid" style="margin-top:15px">'+optionCard('categories','Kategori',opts.categories)+optionCard('divisions','Divisi',opts.divisions)+'</div>';
   $('pageContent').innerHTML=out;
 }
-Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,selectCasePriority,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,restoreUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption});
+Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,editCaseForm,editCaseFormFromButton,saveEditedCase,selectCasePriority,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,restoreUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption});
 window.wctSetPriority=window.wctSetPriority;
 document.addEventListener('click',function(event){
   const button=event.target&&event.target.closest?event.target.closest('[onclick*="openCaseForm"]'):null;
@@ -207,6 +289,18 @@ window.wctSetPriority=function(value,button){
  field.value=value;
  const buttons=form.querySelectorAll('.wct-priority-choice');
  buttons.forEach(item=>{const selected=(item.dataset.value||item.textContent||'').trim()===value;item.classList.toggle('is-selected',selected);item.setAttribute('aria-pressed',selected?'true':'false');});
+ return true;
+};
+window.wctSelectPriority=function(button){
+ if(!button)return false;
+ const form=button.closest('form');if(!form)return false;
+ const field=form.querySelector('input[name="priority"]');if(!field)return false;
+ const value=button.dataset.value||button.textContent.trim();
+ if(!['High','Medium','Low'].includes(value))return false;
+ field.value=value;
+ form.querySelectorAll('.wct-priority-choice').forEach(item=>{
+  const active=item===button;item.classList.toggle('is-selected',active);item.setAttribute('aria-pressed',active?'true':'false');
+ });
  return true;
 };
 window.selectCasePriority=function(value){return window.wctSetPriority(value,null);};
@@ -265,7 +359,7 @@ document.addEventListener('click',function(event){
 document.head.insertAdjacentHTML('beforeend','<style id="wct-case-form-users">.wct-priority-buttons{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;width:100%!important;max-width:520px!important;margin:8px 0 12px!important}button.wct-priority-choice{appearance:none!important;-webkit-appearance:none!important;display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;position:relative!important;z-index:2!important;pointer-events:auto!important;width:100%!important;min-height:48px!important;margin:0!important;padding:10px 14px!important;border:1px solid #e5dfeb!important;border-radius:12px!important;background:#fff!important;color:#5f536d!important;font:700 13px/1.2 Arial,sans-serif!important;box-shadow:0 2px 7px rgba(45,33,64,.05)!important;cursor:pointer!important;touch-action:manipulation!important}button.wct-priority-choice.high.is-selected{background:#fff0f0!important;border:2px solid #d34c58!important;color:#a92f3b!important;box-shadow:0 0 0 3px rgba(211,76,88,.10)!important}button.wct-priority-choice.medium.is-selected{background:#fff7e8!important;border:2px solid #d89b35!important;color:#885508!important;box-shadow:0 0 0 3px rgba(216,155,53,.11)!important}button.wct-priority-choice.low.is-selected{background:#eff9ee!important;border:2px solid #62a96d!important;color:#286b37!important;box-shadow:0 0 0 3px rgba(98,169,109,.11)!important}.wct-add-option{display:flex;gap:8px;margin-bottom:12px}.wct-add-option input{flex:1;min-width:0;border:1px solid #e6e1eb;border-radius:10px;padding:10px 12px}.wct-option-list{display:grid;gap:7px}.wct-option-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #eeeaf2;border-radius:11px;background:#fff}.wct-option-row>span{font-weight:650}.wct-case-toolbar{display:grid;grid-template-columns:minmax(220px,2fr) repeat(4,minmax(125px,1fr)) auto;gap:9px;align-items:center;padding:14px;border:1px solid #eeeaf2;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(45,33,64,.035)}.wct-case-toolbar input,.wct-case-toolbar select{width:100%;min-width:0;height:42px;border:1px solid #e6e1eb;border-radius:10px;padding:9px 11px;background:#fff}.wct-case-toolbar .filter-reset{height:42px;white-space:nowrap}@media(max-width:1100px){.wct-case-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.wct-case-toolbar .search{grid-column:1/-1}}@media(max-width:680px){.wct-case-toolbar{grid-template-columns:1fr;padding:11px}.wct-case-toolbar .search{grid-column:auto}.wct-case-toolbar .filter-reset{width:100%}.wct-priority-buttons{gap:8px!important}.wct-priority-buttons button.wct-priority-choice{min-height:46px!important;padding:9px 6px!important;font-size:12px!important}.wct-add-option{flex-direction:column}.wct-option-row{align-items:flex-start}.wct-option-row>div{display:flex;gap:5px}}@media(max-width:680px){.modal-backdrop{display:flex!important;align-items:flex-start!important;justify-content:center!important;overflow:hidden!important;touch-action:pan-y!important}.modal{overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}.modal-head{position:sticky!important;top:0!important;z-index:5!important;background:#fff!important}.modal-body{overflow:visible!important;max-height:none!important;min-height:0!important}.modal-foot{position:static!important}}</style>');;
 `;
   html = html.replace('name="password" type="password" required minlength="8" autocomplete="new-password"', 'name="password" type="password" required minlength="6" autocomplete="new-password"');
-  const priorityAndModalCss = "<style id=\"wct-priority-and-modal-layout\">.wct-priority-buttons{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;width:100%!important;max-width:520px!important;margin:8px 0 12px!important}.wct-priority-buttons .wct-priority-choice{appearance:none!important;-webkit-appearance:none!important;display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;width:100%!important;min-height:48px!important;margin:0!important;padding:10px 14px!important;border:1px solid #e5dfeb!important;border-radius:12px!important;background:#fff!important;color:#5f536d!important;font:700 13px/1.2 Arial,sans-serif!important;box-shadow:0 2px 7px rgba(45,33,64,.05)!important;cursor:pointer!important}.wct-priority-buttons .wct-priority-choice.high.is-selected{background:#fff0f0!important;border:2px solid #d34c58!important;color:#a92f3b!important;box-shadow:0 0 0 3px rgba(211,76,88,.10)!important}.wct-priority-buttons .wct-priority-choice.medium.is-selected{background:#fff7e8!important;border:2px solid #d89b35!important;color:#885508!important;box-shadow:0 0 0 3px rgba(216,155,53,.11)!important}.wct-priority-buttons .wct-priority-choice.low.is-selected{background:#eff9ee!important;border:2px solid #62a96d!important;color:#286b37!important;box-shadow:0 0 0 3px rgba(98,169,109,.11)!important}.wct-priority-buttons .wct-priority-choice:focus-visible{outline:3px solid rgba(91,42,134,.22)!important;outline-offset:2px!important}@media(max-width:680px){.modal-head{position:sticky!important;top:0!important;z-index:8!important;background:#fff!important}.modal-body{height:auto!important;max-height:none!important;min-height:0!important;overflow:visible!important}.modal-foot{position:sticky!important;bottom:0!important;z-index:8!important;background:#fff!important}.wct-priority-buttons{gap:8px!important}.wct-priority-buttons .wct-priority-choice{min-height:46px!important;padding:9px 6px!important;font-size:12px!important}}</style>";
+  const priorityAndModalCss = "<style id=\"wct-priority-and-modal-layout\">.wct-priority-buttons{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;width:100%!important;max-width:520px!important;margin:8px 0 12px!important}.wct-priority-buttons .wct-priority-choice{appearance:none!important;-webkit-appearance:none!important;display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;width:100%!important;min-height:48px!important;margin:0!important;padding:10px 14px!important;border:1px solid #e5dfeb!important;border-radius:12px!important;background:#fff!important;color:#5f536d!important;font:700 13px/1.2 Arial,sans-serif!important;box-shadow:0 2px 7px rgba(45,33,64,.05)!important;cursor:pointer!important;pointer-events:auto!important;position:relative!important;z-index:4!important;user-select:none!important;-webkit-tap-highlight-color:transparent!important;touch-action:manipulation!important}.wct-priority-buttons .wct-priority-choice.high.is-selected{background:#fff0f0!important;border:2px solid #d34c58!important;color:#a92f3b!important;box-shadow:0 0 0 3px rgba(211,76,88,.10)!important}.wct-priority-buttons .wct-priority-choice.medium.is-selected{background:#fff7e8!important;border:2px solid #d89b35!important;color:#885508!important;box-shadow:0 0 0 3px rgba(216,155,53,.11)!important}.wct-priority-buttons .wct-priority-choice.low.is-selected{background:#eff9ee!important;border:2px solid #62a96d!important;color:#286b37!important;box-shadow:0 0 0 3px rgba(98,169,109,.11)!important}.wct-priority-buttons .wct-priority-choice:focus-visible{outline:3px solid rgba(91,42,134,.22)!important;outline-offset:2px!important}@media(max-width:680px){.modal-head{position:sticky!important;top:0!important;z-index:8!important;background:#fff!important}.modal-body{height:auto!important;max-height:none!important;min-height:0!important;overflow:visible!important}.modal-foot{position:sticky!important;bottom:0!important;z-index:8!important;background:#fff!important}.wct-priority-buttons{gap:8px!important}.wct-priority-buttons .wct-priority-choice{min-height:46px!important;padding:9px 6px!important;font-size:12px!important}}</style>";
   html = html.replace('</head>', priorityAndModalCss + '\n</head>');
   return html.replace('</body>', '<script>\n' + js + '\n</script>\n</body>');
 };
