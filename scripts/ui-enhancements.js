@@ -40,6 +40,15 @@ function renderCases(){
   $('pageContent').innerHTML=out;
   if(['caseSearch','hubFilter','statusFilter','categoryFilter','divisionFilter'].includes(activeId)){const el=$(activeId);if(el){el.focus();if(activeId==='caseSearch'&&cursor!==null)el.setSelectionRange(cursor,cursor);}}
 }
+function selectCasePriority(value){
+ const options=['High','Medium','Low'];if(!options.includes(value))return;
+ const field=$('selectedCasePriority');if(field)field.value=value;
+ document.querySelectorAll('.wct-priority-choice').forEach(btn=>{
+  const active=btn.textContent.trim()===value;
+  btn.classList.toggle('is-selected',active);
+  btn.setAttribute('aria-pressed',active?'true':'false');
+ });
+}
 function resetCaseFilters(){['caseSearch','hubFilter','statusFilter','categoryFilter','divisionFilter'].forEach(id=>{const el=$(id);if(el)el.value='';});renderCases();}
 function openCaseForm(){
   if(!isCoordinator()){toast('Hanya koordinator atau admin yang dapat membuat case.');return;}
@@ -49,7 +58,7 @@ function openCaseForm(){
   out+='<div class="field"><label>Kategori *</label><select name="category" required><option value="">Pilih kategori</option>'+cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select></div>';
   out+='<div class="field"><label>Divisi *</label><select name="division" required><option value="">Pilih divisi</option>'+divisions.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select></div>';
   out+='<div class="field"><label>Judul Case *</label><input name="title" required placeholder="Ringkas dan jelas"></div>';
-  out+='<div class="field span-2"><label>Prioritas *</label><div class="wct-priority-buttons"><label class="wct-priority high"><input type="radio" name="priority" value="High"><span>High</span></label><label class="wct-priority medium"><input type="radio" name="priority" value="Medium" checked><span>Medium</span></label><label class="wct-priority low"><input type="radio" name="priority" value="Low"><span>Low</span></label></div></div>';
+  out+='<div class="field span-2"><label>Prioritas *</label><input type="hidden" name="priority" id="selectedCasePriority" value="Medium"><div class="wct-priority-buttons"><button type="button" class="wct-priority-choice high" aria-pressed="false" onclick="selectCasePriority(&#39;High&#39;)">High</button><button type="button" class="wct-priority-choice medium is-selected" aria-pressed="true" onclick="selectCasePriority(&#39;Medium&#39;)">Medium</button><button type="button" class="wct-priority-choice low" aria-pressed="false" onclick="selectCasePriority(&#39;Low&#39;)">Low</button></div></div>';
   out+='<div class="field span-2"><label>Problem Identification *</label><textarea name="problem_identification" required placeholder="Jelaskan apa yang terjadi, kapan, dampak, dan bukti awal."></textarea></div>';
   out+='<div class="field"><label>Target penyelesaian awal</label><input type="date" name="target_date"></div><div class="field"><label>Pelapor</label><input name="reporter" value="'+esc(currentUser.full_name||currentUser.login_id||'')+'" placeholder="Nama pelapor"></div>';
   out+='</div><div class="section-title">Corrective Action (opsional)</div><div class="form-grid"><div class="field span-2"><label>Tindakan perbaikan langsung</label><input name="ca_title" placeholder="Apa yang dilakukan untuk menyelesaikan masalah saat ini?"></div><div class="field"><label>PIC Corrective Action</label>'+profileSelect('ca_assigned')+'</div><div class="field"><label>Target Corrective Action</label><input type="date" name="ca_due"></div></div>';
@@ -123,7 +132,7 @@ function renderSettings(){
   if(isAdmin())out+='<div class="grid dashboard-grid" style="margin-top:15px">'+optionCard('categories','Kategori',opts.categories)+optionCard('divisions','Divisi',opts.divisions)+'</div>';
   $('pageContent').innerHTML=out;
 }
-Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,changeOwnPassword,addCaseOption,editCaseOption,deleteCaseOption});
+Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,selectCasePriority,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,changeOwnPassword,addCaseOption,editCaseOption,deleteCaseOption});
 document.addEventListener('click',function(event){
   const button=event.target&&event.target.closest?event.target.closest('[onclick*="openCaseForm"]'):null;
   if(!button)return;
