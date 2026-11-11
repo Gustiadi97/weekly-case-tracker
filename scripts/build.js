@@ -70,6 +70,27 @@ try {
   html = require('./source-form-transform')(html);
   html = require('./ui-enhancements')(html);
 
+  // Guard against shipping the known UI regressions again.
+  const uiChecks = [
+    ['priority button markup', 'class="wct-priority-choice high"'],
+    ['priority value field', 'id="selectedCasePriority"'],
+    ['priority click handler', 'window.wctSetPriority=function(value,button)'],
+    ['mobile modal scroll handler', 'function wctApplySingleModalScroll()'],
+    ['admin settings option editor', 'function saveEditedCaseOption'],
+    ['user profile editor', 'function editUserProfile'],
+    ['HUB profile field', 'name="hub_code"']
+  ];
+  const missingUiChecks = uiChecks.filter(([name, marker]) => !html.includes(marker)).map(([name]) => name);
+  if (missingUiChecks.length) {
+    throw new Error('UI regression check failed: ' + missingUiChecks.join(', '));
+  }
+  if (html.includes('type="radio" name="priority"')) {
+    throw new Error('UI regression check failed: legacy priority radio markup is still present.');
+  }
+  if (html.includes('function wctForceMobileModalScroll')) {
+    throw new Error('UI regression check failed: obsolete mobile modal scroll handler is still present.');
+  }
+
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(outputPath, html);
   console.log('Built ' + path.relative(root, outputPath) + ' (' + html.length + ' bytes)');
