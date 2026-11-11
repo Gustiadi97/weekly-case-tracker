@@ -66,6 +66,8 @@ try {
     ''
   );
 
+  html = require('./firebase-only-patch')(html);
+
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(outputPath, html);
   console.log('Built ' + path.relative(root, outputPath) + ' (' + html.length + ' bytes)');
