@@ -49,6 +49,21 @@ function selectCasePriority(value){
   btn.setAttribute('aria-pressed',active?'true':'false');
  });
 }
+function wctHandlePriorityClick(event){
+ const button=event.target&&event.target.closest?event.target.closest('.wct-priority-choice'):null;
+ if(!button)return;
+ event.preventDefault();
+ const value=(button.dataset.value||button.textContent||'').trim();
+ if(!['High','Medium','Low'].includes(value))return;
+ const field=document.getElementById('selectedCasePriority');
+ if(field)field.value=value;
+ document.querySelectorAll('.wct-priority-choice').forEach(item=>{
+  const selected=(item.dataset.value||item.textContent||'').trim()===value;
+  item.classList.toggle('is-selected',selected);
+  item.setAttribute('aria-pressed',selected?'true':'false');
+ });
+}
+document.addEventListener('click',wctHandlePriorityClick,true);
 function resetCaseFilters(){['caseSearch','hubFilter','statusFilter','categoryFilter','divisionFilter'].forEach(id=>{const el=$(id);if(el)el.value='';});renderCases();}
 function openCaseForm(){
   if(!isCoordinator()){toast('Hanya koordinator atau admin yang dapat membuat case.');return;}
@@ -191,26 +206,41 @@ openModal = function(){
   return result;
 };
 window.addEventListener('resize',wctApplyModalTouchScroll,{passive:true});
-function wctForceMobileModalScroll(){
- if(!window.matchMedia||!window.matchMedia('(max-width: 680px)').matches)return;
- const head=[...document.querySelectorAll('.modal-head')].find(el=>el.getClientRects().length);if(!head)return;
- let shell=head.parentElement;while(shell&&shell!==document.body&&!shell.querySelector('.modal-body'))shell=shell.parentElement;
- if(!shell||shell===document.body)return;
- const body=shell.querySelector('.modal-body'),form=body&&body.closest('form'),overlay=shell.parentElement;
- const set=(el,styles)=>{if(!el)return;Object.keys(styles).forEach(k=>el.style.setProperty(k,styles[k],'important'));};
- set(shell,{'display':'block','box-sizing':'border-box','width':'calc(100vw - 16px)','max-width':'none','height':'calc(100dvh - 16px)','max-height':'calc(100dvh - 16px)','overflow':'auto','overflow-y':'auto','overflow-x':'hidden','-webkit-overflow-scrolling':'touch','overscroll-behavior-y':'contain','touch-action':'pan-y','position':'relative','margin':'0 auto','border-radius':'16px'});
- set(form,{'display':'block','height':'auto','max-height':'none','min-height':'0','overflow':'visible'});
- set(body,{'display':'block','height':'auto','max-height':'none','min-height':'0','overflow':'visible','touch-action':'auto','padding-bottom':'28px'});
- set(head,{'position':'sticky','top':'0','z-index':'6','background':'#fff'});
- set(overlay,{'position':'fixed','inset':'0','height':'100dvh','max-height':'100dvh','box-sizing':'border-box','display':'flex','align-items':'flex-start','justify-content':'center','overflow':'hidden','touch-action':'pan-y','padding':'max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom))'});
+function wctInstallMobileModalScroll(){
+ const head=[...document.querySelectorAll('.modal-head')].find(el=>el.getClientRects().length);
+ if(!head)return null;
+ let panel=head.parentElement;
+ while(panel&&panel!==document.body&&!panel.querySelector('.modal-body'))panel=panel.parentElement;
+ if(!panel||panel===document.body)return null;
+ const body=panel.querySelector('.modal-body'),form=body&&body.closest('form'),overlay=panel.parentElement;
+ const important=(el,styles)=>{if(!el)return;Object.entries(styles).forEach(([k,v])=>el.style.setProperty(k,v,'important'));};
+ important(panel,{'box-sizing':'border-box','max-height':'calc(100dvh - 16px)','height':'auto','overflow-y':'auto','overflow-x':'hidden','-webkit-overflow-scrolling':'touch','overscroll-behavior-y':'contain','touch-action':'pan-y'});
+ important(form,{'height':'auto','max-height':'none','min-height':'0','overflow':'visible'});
+ important(body,{'height':'auto','max-height':'none','min-height':'0','overflow':'visible','touch-action':'auto','padding-bottom':'28px'});
+ important(overlay,{'position':'fixed','inset':'0','height':'100dvh','max-height':'100dvh','box-sizing':'border-box','display':'flex','align-items':'flex-start','justify-content':'center','overflow':'hidden','touch-action':'pan-y','padding':'max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom))'});
+ return panel;
 }
+let wct2TouchPanel=null,wct2TouchStartY=0,wct2TouchLastY=0,wct2TouchMoved=false;
+document.addEventListener('touchstart',function(event){
+ const target=event.target;
+ if(!target||!target.closest||!target.closest('.modal-body,.modal-head,.modal-foot')){wct2TouchPanel=null;return;}
+ wct2TouchPanel=wctInstallMobileModalScroll();wct2TouchMoved=false;
+ if(event.touches&&event.touches[0]){wct2TouchStartY=event.touches[0].clientY;wct2TouchLastY=wct2TouchStartY;}
+},{passive:true,capture:true});
+document.addEventListener('touchmove',function(event){
+ if(!wct2TouchPanel||!event.touches||!event.touches[0])return;
+ const y=event.touches[0].clientY,delta=wct2TouchLastY-y;
+ if(Math.abs(y-wct2TouchStartY)>3)wct2TouchMoved=true;wct2TouchLastY=y;
+ if(!wct2TouchMoved||!delta)return;
+ wct2TouchPanel.scrollTop+=delta;if(event.cancelable)event.preventDefault();
+},{passive:false,capture:true});
 const WCT_ORIGINAL_OPEN_MODAL_FORCE_SCROLL=openModal;
 openModal=function(){
   const result=WCT_ORIGINAL_OPEN_MODAL_FORCE_SCROLL.apply(this,arguments);
-  wctForceMobileModalScroll();
-  requestAnimationFrame(wctForceMobileModalScroll);
-  setTimeout(wctForceMobileModalScroll,60);
-  setTimeout(wctForceMobileModalScroll,180);
+  wctInstallMobileModalScroll();
+  requestAnimationFrame(wctInstallMobileModalScroll);
+  setTimeout(wctInstallMobileModalScroll,80);
+  setTimeout(wctInstallMobileModalScroll,220);
   return result;
 };
 let wctTouchModal=null,wctTouchLastY=0;
@@ -227,7 +257,7 @@ document.addEventListener('touchmove',function(event){
  if(event.cancelable)event.preventDefault();
 },{passive:false,capture:true});
 
-window.addEventListener('resize',wctForceMobileModalScroll,{passive:true});
+window.addEventListener('resize',wctInstallMobileModalScroll,{passive:true});
 window.addEventListener('orientationchange',()=>setTimeout(wctForceMobileModalScroll,120),{passive:true});
 if(typeof MutationObserver!=='undefined'){
   const wctModalObserver=new MutationObserver(()=>wctForceMobileModalScroll());
