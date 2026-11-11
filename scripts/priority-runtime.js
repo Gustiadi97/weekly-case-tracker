@@ -40,6 +40,6 @@ module.exports = function addPriorityRuntime(html) {
     '  window.wctPriorityRuntimeReady = true;',
     '})();',
     '</script>'
-  ].join("\\n");
-  return html.replace("</body>", script + "\\n</body>");
+  ].join("\n");
+  return html.replace("</body>", script + "\n</body>");
 };
