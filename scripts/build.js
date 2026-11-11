@@ -105,6 +105,12 @@ try {
   if (html.includes('renderUsers,openUserForm,editUserProfile')) {
     throw new Error('UI regression check failed: unsafe openUserForm reference still present.');
   }
+  if (/onclick=\"[^\"]*wctSelectPriority/.test(html) || /onclick=\"[^\"]*wctSetPriority/.test(html)) {
+    throw new Error('UI regression check failed: priority still uses fragile inline handlers.');
+  }
+  if (!html.includes('window.wctPriorityRuntimeReady = true;')) {
+    throw new Error('UI regression check failed: standalone priority runtime is missing.');
+  }
 
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(outputPath, html);
