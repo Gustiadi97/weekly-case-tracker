@@ -52,6 +52,20 @@ try {
   html = html.replace('.login-card{width:min(440px,100%);background:#fff;', '.login-card{width:min(440px,100%);background:#FFF8FB;');
   html = html.replace('.login-note{background:#fff7ec;border:1px solid #f8e4c9;border-radius:11px;padding:11px;color:#8d5b21;', '.login-note{background:#EEF9D5;border:1px solid #B8F23A;border-radius:11px;padding:11px;color:#452064;');
 
+  // Replace manual bootstrap secret form with a one-time fixed Admin ID setup.
+  html = html.replace(
+    '<p style="font-size:12px;color:var(--muted)">Akun ini belum memiliki profil. Gunakan formulir ini hanya untuk mengaktifkan Admin pertama dengan kode bootstrap yang disetel saat pemasangan Firebase.</p>',
+    '<p style="font-size:12px;color:var(--muted)">Aktivasi satu kali untuk Admin utama. Akun Admin ditetapkan berdasarkan ID yang sudah didaftarkan.</p>'
+  );
+  html = html.replace(
+    '<div class="field span-2"><label>Kode aktivasi Admin *</label><input name="setup_code" type="password" required autocomplete="off" placeholder="Kode bootstrap rahasia"></div>',
+    ''
+  );
+  html = html.replace(
+    ",setupCode:String(f.get('setup_code'))",
+    ''
+  );
+
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(outputPath, html);
   console.log('Built ' + path.relative(root, outputPath) + ' (' + html.length + ' bytes)');
