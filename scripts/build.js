@@ -73,9 +73,14 @@ try {
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
     ['priority button markup', 'class="wct-priority-choice high"'],
-    ['priority value field', 'id="selectedCasePriority"'],
-    ['priority click handler', 'window.wctSetPriority=function(value,button)'],
+    ['priority value field', 'name="priority"'],
+    ['form-scoped priority click handler', 'window.wctSelectPriority=function(button)'],
     ['mobile modal scroll handler', 'function wctApplySingleModalScroll()'],
+    ['mobile modal touch fallback', 'wctTouchScrollBody.scrollTop+=delta'],
+    ['case editor form', 'function editCaseForm(id)'],
+    ['case editor save handler', 'async function saveEditedCase(event)'],
+    ['case editor list action', 'onclick="editCaseFormFromButton(this)"'],
+    ['mobile case card layout', 'wct-case-mobile-cards'],
     ['admin settings option editor', 'function saveEditedCaseOption'],
     ['user profile editor', 'function editUserProfile'],
     ['HUB profile field', 'name="hub_code"']
@@ -89,6 +94,9 @@ try {
   }
   if (html.includes('function wctForceMobileModalScroll')) {
     throw new Error('UI regression check failed: obsolete mobile modal scroll handler is still present.');
+  }
+  if (html.includes('onclick="window.wctSetPriority(&#39;High&#39;,this)')) {
+    throw new Error('UI regression check failed: old global-only priority click markup is still present.');
   }
 
   fs.mkdirSync(outputDir, { recursive: true });
