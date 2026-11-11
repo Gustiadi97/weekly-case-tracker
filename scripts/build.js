@@ -15,13 +15,24 @@ try {
   const encoded = parts.map((name) => fs.readFileSync(path.join(sourceDir, name), 'utf8')).join('').replace(/\s+/g, '');
   let html = zlib.gunzipSync(Buffer.from(encoded, 'base64')).toString('utf8');
 
-  // The original frontend called $() throughout but did not define the DOM helper.
-  // This caused all navigation and inline actions to throw ReferenceError.
+  // Fix the missing DOM helper used by all inline navigation and action handlers.
   const scriptMarker = '<script>\n// Firebase Web App config';
   if (!html.includes('const $ = (id) => document.getElementById(id);')) {
     if (!html.includes(scriptMarker)) throw new Error('Could not locate the main application script marker.');
     html = html.replace(scriptMarker, '<script>\nconst $ = (id) => document.getElementById(id);\n// Firebase Web App config');
   }
+
+  // Remove demo mode and its seeded sample records: this app always uses Firebase.
+  html = html.replace('<button class="btn" onclick="enterDemo()">Lihat preview dengan data demo</button>', '');
+  html = html.replace(/function demoSeed\(\)\{[\s\S]*?function toast\(/, 'function toast(');
+  html = html.replace(/function enterDemo\(\)\{loadDemo\}\s*/, '');
+  html = html.replace(/function enterDemo\(\)\{loadDemo\(\)\}\s*/, '');
+  html = html.replace(/let mode='demo'/, "let mode='firebase'");
+  html = html.replace(/mode='demo'/g, "mode='firebase'");
+  html = html.replace(/if \(new URLSearchParams\(location\.search\)\.get\('demo'\) === '1'\) loadDemo\(\);/g, '');
+  html = html.replace('class="pill demo">● DEMO MODE', 'class="pill live">● FIREBASE DATABASE');
+  html = html.replace('class="pill demo">● DEMO MODE</span>', 'class="pill live">● FIREBASE DATABASE</span>');
+  html = html.replace('Imam (Demo)', 'Pengguna');
 
   // Apply the requested 60 / 30 / 10 colour system.
   html = html.replace('<meta name="theme-color" content="#c91d78" />', '<meta name="theme-color" content="#5B2A86" />');
@@ -43,7 +54,7 @@ try {
 
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(outputPath, html);
-  console.log(`Built ${path.relative(root, outputPath)} (${html.length} bytes)`);
+  console.log('Built ' + path.relative(root, outputPath) + ' (' + html.length + ' bytes)');
 } catch (error) {
   console.error('Build failed:', error.message);
   process.exitCode = 1;
