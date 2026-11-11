@@ -43,6 +43,11 @@ service cloud.firestore {
       allow update: if isLead() && counterId == 'case_sequence' && request.resource.data.value == resource.data.value + 1;
       allow delete: if false;
     }
+    match /app_settings/{settingId} {
+      allow read: if activeUser();
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
     match /_system/{document=**} { allow read, write: if false; }
   }
 }
