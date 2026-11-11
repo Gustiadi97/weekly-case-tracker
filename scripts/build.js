@@ -67,6 +67,7 @@ try {
   );
 
   html = require('./firebase-only-patch')(html);
+  html = require('./ui-enhancements')(html);
 
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(outputPath, html);
