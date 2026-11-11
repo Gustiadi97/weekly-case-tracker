@@ -105,6 +105,9 @@ try {
   if (html.includes('renderUsers,openUserForm,editUserProfile')) {
     throw new Error('UI regression check failed: unsafe openUserForm reference still present.');
   }
+  if (/\.modal-backdrop\{[^}]*display\s*:\s*flex\s*!important/i.test(html)) {
+    throw new Error('UI regression check failed: a hidden modal backdrop is being forced visible.');
+  }
   if (/onclick=\"[^\"]*wctSelectPriority/.test(html) || /onclick=\"[^\"]*wctSetPriority/.test(html)) {
     throw new Error('UI regression check failed: priority still uses fragile inline handlers.');
   }
