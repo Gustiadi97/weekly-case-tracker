@@ -101,7 +101,24 @@ async function saveCaseOptions(next){
   catch(err){toast('Gagal menyimpan pengaturan: '+err.message);}
 }
 function addCaseOption(event,kind){event.preventDefault();const input=$('new-'+kind),value=String(input&&input.value||'').trim();if(!value){toast('Masukkan nama terlebih dahulu.');return;}const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};next[kind].push(value);saveCaseOptions(next);}
-function editCaseOption(kind,index){if(!isAdmin())return;const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()},value=prompt('Ubah nama '+(kind==='categories'?'kategori':'divisi')+':',next[kind][index]);if(value===null)return;if(!value.trim()){toast('Nama tidak boleh kosong.');return;}next[kind][index]=value.trim();saveCaseOptions(next);}
+function editCaseOption(kind,index){
+ if(!isAdmin())return;
+ const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};
+ if(!next[kind]||typeof next[kind][index]!=='string')return;
+ const current=next[kind][index],title=kind==='categories'?'Kategori':'Divisi';
+ const html='<div class="modal-head"><div><div class="eyebrow">PENGATURAN CASE</div><h2>Edit '+title+'</h2></div><button class="close" type="button" onclick="closeModal()">×</button></div>'+
+ '<form onsubmit="saveEditedCaseOption(event,\''+kind+'\','+index+')"><div class="modal-body"><div class="field"><label>Nama '+title+' *</label><input name="option_name" required maxlength="60" value="'+esc(current)+'" autofocus></div></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary" type="submit">Simpan Perubahan</button></div></form>';
+ openModal(html);
+}
+async function saveEditedCaseOption(event,kind,index){
+ event.preventDefault();if(!isAdmin())return;
+ const value=String(new FormData(event.target).get('option_name')||'').trim();
+ if(!value){toast('Nama tidak boleh kosong.');return;}
+ const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()};
+ if(!next[kind]||typeof next[kind][index]!=='string')return;
+ if(next[kind].some((item,i)=>i!==index&&item.toLowerCase()===value.toLowerCase())){toast('Nama tersebut sudah digunakan.');return;}
+ next[kind][index]=value;closeModal();await saveCaseOptions(next);
+}
 function deleteCaseOption(kind,index){if(!isAdmin())return;const next={categories:wctOptions().categories.slice(),divisions:wctOptions().divisions.slice()},value=next[kind][index];if(!confirm('Hapus '+(kind==='categories'?'kategori ':'divisi ')+value+' dari pilihan baru? Case lama tetap menyimpan nilai sebelumnya.'))return;next[kind].splice(index,1);saveCaseOptions(next);}
 function renderUsers(){
   if(!isAdmin()){$('pageContent').innerHTML=pageHead('ACCESS CONTROL','Manajemen Pengguna','Menu ini khusus Admin.');return;}
@@ -113,7 +130,7 @@ function renderUsers(){
 function editUserProfile(uid){
   if(!isAdmin())return;const u=state.profiles.find(x=>x.id===uid&&x.deleted!==true);if(!u)return;
   let out='<div class="modal-head"><div><div class="eyebrow">EDIT USER</div><h2>Edit Profil Pengguna</h2></div><button class="close" onclick="closeModal()">×</button></div>';
-  out+='<form onsubmit="saveUserProfile(event,\''+uid+'\')"><div class="modal-body"><div class="form-grid"><div class="field span-2"><label>Nama lengkap *</label><input name="full_name" required minlength="2" value="'+esc(u.full_name||'')+'"></div><div class="field"><label>ID Login (tidak dapat diubah)</label><input value="'+esc(u.login_id||u.employee_id||'')+'" disabled></div><div class="field"><label>HUB</label><input name="hub_code" value="'+esc(u.area_name||'')+'"></div><div class="field span-2"><label>Role *</label><select name="role"><option value="admin" '+(u.role==='admin'?'selected':'')+'>Admin</option><option value="coordinator" '+(u.role==='coordinator'?'selected':'')+'>Koordinator</option><option value="member" '+(u.role==='member'?'selected':'')+'>Anggota / PIC</option><option value="viewer" '+(u.role==='viewer'?'selected':'')+'>Management / Viewer</option></select></div></div><p class="sub">Login ID tidak diubah karena terhubung ke Firebase Authentication.</p></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary">Simpan Perubahan</button></div></form>';
+  out+='<form onsubmit="saveUserProfile(event,\''+uid+'\')"><div class="modal-body"><div class="form-grid"><div class="field span-2"><label>Nama lengkap *</label><input name="full_name" required minlength="2" value="'+esc(u.full_name||'')+'"></div><div class="field"><label>ID Login (tidak dapat diubah)</label><input value="'+esc(u.login_id||u.employee_id||'')+'" disabled></div><div class="field"><label>HUB</label><input name="hub_code" value="'+esc(u.hub_code||'')+'"></div><div class="field span-2"><label>Role *</label><select name="role"><option value="admin" '+(u.role==='admin'?'selected':'')+'>Admin</option><option value="coordinator" '+(u.role==='coordinator'?'selected':'')+'>Koordinator</option><option value="member" '+(u.role==='member'?'selected':'')+'>Anggota / PIC</option><option value="viewer" '+(u.role==='viewer'?'selected':'')+'>Management / Viewer</option></select></div></div><p class="sub">Login ID tidak diubah karena terhubung ke Firebase Authentication.</p></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn btn-primary">Simpan Perubahan</button></div></form>';
   openModal(out);
 }
 async function saveUserProfile(event,uid){
@@ -147,7 +164,7 @@ function renderSettings(){
   if(isAdmin())out+='<div class="grid dashboard-grid" style="margin-top:15px">'+optionCard('categories','Kategori',opts.categories)+optionCard('divisions','Divisi',opts.divisions)+'</div>';
   $('pageContent').innerHTML=out;
 }
-Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,selectCasePriority,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,changeOwnPassword,addCaseOption,editCaseOption,deleteCaseOption});
+Object.assign(window,{renderCases,resetCaseFilters,openCaseForm,submitCase,selectCasePriority,renderSettings,renderUsers,openUserForm,editUserProfile,saveUserProfile,softDeleteUser,changeOwnPassword,addCaseOption,editCaseOption,saveEditedCaseOption,deleteCaseOption});
 window.wctSetPriority=window.wctSetPriority;
 document.addEventListener('click',function(event){
   const button=event.target&&event.target.closest?event.target.closest('[onclick*="openCaseForm"]'):null;
