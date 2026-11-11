@@ -69,18 +69,22 @@ try {
   html = require('./firebase-only-patch')(html);
   html = require('./source-form-transform')(html);
   html = require('./ui-enhancements')(html);
+  html = require('./design-refresh')(html);
+  html = require('./priority-runtime')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
     ['priority button markup', 'class="wct-priority-choice high"'],
     ['priority value field', 'name="priority"'],
-    ['form-scoped priority click handler', 'window.wctSelectPriority=function(button)'],
+    ['separate priority controller script', 'id="wct-priority-runtime"'],
+    ['priority pointer and click handlers', 'document.addEventListener("pointerdown"'],
     ['mobile modal scroll handler', 'function wctApplySingleModalScroll()'],
     ['mobile modal touch fallback', 'wctTouchScrollBody.scrollTop+=delta'],
     ['case editor form', 'function editCaseForm(id)'],
     ['case editor save handler', 'async function saveEditedCase(event)'],
     ['case editor list action', 'onclick="editCaseFormFromButton(this)"'],
     ['mobile case card layout', 'wct-case-mobile-cards'],
+    ['design refresh stylesheet', 'id="wct-design-refresh"'],
     ['admin settings option editor', 'function saveEditedCaseOption'],
     ['user profile editor', 'function editUserProfile'],
     ['HUB profile field', 'name="hub_code"']
@@ -95,8 +99,11 @@ try {
   if (html.includes('function wctForceMobileModalScroll')) {
     throw new Error('UI regression check failed: obsolete mobile modal scroll handler is still present.');
   }
-  if (html.includes('onclick="window.wctSetPriority(&#39;High&#39;,this)')) {
-    throw new Error('UI regression check failed: old global-only priority click markup is still present.');
+  if (html.includes('onclick="window.wctSetPriority(&#39;High&#39;,this)') || html.includes('onclick="window.wctSelectPriority(this)')) {
+    throw new Error('UI regression check failed: priority still depends on inline JavaScript handlers.');
+  }
+  if (html.includes('renderUsers,openUserForm,editUserProfile')) {
+    throw new Error('UI regression check failed: unsafe openUserForm reference still present.');
   }
 
   fs.mkdirSync(outputDir, { recursive: true });
