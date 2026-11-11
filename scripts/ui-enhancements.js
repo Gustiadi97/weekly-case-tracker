@@ -165,8 +165,8 @@ document.addEventListener('click',function(event){
 document.addEventListener('click',function(event){
  const nav=event.target&&event.target.closest?event.target.closest('button,a'):null;if(!nav)return;
  const label=(nav.innerText||nav.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
- if(label==='pengaturan')setTimeout(()=>{if(window.renderSettings)window.renderSettings();},120);
- if(label==='manajemen pengguna')setTimeout(()=>{if(window.renderUsers)window.renderUsers();},120);
+ if(label.includes('pengaturan'))setTimeout(()=>{if(window.renderSettings)window.renderSettings();},180);
+ if(label.includes('manajemen pengguna'))setTimeout(()=>{if(window.renderUsers)window.renderUsers();},180);
 },true);
 
 document.documentElement.dataset.wctUiEnhancement='89c29b7-ui2';
