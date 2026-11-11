@@ -1,5 +1,4 @@
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
-const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
@@ -7,7 +6,6 @@ const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 initializeApp();
 const auth = getAuth();
 const db = getFirestore();
-const BOOTSTRAP_CODE = defineSecret('BOOTSTRAP_CODE');
 const REGION = 'asia-southeast1';
 const LOGIN_DOMAIN = '@weeklycasetracker.app';
 
@@ -39,18 +37,18 @@ function validPassword(value) {
   return password;
 }
 
-exports.bootstrapFirstAdmin = onCall({ region: REGION, secrets: [BOOTSTRAP_CODE] }, async (request) => {
+exports.bootstrapFirstAdmin = onCall({ region: REGION }, async (request) => {
   requireSignedIn(request);
   const loginId = cleanLoginId(request.data?.loginId);
   const fullName = validName(request.data?.fullName);
-  const setupCode = String(request.data?.setupCode || '');
-  if (!setupCode || setupCode !== BOOTSTRAP_CODE.value()) {
-    throw new HttpsError('permission-denied', 'Kode aktivasi Admin tidak sesuai.');
+  // One-time bootstrap is restricted to the pre-created owner account.
+  if (loginId !== '10001596') {
+    throw new HttpsError('permission-denied', 'Aktivasi awal hanya diizinkan untuk ID Admin yang telah ditentukan.');
   }
-  const expectedEmail = loginEmail(loginId);
+  const expectedEmail = loginEmail('10001596');
   const account = await auth.getUser(request.auth.uid);
   if ((account.email || '').toLowerCase() !== expectedEmail) {
-    throw new HttpsError('permission-denied', 'ID login tidak cocok dengan akun Firebase yang sedang digunakan.');
+    throw new HttpsError('permission-denied', 'Akun Firebase tidak cocok dengan ID Admin pertama.');
   }
   const lockRef = db.collection('_system').doc('first_admin_bootstrap');
   const userRef = db.collection('users').doc(request.auth.uid);
