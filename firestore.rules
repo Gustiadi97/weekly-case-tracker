@@ -6,6 +6,7 @@ service cloud.firestore {
     function casePath(caseId) { return /databases/$(database)/documents/cases/$(caseId); }
     function actionPath(actionId) { return /databases/$(database)/documents/actions/$(actionId); }
     function progressLogPath(logId) { return /databases/$(database)/documents/progress_logs/$(logId); }
+    function progressLogEditPath(editId) { return /databases/$(database)/documents/progress_log_edits/$(editId); }
     function validProgressStatus(value) { return value in ['open', 'in_progress', 'review', 'done']; }
     function actionMatchesCase(caseId, actionId) {
       return caseId is string &&
@@ -13,6 +14,34 @@ service cloud.firestore {
         exists(casePath(caseId)) &&
         exists(actionPath(actionId)) &&
         get(actionPath(actionId)).data.case_id == caseId;
+    }
+    // Require a new or actually corrected log, not a stale historical entry.
+    function progressLogWasChangedByCaller(logId) {
+      return (
+        !exists(progressLogPath(logId)) &&
+        existsAfter(progressLogPath(logId)) &&
+        getAfter(progressLogPath(logId)).data.created_by == request.auth.uid
+      ) || (
+        exists(progressLogPath(logId)) &&
+        existsAfter(progressLogPath(logId)) &&
+        getAfter(progressLogPath(logId)).data.edited_by == request.auth.uid &&
+        getAfter(progressLogPath(logId)).data.edited_at is string &&
+        getAfter(progressLogPath(logId)).data.edited_at != get(progressLogPath(logId)).data.edited_at
+      );
+    }
+    function actionProgressMatchesLog(actionId) {
+      return request.resource.data.latest_progress_log_id is string &&
+        progressLogWasChangedByCaller(request.resource.data.latest_progress_log_id) &&
+        getAfter(progressLogPath(request.resource.data.latest_progress_log_id)).data.action_id == actionId &&
+        getAfter(progressLogPath(request.resource.data.latest_progress_log_id)).data.case_id == request.resource.data.case_id &&
+        getAfter(progressLogPath(request.resource.data.latest_progress_log_id)).data.progress_after == request.resource.data.progress &&
+        getAfter(progressLogPath(request.resource.data.latest_progress_log_id)).data.status_after == request.resource.data.status &&
+        (
+          (getAfter(progressLogPath(request.resource.data.latest_progress_log_id)).data.created_by == request.auth.uid &&
+            getAfter(progressLogPath(request.resource.data.latest_progress_log_id)).data.created_at == request.resource.data.updated_at) ||
+          (getAfter(progressLogPath(request.resource.data.latest_progress_log_id)).data.edited_by == request.auth.uid &&
+            getAfter(progressLogPath(request.resource.data.latest_progress_log_id)).data.edited_at == request.resource.data.updated_at)
+        );
     }
     function hasProfile() { return signedIn() && exists(profilePath(request.auth.uid)); }
     function profile() { return get(profilePath(request.auth.uid)).data; }
@@ -42,17 +71,20 @@ service cloud.firestore {
       allow update: if
         (isLead() &&
           request.resource.data.case_id is string &&
-          exists(casePath(request.resource.data.case_id))) ||
+          exists(casePath(request.resource.data.case_id)) &&
+          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['progress','status','latest_progress_log_id']) ||
+            actionProgressMatchesLog(actionId))) ||
         (activeUser() &&
           resource.data.assigned_to == request.auth.uid &&
           request.resource.data.assigned_to == resource.data.assigned_to &&
           request.resource.data.case_id == resource.data.case_id &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['progress','status','updated_at']) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['progress','status','updated_at','latest_progress_log_id']) &&
           request.resource.data.progress is int &&
           request.resource.data.progress >= 0 &&
           request.resource.data.progress <= 100 &&
           validProgressStatus(request.resource.data.status) &&
-          request.resource.data.updated_at is string);
+          request.resource.data.updated_at is string &&
+          actionProgressMatchesLog(actionId));
       allow delete: if isLead();
     }
     match /progress_logs/{logId} {
@@ -95,9 +127,16 @@ service cloud.firestore {
         validProgressStatus(request.resource.data.status_after) &&
         request.resource.data.blocker is string &&
         request.resource.data.next_step is string &&
+        request.resource.data.last_edit_audit_id is string &&
+        existsAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)) &&
+        getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.log_id == logId &&
+        getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.case_id == resource.data.case_id &&
+        getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.action_id == resource.data.action_id &&
+        getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.edited_by == request.auth.uid &&
+        getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.created_at == request.resource.data.edited_at &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'update_text', 'progress_after', 'blocker', 'next_step',
-          'status_after', 'edited_at', 'edited_by'
+          'status_after', 'edited_at', 'edited_by', 'last_edit_audit_id'
         ]);
       allow delete: if false;
     }
@@ -124,6 +163,7 @@ service cloud.firestore {
         getAfter(progressLogPath(request.resource.data.log_id)).data.action_id == request.resource.data.action_id &&
         getAfter(progressLogPath(request.resource.data.log_id)).data.edited_by == request.auth.uid &&
         getAfter(progressLogPath(request.resource.data.log_id)).data.edited_at == request.resource.data.created_at &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.last_edit_audit_id == editId &&
         request.resource.data.after.update_text is string &&
         request.resource.data.after.progress_after is int &&
         request.resource.data.after.progress_after >= 0 &&
