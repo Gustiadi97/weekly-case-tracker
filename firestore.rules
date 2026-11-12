@@ -3,6 +3,17 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function profilePath(uid) { return /databases/$(database)/documents/users/$(uid); }
+    function casePath(caseId) { return /databases/$(database)/documents/cases/$(caseId); }
+    function actionPath(actionId) { return /databases/$(database)/documents/actions/$(actionId); }
+    function progressLogPath(logId) { return /databases/$(database)/documents/progress_logs/$(logId); }
+    function validProgressStatus(value) { return value in ['open', 'in_progress', 'review', 'done']; }
+    function actionMatchesCase(caseId, actionId) {
+      return caseId is string &&
+        actionId is string &&
+        exists(casePath(caseId)) &&
+        exists(actionPath(actionId)) &&
+        get(actionPath(actionId)).data.case_id == caseId;
+    }
     function hasProfile() { return signedIn() && exists(profilePath(request.auth.uid)); }
     function profile() { return get(profilePath(request.auth.uid)).data; }
     function activeUser() { return hasProfile() && profile().active == true; }
@@ -23,26 +34,68 @@ service cloud.firestore {
     }
     match /actions/{actionId} {
       allow read: if activeUser();
-      allow create: if isLead() && request.resource.data.created_by == request.auth.uid;
-      allow update: if isLead() || (activeUser() && resource.data.assigned_to == request.auth.uid && request.resource.data.assigned_to == resource.data.assigned_to && request.resource.data.case_id == resource.data.case_id && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['progress','status','updated_at']) && request.resource.data.progress is int && request.resource.data.progress >= 0 && request.resource.data.progress <= 100);
+      // Every Action must belong to an existing Case.
+      allow create: if isLead() &&
+        request.resource.data.created_by == request.auth.uid &&
+        request.resource.data.case_id is string &&
+        exists(casePath(request.resource.data.case_id));
+      allow update: if
+        (isLead() &&
+          request.resource.data.case_id is string &&
+          exists(casePath(request.resource.data.case_id))) ||
+        (activeUser() &&
+          resource.data.assigned_to == request.auth.uid &&
+          request.resource.data.assigned_to == resource.data.assigned_to &&
+          request.resource.data.case_id == resource.data.case_id &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['progress','status','updated_at']) &&
+          request.resource.data.progress is int &&
+          request.resource.data.progress >= 0 &&
+          request.resource.data.progress <= 100 &&
+          validProgressStatus(request.resource.data.status) &&
+          request.resource.data.updated_at is string);
       allow delete: if isLead();
     }
     match /progress_logs/{logId} {
       allow read: if activeUser();
+
+      // A progress entry must point to an existing Action and its actual parent Case.
+      // The Action's summary progress/status are updated in the same atomic batch.
       allow create: if activeUser() &&
         request.resource.data.created_by == request.auth.uid &&
-        exists(/databases/$(database)/documents/actions/$(request.resource.data.action_id)) &&
-        (isLead() || get(/databases/$(database)/documents/actions/$(request.resource.data.action_id)).data.assigned_to == request.auth.uid);
+        request.resource.data.case_id is string &&
+        request.resource.data.action_id is string &&
+        actionMatchesCase(request.resource.data.case_id, request.resource.data.action_id) &&
+        (isLead() ||
+          get(actionPath(request.resource.data.action_id)).data.assigned_to == request.auth.uid) &&
+        request.resource.data.update_text is string &&
+        request.resource.data.progress_before is int &&
+        request.resource.data.progress_before >= 0 &&
+        request.resource.data.progress_before <= 100 &&
+        request.resource.data.progress_after is int &&
+        request.resource.data.progress_after >= 0 &&
+        request.resource.data.progress_after <= 100 &&
+        validProgressStatus(request.resource.data.status_after) &&
+        request.resource.data.blocker is string &&
+        request.resource.data.next_step is string &&
+        request.resource.data.created_at is string &&
+        get(actionPath(request.resource.data.action_id)).data.progress == request.resource.data.progress_before &&
+        getAfter(actionPath(request.resource.data.action_id)).data.progress == request.resource.data.progress_after &&
+        getAfter(actionPath(request.resource.data.action_id)).data.status == request.resource.data.status_after &&
+        getAfter(actionPath(request.resource.data.action_id)).data.updated_at == request.resource.data.created_at;
+
       // Only the original author or a lead can correct a progress entry.
-      // The original author, timestamps, case/action linkage, and progress_before stay immutable.
+      // Its author, timestamps, progress_before, and Case/Action linkage stay immutable.
       allow update: if activeUser() &&
         (isLead() || resource.data.created_by == request.auth.uid) &&
         request.resource.data.edited_by == request.auth.uid &&
         request.resource.data.edited_at is string &&
+        request.resource.data.update_text is string &&
         request.resource.data.progress_after is int &&
         request.resource.data.progress_after >= 0 &&
         request.resource.data.progress_after <= 100 &&
-        request.resource.data.status_after in ['open', 'in_progress', 'review', 'done'] &&
+        validProgressStatus(request.resource.data.status_after) &&
+        request.resource.data.blocker is string &&
+        request.resource.data.next_step is string &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'update_text', 'progress_after', 'blocker', 'next_step',
           'status_after', 'edited_at', 'edited_by'
@@ -52,16 +105,38 @@ service cloud.firestore {
 
     match /progress_log_edits/{editId} {
       allow read: if activeUser();
-      // Append-only audit trail for every correction to a progress log.
+      // Append-only audit trail. Linkage and the recorded "after" state must
+      // match the progress log corrected in the same atomic batch.
       allow create: if activeUser() &&
         request.resource.data.edited_by == request.auth.uid &&
         request.resource.data.log_id is string &&
-        exists(/databases/$(database)/documents/progress_logs/$(request.resource.data.log_id)) &&
-        (isLead() ||
-          get(/databases/$(database)/documents/progress_logs/$(request.resource.data.log_id)).data.created_by == request.auth.uid) &&
         request.resource.data.case_id is string &&
         request.resource.data.action_id is string &&
-        request.resource.data.created_at is string;
+        request.resource.data.created_at is string &&
+        request.resource.data.before is map &&
+        request.resource.data.after is map &&
+        request.resource.data.latest_update is bool &&
+        exists(progressLogPath(request.resource.data.log_id)) &&
+        get(progressLogPath(request.resource.data.log_id)).data.case_id == request.resource.data.case_id &&
+        get(progressLogPath(request.resource.data.log_id)).data.action_id == request.resource.data.action_id &&
+        (isLead() ||
+          get(progressLogPath(request.resource.data.log_id)).data.created_by == request.auth.uid) &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.case_id == request.resource.data.case_id &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.action_id == request.resource.data.action_id &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.edited_by == request.auth.uid &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.edited_at == request.resource.data.created_at &&
+        request.resource.data.after.update_text is string &&
+        request.resource.data.after.progress_after is int &&
+        request.resource.data.after.progress_after >= 0 &&
+        request.resource.data.after.progress_after <= 100 &&
+        validProgressStatus(request.resource.data.after.status_after) &&
+        request.resource.data.after.blocker is string &&
+        request.resource.data.after.next_step is string &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.update_text == request.resource.data.after.update_text &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.progress_after == request.resource.data.after.progress_after &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.status_after == request.resource.data.after.status_after &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.blocker == request.resource.data.after.blocker &&
+        getAfter(progressLogPath(request.resource.data.log_id)).data.next_step == request.resource.data.after.next_step;
       allow update, delete: if false;
     }
     match /meetings/{meetingId} {
