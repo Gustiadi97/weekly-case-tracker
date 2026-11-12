@@ -6,6 +6,8 @@ on:
       - "firestore.rules"
       - "firebase.json"
       - "package.json"
+      - "scripts/**"
+      - "source/**"
       - "tests/**"
       - ".github/workflows/firestore-rules.yml"
   push:
@@ -15,6 +17,8 @@ on:
       - "firestore.rules"
       - "firebase.json"
       - "package.json"
+      - "scripts/**"
+      - "source/**"
       - "tests/**"
       - ".github/workflows/firestore-rules.yml"
 
