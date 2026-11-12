@@ -127,6 +127,7 @@ try {
     ['settings CRUD delegated handler', 'data-settings-action'],
     ['settings add/edit forms', 'data-settings-form'],
     ['PICAPA workflow runtime', 'id="wct-picapa-workflow"'],
+    ['PICAPA editor has a self-contained Case options reader', 'function workflowCaseOptions()'],
     ['case event date input', 'name="occurred_on"'],
     ['source Case form event date input', 'data-wct-case-event-date'],
     ['source Case form event date persists to Firestore', "occurred_on:String(f.get('occurred_on')||'')||null"],
