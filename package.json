@@ -5,6 +5,12 @@
   "description": "Weekly PICAPA and operational case tracking application",
   "scripts": {
     "build": "node scripts/build.js",
-    "deploy:firebase": "npm run build && firebase deploy --only firestore:rules,hosting"
+    "deploy:firebase": "npm run build && firebase deploy --only firestore:rules,hosting",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-weekly-case-tracker \"node --test tests/firestore.rules.test.cjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.2.0",
+    "firebase-tools": "^15.35.0"
   }
 }
