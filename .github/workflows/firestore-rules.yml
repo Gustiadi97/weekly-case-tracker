@@ -40,6 +40,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      - name: Build application and validate generated JavaScript
+        run: npm run build
       - name: Install isolated test dependencies
         run: npm install --prefix tests
       - name: Run Firestore Security Rules tests
