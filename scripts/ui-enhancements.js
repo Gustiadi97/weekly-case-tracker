@@ -1,16 +1,27 @@
 module.exports = function applyUiEnhancements(html) {
   const js = `
 const WCT_DEFAULT_CATEGORIES = ['Inbound','Outbound','Sorting','Productivity','Service Level','Facility & Safety','People / Manpower','Transportation','Reporting','Other'];
-const WCT_DEFAULT_DIVISIONS = ['Hub Operations','Gateway','Last Mile','Facility & Safety','People & Manpower','Transportation','Other'];
+const WCT_DEFAULT_DIVISIONS = ['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other'];
 const WCT_ORIGINAL_REFRESH_DATA = refreshData;
 refreshData = async function() {
   await WCT_ORIGINAL_REFRESH_DATA();
   try {
     const snap = await fireDb.collection('app_settings').doc('case_options').get();
     const saved = snap.exists ? snap.data() : {};
+    const schemaVersion = Number(saved.division_schema_version || 0);
+    let divisions;
+    if (schemaVersion < 3) {
+      const aliases = {'facility & safety':'Facility','people & manpower':'Human Capital','people / manpower':'Human Capital','transportation':'Transport'};
+      const existing = Array.isArray(saved.divisions) ? saved.divisions : [];
+      const normalized = existing.map(v => aliases[String(v).trim().toLocaleLowerCase()] || String(v).trim()).filter(Boolean);
+      const extras = normalized.filter(v => !WCT_DEFAULT_DIVISIONS.some(item => item.toLocaleLowerCase() === v.toLocaleLowerCase()));
+      divisions = WCT_DEFAULT_DIVISIONS.concat(extras.filter((v,i,a) => a.findIndex(x => x.toLocaleLowerCase() === v.toLocaleLowerCase()) === i));
+    } else {
+      divisions = Array.isArray(saved.divisions) ? saved.divisions.slice() : WCT_DEFAULT_DIVISIONS.slice();
+    }
     state.caseOptions = {
-      categories: Array.isArray(saved.categories) ? saved.categories : WCT_DEFAULT_CATEGORIES.slice(),
-      divisions: Array.isArray(saved.divisions) ? saved.divisions : WCT_DEFAULT_DIVISIONS.slice()
+      categories: Array.isArray(saved.categories) ? saved.categories.slice() : WCT_DEFAULT_CATEGORIES.slice(),
+      divisions: divisions
     };
   } catch (err) {
     console.warn('Case options unavailable; using defaults:', err);
@@ -35,7 +46,7 @@ function renderCases(){
   out+='<select class="filter" id="categoryFilter" onchange="renderCases()"><option value="">Semua Kategori</option>'+cats.map(x=>'<option value="'+esc(x)+'" '+(x===cat?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';
   out+='<select class="filter" id="divisionFilter" onchange="renderCases()"><option value="">Semua Divisi</option>'+divisions.map(x=>'<option value="'+esc(x)+'" '+(x===division?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select><button class="btn btn-sm filter-reset" type="button" onclick="resetCaseFilters()">Reset filter</button></div>';
   out+='<section class="card"><div class="card-head"><div><h3>Daftar Permasalahan</h3><p>'+arr.length+' case ditampilkan</p></div><span class="pill">Lintas HUB</span></div><div class="table-wrap"><table class="table wct-cases-table"><thead><tr><th>Case / Problem</th><th>HUB</th><th>Divisi</th><th>Kategori</th><th>Prioritas</th><th>Progress</th><th>Target</th><th>Status</th><th></th></tr></thead><tbody>';
-  out+=arr.map(c=>'<tr><td><div class="case-title">'+esc(c.case_code)+' · '+esc(c.title)+'</div><div class="sub">Kejadian: '+(c.occurred_on?fmtDate(c.occurred_on):'Belum dicatat')+' · Dicatat: '+fmtDate((c.created_at||'').slice(0,10))+'</div></td><td><b>'+esc(c.hub_code||'—')+'</b></td><td>'+esc(c.division||'—')+'</td><td>'+esc(c.category||'—')+'</td><td><span class="priority '+String(c.priority||'').toLowerCase()+'">'+esc(c.priority||'—')+'</span></td><td><div class="progress-wrap"><div class="progress-track"><span style="width:'+caseProgress(c.id)+'%"></span></div><b>'+caseProgress(c.id)+'%</b></div></td><td>'+fmtDate(c.target_date)+'</td><td>'+statusBadge(caseStatus(c))+'</td><td><div class="wct-row-actions"><button class="btn btn-sm" onclick="openCaseDetail(\''+c.id+'\')">Detail</button>'+(isCoordinator()?'<button class="btn btn-sm btn-primary" data-case-id="'+esc(c.id)+'" onclick="editCaseFormFromButton(this)">Edit</button>':'')+'</div></td></tr>').join('')||'<tr><td colspan="9"><div class="empty"><b>Belum ada case yang cocok.</b>Ubah filter atau buat case baru.</div></td></tr>';
+  out+=arr.map(c=>'<tr><td><div class="case-title">'+esc(c.case_code)+' · '+esc(c.title)+'</div><div class="sub">Kejadian: '+(c.occurred_on?fmtDate(c.occurred_on):'Belum dicatat')+' · Dicatat: '+fmtDate((c.created_at||'').slice(0,10))+'</div></td><td><b>'+esc(c.hub_code||'—')+'</b></td><td>'+esc(c.division||'—')+'</td><td>'+esc(c.category||'—')+'</td><td><span class="priority '+String(c.priority||'').toLowerCase()+'">'+esc(c.priority||'—')+'</span></td><td><div class="progress-wrap"><div class="progress-track"><span style="width:'+caseProgress(c.id)+'%"></span></div><b>'+caseProgress(c.id)+'%</b></div></td><td>'+fmtDate(c.target_date)+'</td><td>'+statusBadge(caseStatus(c))+'</td><td><div class="wct-row-actions"><button class="btn btn-sm" onclick="openCaseDetail(\''+c.id+'\')">Detail</button>'+(isCoordinator()?'<button type="button" class="btn btn-sm btn-primary" data-wct-case-edit-id="'+esc(c.id)+'" data-wct-return-detail="false">Edit</button>':'')+'</div></td></tr>').join('')||'<tr><td colspan="9"><div class="empty"><b>Belum ada case yang cocok.</b>Ubah filter atau buat case baru.</div></td></tr>';
   out+='</tbody></table></div></section>';
   $('pageContent').innerHTML=out;
   if(['caseSearch','hubFilter','statusFilter','categoryFilter','divisionFilter'].includes(activeId)){const el=$(activeId);if(el){el.focus();if(activeId==='caseSearch'&&cursor!==null)el.setSelectionRange(cursor,cursor);}}
