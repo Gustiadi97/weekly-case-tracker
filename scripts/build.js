@@ -181,21 +181,21 @@ try {
   // Parse every inline JavaScript block after all source transforms have been applied.
   // This catches syntax regressions that module-level checks cannot see once scripts are
   // concatenated and injected into the generated HTML.
-  const inlineScriptPattern = /<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi;
+  const inlineScriptPattern = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
   let inlineScriptMatch;
   let inlineScriptCount = 0;
   while ((inlineScriptMatch = inlineScriptPattern.exec(html)) !== null) {
     const attributes = inlineScriptMatch[1] || '';
     const source = inlineScriptMatch[2] || '';
-    if (/\\bsrc\\s*=/.test(attributes) || !source.trim()) continue;
-    const typeMatch = attributes.match(/\\btype\\s*=\\s*["']([^"']+)["']/i);
+    if (/\bsrc\s*=/.test(attributes) || !source.trim()) continue;
+    const typeMatch = attributes.match(/\btype\s*=\s*["']([^"']+)["']/i);
     const scriptType = typeMatch ? typeMatch[1].toLowerCase() : 'text/javascript';
     if (!['text/javascript', 'application/javascript'].includes(scriptType)) continue;
     try {
       new Function(source);
       inlineScriptCount += 1;
     } catch (error) {
-      const idMatch = attributes.match(/\\bid\\s*=\\s*["']([^"']+)["']/i);
+      const idMatch = attributes.match(/\bid\s*=\s*["']([^"']+)["']/i);
       const label = idMatch ? ' #' + idMatch[1] : ' inline script';
       throw new Error('Generated JavaScript syntax check failed in' + label + ': ' + error.message);
     }
