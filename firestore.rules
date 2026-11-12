@@ -51,12 +51,33 @@ service cloud.firestore {
     function activeUser() { return hasProfile() && profile().active == true; }
     function isAdmin() { return activeUser() && profile().role == 'admin'; }
     function isLead() { return activeUser() && profile().role in ['admin', 'coordinator']; }
+    function directoryMatchesProfile(uid) {
+      return existsAfter(profilePath(uid)) &&
+        request.resource.data.full_name == getAfter(profilePath(uid)).data.full_name &&
+        request.resource.data.role == getAfter(profilePath(uid)).data.role &&
+        request.resource.data.active == (getAfter(profilePath(uid)).data.active == true) &&
+        request.resource.data.deleted == (getAfter(profilePath(uid)).data.deleted == true);
+    }
 
     match /users/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || activeUser());
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
       // First Admin profile is provisioned once in Firebase Console. Afterwards only Admins manage profiles.
       allow create: if isAdmin() && request.resource.data.role in ['admin','coordinator','member','viewer'] && request.resource.data.active == true;
       allow update: if isAdmin() && request.resource.data.role in ['admin','coordinator','member','viewer'];
+      allow delete: if false;
+    }
+    match /team_directory/{uid} {
+      // Minimal directory fields for active staff to select PICs and resolve Action owner names.
+      allow read: if activeUser();
+      allow create, update: if isAdmin() &&
+        request.resource.data.keys().hasAll(['full_name', 'role', 'active', 'deleted']) &&
+        request.resource.data.keys().hasOnly(['full_name', 'role', 'active', 'deleted']) &&
+        request.resource.data.full_name is string &&
+        request.resource.data.full_name.size() > 0 &&
+        request.resource.data.role in ['admin','coordinator','member','viewer'] &&
+        request.resource.data.active is bool &&
+        request.resource.data.deleted is bool &&
+        directoryMatchesProfile(uid);
       allow delete: if false;
     }
     match /cases/{caseId} {
