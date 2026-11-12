@@ -93,7 +93,9 @@ try {
     ['direct Admin Settings form submit handler', 'window.wctAdminSettingsSubmit=function(event,form)'],
     ['Edit button uses explicit global action', 'wctAdminSettingAction(this.dataset.settingsAction,this.dataset.kind,this.dataset.index)'],
     ['Settings forms use explicit submit handler', 'wctAdminSettingsSubmit(event,this)'],
-    ['Gateway division included in master list', "['Gateway','Last Mile']"],
+    ['Eight-item operational Division breakdown', "const DEFAULT_DIVISIONS=['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other']"],
+    ['One-time Division migration version', 'division_schema_version:2'],
+    ['Admin settings sync Case form choices after save', 'state.caseOptions={categories:clean.categories.slice(),divisions:clean.divisions.slice()}'],
     ['Active Case options updated after settings changes', 'state.caseOptions={categories:categories,divisions:divisions}'],
 
     ['admin categories and divisions section', 'wct-settings-grid'],
