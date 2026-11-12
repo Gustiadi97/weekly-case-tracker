@@ -405,6 +405,56 @@ test("closed Case does not accept new progress updates", async () => {
   batch.set(doc(memberDb, "progress_logs", "log-closed"), progressRow());
   await assertFails(batch.commit());
 });
+test("only a lead can edit Action details and reassign an eligible PIC", async () => {
+  const coordinatorDb = db(COORDINATOR_UID);
+  await assertSucceeds(updateDoc(doc(coordinatorDb, "actions", ACTION_ID), {
+    title: "Updated action title",
+    description: "Updated execution steps",
+    assigned_to: OTHER_MEMBER_UID,
+    due_date: "2026-11-25",
+    updated_at: EDITED_AT,
+    updated_by: COORDINATOR_UID
+  }));
+  await assertFails(updateDoc(doc(coordinatorDb, "actions", ACTION_ID), {
+    title: "Invalid viewer reassign",
+    assigned_to: VIEWER_UID,
+    due_date: "2026-11-25",
+    updated_at: EDITED_AT,
+    updated_by: COORDINATOR_UID
+  }));
+  await assertFails(updateDoc(doc(db(MEMBER_UID), "actions", ACTION_ID), {
+    title: "Member must not reassign",
+    assigned_to: OTHER_MEMBER_UID,
+    updated_at: EDITED_AT
+  }));
+});
+
+test("closed Case blocks Action edits and history corrections", async () => {
+  await seedLatestProgressLog();
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "cases", CASE_ID), {
+      status: "closed", closed_at: EDITED_AT, closed_by: COORDINATOR_UID
+    });
+  });
+  const coordinatorDb = db(COORDINATOR_UID);
+  await assertFails(updateDoc(doc(coordinatorDb, "actions", ACTION_ID), {
+    title: "Archived Action edit", updated_at: "2026-11-12T08:30:00.000Z", updated_by: COORDINATOR_UID
+  }));
+  const memberDb = db(MEMBER_UID);
+  const batch = writeBatch(memberDb);
+  const afterState = { update_text: "Correction after archive", progress_after: 40, blocker: "", next_step: "Next", status_after: "in_progress" };
+  batch.update(doc(memberDb, "progress_logs", "log-1"), {
+    ...afterState, edited_at: "2026-11-12T08:30:00.000Z", edited_by: MEMBER_UID, last_edit_audit_id: "audit-after-close"
+  });
+  batch.set(doc(memberDb, "progress_log_edits", "audit-after-close"), {
+    case_id: CASE_ID, action_id: ACTION_ID, log_id: "log-1", edited_by: MEMBER_UID,
+    created_at: "2026-11-12T08:30:00.000Z", before: {}, after: afterState, latest_update: true
+  });
+  batch.update(doc(memberDb, "actions", ACTION_ID), {
+    progress: 40, status: "in_progress", updated_at: "2026-11-12T08:30:00.000Z", latest_progress_log_id: "log-1"
+  });
+  await assertFails(batch.commit());
+});
 test("assigned PIC can create a progress log and update its Action in one batch", async () => {
   const memberDb = db(MEMBER_UID);
   const batch = writeBatch(memberDb);
