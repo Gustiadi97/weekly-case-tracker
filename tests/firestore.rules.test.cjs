@@ -608,17 +608,3 @@ test("a user cannot correct another member's progress log", async () => {
 
   await assertFails(batch.commit());
 });
-
-  const memberDb = db(MEMBER_UID);
-  const batch = writeBatch(memberDb);
-
-  batch.update(doc(memberDb, "actions", ACTION_ID), {
-    progress: 45,
-    status: "in_progress",
-    updated_at: EDITED_AT,
-    latest_progress_log_id: "log-valid"
-  });
-  batch.set(doc(memberDb, "progress_logs", "log-valid"), progressRow());
-
-  await assertSucceeds(batch.commit());
-});
