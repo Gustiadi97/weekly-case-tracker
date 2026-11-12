@@ -1,5 +1,5 @@
 module.exports = function applyUiEnhancements(html) {
-  const js = `
+  const js = String.raw`
 const WCT_DEFAULT_CATEGORIES = ['Inbound','Outbound','Sorting','Productivity','Service Level','Facility & Safety','People / Manpower','Transportation','Reporting','Other'];
 const WCT_DEFAULT_DIVISIONS = ['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other'];
 const WCT_ORIGINAL_REFRESH_DATA = refreshData;
