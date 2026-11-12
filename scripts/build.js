@@ -112,7 +112,13 @@ try {
     ['progress edit audit collection', 'progress_log_edits'],
     ['refreshed operations dashboard', 'wct-glass-hero'],
     ['event date shown in detail', 'Tanggal Kejadian'],
-    ['automatic recorded date shown', 'Tanggal Dicatat']
+    ['automatic recorded date shown', 'Tanggal Dicatat'],
+    ['dedicated Case edit form', 'id="wctCaseEditorForm"'],
+    ['dedicated Case edit save handler', 'window.saveEditedCase=async function(event)'],
+    ['Case edit keeps action plans separate', 'Yang sedang diedit: informasi utama Case'],
+    ['Case editor mobile modal layout', 'openModal(html,true)'],
+    ['Case edit updates only cases collection', "fireDb.collection('cases').doc(id).update(next)"],
+    ['Case edit save success feedback', 'Perubahan Case berhasil disimpan.']
   ];
   const missingUiChecks = uiChecks.filter(([name, marker]) => !html.includes(marker)).map(([name]) => name);
   if (missingUiChecks.length) {
