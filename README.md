@@ -6,7 +6,8 @@ Aplikasi menggunakan Firebase Authentication dan Cloud Firestore. Frontend di-ho
 - Login dengan ID dan password; ID dipetakan ke email internal `@weeklycasetracker.app`.
 - Dashboard, case monitoring, tindakan PICAPA, progress log, weekly meeting, laporan, dan arsip.
 - Admin membuat akun anggota melalui Firebase Authentication sekunder tanpa memutus sesi Admin.
-- Role dibaca dari dokumen `users/{uid}` dan ditegakkan oleh Firestore Security Rules.
+- Profil lengkap dan role dibaca dari `users/{uid}`; hanya pemilik akun dan Admin aktif yang dapat membaca dokumen tersebut.
+- Direktori PIC disimpan terpisah di `team_directory/{uid}` dengan field minimum `full_name`, `role`, `active`, dan `deleted`. Anggota aktif dapat membacanya untuk dropdown PIC; hanya Admin yang dapat menyinkronkan direktori.
 - Nonaktifkan akun dengan mengubah `active=false`; Firestore Rules menolak akses data.
 - Data operasional tetap berada di koleksi Firestore yang sama.
 
@@ -58,6 +59,6 @@ Jangan buat profil Admin pertama melalui form website. Setelah Admin pertama akt
 Admin dapat membuat akun dan menonaktifkan/mengaktifkan profil. Admin tidak dapat mengganti password Firebase milik pengguna lain dari browser tanpa backend tepercaya; pengguna harus mengganti password melalui sesi akunnya sendiri. Email internal dipakai sebagai identitas login dan bukan alamat email pemulihan yang dapat menerima pesan.
 
 ## Koleksi Firestore
-`users`, `cases`, `actions`, `progress_logs`, `meetings`, dan `counters`.
+`users`, `team_directory`, `cases`, `actions`, `progress_logs`, `meetings`, dan `counters`.
 
 Firestore Rules hanya mengatur izin akses; tidak menghapus atau memigrasikan data lama.
