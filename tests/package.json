@@ -1,0 +1,11 @@
+{
+  "name": "weekly-case-tracker-rules-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Isolated Firebase Emulator test dependencies for Firestore Security Rules",
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.2.0",
+    "firebase-tools": "^15.35.0"
+  }
+}

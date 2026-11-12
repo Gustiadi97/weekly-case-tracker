@@ -1,5 +1,5 @@
 module.exports = function applyUiEnhancements(html) {
-  const js = `
+  const js = String.raw`
 const WCT_DEFAULT_CATEGORIES = ['Inbound','Outbound','Sorting','Productivity','Service Level','Facility & Safety','People / Manpower','Transportation','Reporting','Other'];
 const WCT_DEFAULT_DIVISIONS = ['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other'];
 const WCT_ORIGINAL_REFRESH_DATA = refreshData;
@@ -288,7 +288,7 @@ function renderUsers(){
 async function restoreUser(uid){
  if(!isAdmin())return;const u=state.profiles.find(x=>x.id===uid&&x.deleted===true);if(!u)return;
  if(!confirm('Pulihkan akses '+u.full_name+'? Pengguna dapat login kembali.'))return;
- try{await fireDb.collection('users').doc(uid).update({active:true,deleted:false,restored_at:new Date().toISOString(),updated_at:new Date().toISOString()});await refreshData();renderUsers();toast('Akses pengguna berhasil dipulihkan.');}
+ try{const changes={active:true,deleted:false,restored_at:new Date().toISOString(),updated_at:new Date().toISOString()},batch=fireDb.batch();batch.update(fireDb.collection('users').doc(uid),changes);batch.set(fireDb.collection('team_directory').doc(uid),wctDirectoryProfile({...u,...changes}));await batch.commit();await refreshData();renderUsers();toast('Akses pengguna berhasil dipulihkan.');}
  catch(err){toast('Gagal memulihkan pengguna: '+err.message);}
 }
 function editUserProfile(uid){
@@ -300,13 +300,13 @@ function editUserProfile(uid){
 async function saveUserProfile(event,uid){
   event.preventDefault();if(!isAdmin())return;const f=new FormData(event.target);const u=state.profiles.find(x=>x.id===uid);if(!u)return;
   const changes={full_name:String(f.get('full_name')||'').trim(),hub_code:String(f.get('hub_code')||'').trim().toUpperCase(),role:String(f.get('role')||'member'),updated_at:new Date().toISOString()};
-  try{await fireDb.collection('users').doc(uid).update(changes);if(currentUser.id===uid)currentUser={...currentUser,...changes};await refreshData();closeModal();renderUsers();toast('Profil pengguna berhasil diperbarui.');if(currentUser.id===uid)showApp();}
+  try{const batch=fireDb.batch();batch.update(fireDb.collection('users').doc(uid),changes);batch.set(fireDb.collection('team_directory').doc(uid),wctDirectoryProfile({...u,...changes}));await batch.commit();if(currentUser.id===uid)currentUser={...currentUser,...changes};await refreshData();closeModal();renderUsers();toast('Profil pengguna berhasil diperbarui.');if(currentUser.id===uid)showApp();}
   catch(err){toast('Gagal mengubah profil: '+err.message);}
 }
 async function softDeleteUser(uid){
   if(!isAdmin())return;const u=state.profiles.find(x=>x.id===uid);if(!u||uid===currentUser.id)return;
   if(!confirm('Hapus akses '+u.full_name+'? Profil disembunyikan dan login diblokir. Akun Authentication tetap tercatat.'))return;
-  try{await fireDb.collection('users').doc(uid).update({active:false,deleted:true,deleted_at:new Date().toISOString(),updated_at:new Date().toISOString()});await refreshData();renderUsers();toast('Akses pengguna dihapus.');}
+  try{const changes={active:false,deleted:true,deleted_at:new Date().toISOString(),updated_at:new Date().toISOString()},batch=fireDb.batch();batch.update(fireDb.collection('users').doc(uid),changes);batch.set(fireDb.collection('team_directory').doc(uid),wctDirectoryProfile({...u,...changes}));await batch.commit();await refreshData();renderUsers();toast('Akses pengguna dihapus.');}
   catch(err){toast('Gagal menghapus akses: '+err.message);}
 }
 async function changeOwnPassword(event){

@@ -5,6 +5,7 @@
   "description": "Weekly PICAPA and operational case tracking application",
   "scripts": {
     "build": "node scripts/build.js",
-    "deploy:firebase": "npm run build && firebase deploy --only firestore:rules,hosting"
+    "deploy:firebase": "npm run build && firebase deploy --only firestore:rules,hosting",
+    "test:rules": "npx --prefix tests firebase emulators:exec --only firestore --project demo-weekly-case-tracker \"node --test tests/firestore.rules.test.cjs\""
   }
 }
