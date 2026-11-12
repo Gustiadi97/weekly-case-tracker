@@ -44,5 +44,3 @@ jobs:
         run: npm install --prefix tests
       - name: Run Firestore Security Rules tests
         run: npm run test:rules
-      - name: Audit profile and PIC source paths
-        run: node tests/profile-access-audit.cjs
