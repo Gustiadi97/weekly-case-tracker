@@ -12,7 +12,10 @@ const {
   initializeTestEnvironment
 } = require("@firebase/rules-unit-testing");
 const {
+  collection,
   doc,
+  getDoc,
+  getDocs,
   setDoc,
   updateDoc,
   writeBatch
@@ -59,6 +62,10 @@ async function seedBaseData() {
         role: "member",
         active: true
       }),
+      setDoc(doc(firestore, "team_directory", ADMIN_UID), { full_name: "Admin Test", role: "admin", active: true, deleted: false }),
+      setDoc(doc(firestore, "team_directory", COORDINATOR_UID), { full_name: "Coordinator Test", role: "coordinator", active: true, deleted: false }),
+      setDoc(doc(firestore, "team_directory", MEMBER_UID), { full_name: "Member Test", role: "member", active: true, deleted: false }),
+      setDoc(doc(firestore, "team_directory", OTHER_MEMBER_UID), { full_name: "Other Member Test", role: "member", active: true, deleted: false }),
       setDoc(doc(firestore, "cases", CASE_ID), {
         case_code: "CASE-001",
         title: "Test case",
@@ -133,6 +140,52 @@ beforeEach(async () => {
 
 after(async () => {
   if (testEnv) await testEnv.cleanup();
+});
+
+test("private user profiles are readable only by their owner and Admin", async () => {
+  const memberDb = db(MEMBER_UID);
+  await assertSucceeds(getDoc(doc(memberDb, "users", MEMBER_UID)));
+  await assertFails(getDoc(doc(memberDb, "users", OTHER_MEMBER_UID)));
+  await assertFails(getDocs(collection(memberDb, "users")));
+  await assertSucceeds(getDocs(collection(db(ADMIN_UID), "users")));
+});
+
+test("active staff can read the minimal team directory but cannot modify it", async () => {
+  const memberDb = db(MEMBER_UID);
+  await assertSucceeds(getDocs(collection(memberDb, "team_directory")));
+  await assertFails(updateDoc(doc(memberDb, "team_directory", OTHER_MEMBER_UID), {
+    full_name: "Changed by member"
+  }));
+});
+
+test("Admin directory writes must mirror the private profile and contain only directory fields", async () => {
+  const adminDb = db(ADMIN_UID);
+  const batch = writeBatch(adminDb);
+  batch.update(doc(adminDb, "users", MEMBER_UID), {
+    full_name: "Renamed Member",
+    role: "coordinator"
+  });
+  batch.set(doc(adminDb, "team_directory", MEMBER_UID), {
+    full_name: "Renamed Member",
+    role: "coordinator",
+    active: true,
+    deleted: false
+  });
+  await assertSucceeds(batch.commit());
+
+  await assertFails(setDoc(doc(adminDb, "team_directory", "missing-user"), {
+    full_name: "Unknown User",
+    role: "member",
+    active: true,
+    deleted: false
+  }));
+  await assertFails(setDoc(doc(adminDb, "team_directory", OTHER_MEMBER_UID), {
+    full_name: "Other Member Test",
+    role: "member",
+    active: true,
+    deleted: false,
+    login_id: "PRIVATE-ID"
+  }));
 });
 
 test("coordinator can create a Case; regular member cannot", async () => {
