@@ -72,6 +72,7 @@ try {
   html = require('./design-refresh')(html);
   html = require('./priority-runtime')(html);
   html = require('./admin-settings-runtime')(html);
+  html = require('./picapa-workflow')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -99,7 +100,19 @@ try {
     ['Admin settings page replacement', 'window.renderSettings=open'],
     ['Firestore category/division storage', "collection('app_settings').doc('case_options')"],
     ['settings CRUD delegated handler', 'data-settings-action'],
-    ['settings add/edit forms', 'data-settings-form']
+    ['settings add/edit forms', 'data-settings-form'],
+    ['PICAPA workflow runtime', 'id="wct-picapa-workflow"'],
+    ['case event date input', 'name="occurred_on"'],
+    ['case occurred date persisted', 'occurred_on:String(f.get(\'occurred_on\')||\'\')||null'],
+    ['detail workspace override', 'window.openCaseDetail=async function(id)'],
+    ['action editor override', 'window.openActionForm=function(caseId,type,actionId)'],
+    ['action save override', 'window.submitAction=async function(event,caseId,type,actionId)'],
+    ['progress editor override', 'window.openUpdateForm=function(actionId,logId)'],
+    ['progress save and edit override', 'window.submitProgress=async function(event,actionId,logId)'],
+    ['progress edit audit collection', 'progress_log_edits'],
+    ['refreshed operations dashboard', 'wct-glass-hero'],
+    ['event date shown in detail', 'Tanggal Kejadian'],
+    ['automatic recorded date shown', 'Tanggal Dicatat']
   ];
   const missingUiChecks = uiChecks.filter(([name, marker]) => !html.includes(marker)).map(([name]) => name);
   if (missingUiChecks.length) {
@@ -125,6 +138,9 @@ try {
   }
   if (!html.includes('window.wctPriorityRuntimeReady = true;')) {
     throw new Error('UI regression check failed: standalone priority runtime is missing.');
+  }
+  if (!html.includes('window.wctPicapaWorkflowReady=true;')) {
+    throw new Error('UI regression check failed: PICAPA workflow runtime is missing.');
   }
 
   fs.mkdirSync(outputDir, { recursive: true });
