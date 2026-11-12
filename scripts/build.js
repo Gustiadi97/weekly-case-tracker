@@ -89,7 +89,7 @@ try {
     ['case editor list action', 'data-wct-case-edit-id'],
     ['direct Case editor click handler', 'id="wct-case-edit-runtime"'],
     ['unified Firestore Case save handler', 'window.saveEditedCase=async function(event,explicitForm)'],
-    ['Case detail Edit uses same data action', 'data-wct-return-detail="true"'],
+    ['Case detail Edit returns through the shared PICAPA editor', 'window.wctPicapaFlow.editReturnToDetail=!!returnToDetail;'],
     ['Division dashboard breakdown', 'id="wct-division-breakdown-runtime"'],
     ['mobile case card layout', 'wct-case-mobile-cards'],
     ['Canonical Division names in form fallbacks', "divisions:['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other']"],
@@ -153,7 +153,7 @@ try {
     ['dedicated Case edit save handler', 'window.saveEditedCase=async function(event,explicitForm)'],
     ['Case edit keeps action plans separate', 'Yang sedang diedit: informasi utama Case'],
     ['Case editor mobile modal layout', 'openModal(html,true)'],
-    ['Case edit updates only cases collection', "fireDb.collection('cases').doc(id).update(next)"],
+    ['Case edit updates only the selected Case document', "fireDb.collection('cases').doc(caseId).update(changes)"],
     ['Case edit save success feedback', 'Perubahan Case berhasil disimpan.'],
     ['desktop and mobile legacy modal interceptor', 'wctDispatchWorkflowClick'],
     ['route old detail clicks into full-page view', 'window.openCaseDetail(detail[1])'],
@@ -178,6 +178,30 @@ try {
   if (missingUiChecks.length) {
     throw new Error('UI regression check failed: ' + missingUiChecks.join(', '));
   }
+  // Parse every inline JavaScript block after all source transforms have been applied.
+  // This catches syntax regressions that module-level checks cannot see once scripts are
+  // concatenated and injected into the generated HTML.
+  const inlineScriptPattern = /<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi;
+  let inlineScriptMatch;
+  let inlineScriptCount = 0;
+  while ((inlineScriptMatch = inlineScriptPattern.exec(html)) !== null) {
+    const attributes = inlineScriptMatch[1] || '';
+    const source = inlineScriptMatch[2] || '';
+    if (/\\bsrc\\s*=/.test(attributes) || !source.trim()) continue;
+    const typeMatch = attributes.match(/\\btype\\s*=\\s*["']([^"']+)["']/i);
+    const scriptType = typeMatch ? typeMatch[1].toLowerCase() : 'text/javascript';
+    if (!['text/javascript', 'application/javascript'].includes(scriptType)) continue;
+    try {
+      new Function(source);
+      inlineScriptCount += 1;
+    } catch (error) {
+      const idMatch = attributes.match(/\\bid\\s*=\\s*["']([^"']+)["']/i);
+      const label = idMatch ? ' #' + idMatch[1] : ' inline script';
+      throw new Error('Generated JavaScript syntax check failed in' + label + ': ' + error.message);
+    }
+  }
+  if (inlineScriptCount === 0) throw new Error('Generated JavaScript syntax check found no inline scripts.');
+
   if (html.includes('type="radio" name="priority"')) {
     throw new Error('UI regression check failed: legacy priority radio markup is still present.');
   }
