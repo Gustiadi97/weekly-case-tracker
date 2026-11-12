@@ -198,7 +198,7 @@ try {
       inlineScriptCount += 1;
     } catch (error) {
       const idMatch = attributes.match(/\bid\s*=\s*["']([^"']+)["']/i);
-      const label = idMatch ? ' #' + idMatch[1] : ' inline script #' + inlineScriptIndex + ' (' + source.length + ' chars; starts: ' + source.trim().slice(0, 90).replace(/\\s+/g, ' ') + ')';
+      const label = idMatch ? ' #' + idMatch[1] : ' inline script #' + inlineScriptIndex + ' (' + source.length + ' chars; starts: ' + source.trim().slice(0, 90).replace(/\s+/g, ' ') + '; ends: ' + source.trim().slice(-180).replace(/\s+/g, ' ') + ')';
       throw new Error('Generated JavaScript syntax check failed in' + label + ': ' + error.message);
     }
   }
