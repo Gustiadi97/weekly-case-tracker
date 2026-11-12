@@ -78,7 +78,6 @@ service cloud.firestore {
         request.resource.data.blocker is string &&
         request.resource.data.next_step is string &&
         request.resource.data.created_at is string &&
-        get(actionPath(request.resource.data.action_id)).data.progress == request.resource.data.progress_before &&
         getAfter(actionPath(request.resource.data.action_id)).data.progress == request.resource.data.progress_after &&
         getAfter(actionPath(request.resource.data.action_id)).data.status == request.resource.data.status_after &&
         getAfter(actionPath(request.resource.data.action_id)).data.updated_at == request.resource.data.created_at;
