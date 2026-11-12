@@ -73,6 +73,8 @@ try {
   html = require('./priority-runtime')(html);
   html = require('./admin-settings-runtime')(html);
   html = require('./picapa-workflow')(html);
+  html = require('./case-edit-runtime')(html);
+  html = require('./division-breakdown-runtime')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -84,7 +86,11 @@ try {
     ['mobile modal touch fallback', 'wctTouchScrollBody.scrollTop+=delta'],
     ['case editor form', 'function editCaseForm(id)'],
     ['case editor save handler', 'async function saveEditedCase(event)'],
-    ['case editor list action', 'onclick="editCaseFormFromButton(this)"'],
+    ['case editor list action', 'data-wct-case-edit-id'],
+    ['direct Case editor click handler', 'id="wct-case-edit-runtime"'],
+    ['unified Firestore Case save handler', 'window.saveEditedCase=async function(event,explicitForm)'],
+    ['Case detail Edit uses same data action', 'data-wct-return-detail="true"'],
+    ['Division dashboard breakdown', 'id="wct-division-breakdown-runtime"'],
     ['mobile case card layout', 'wct-case-mobile-cards'],
     ['design refresh stylesheet', 'id="wct-design-refresh"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
@@ -94,7 +100,9 @@ try {
     ['Edit button uses explicit global action', 'wctAdminSettingAction(this.dataset.settingsAction,this.dataset.kind,this.dataset.index)'],
     ['Settings forms use explicit submit handler', 'wctAdminSettingsSubmit(event,this)'],
     ['Eight-item operational Division breakdown', "const DEFAULT_DIVISIONS=['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other']"],
-    ['One-time Division migration version', 'division_schema_version:2'],
+    ['Division schema v3 migration', 'division_schema_version:3'],
+    ['read-time Division v3 normalization', 'const schemaVersion = Number(saved.division_schema_version || 0)'],
+    ['One-time Division migration version', 'division_schema_version:3'],
     ['Admin settings sync Case form choices after save', 'state.caseOptions={categories:clean.categories.slice(),divisions:clean.divisions.slice()}'],
     ['Active Case options updated after settings changes', 'state.caseOptions={categories:categories.slice(),divisions:divisions.slice()}'],
 
@@ -129,7 +137,7 @@ try {
     ['event date shown in detail', 'Tanggal Kejadian'],
     ['automatic recorded date shown', 'Tanggal Dicatat'],
     ['dedicated Case edit form', 'id="wctCaseEditorForm"'],
-    ['dedicated Case edit save handler', 'window.saveEditedCase=async function(event)'],
+    ['dedicated Case edit save handler', 'window.saveEditedCase=async function(event,explicitForm)'],
     ['Case edit keeps action plans separate', 'Yang sedang diedit: informasi utama Case'],
     ['Case editor mobile modal layout', 'openModal(html,true)'],
     ['Case edit updates only cases collection', "fireDb.collection('cases').doc(id).update(next)"],
