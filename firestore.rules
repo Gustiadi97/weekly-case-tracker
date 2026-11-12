@@ -51,6 +51,7 @@ service cloud.firestore {
     function activeUser() { return hasProfile() && profile().active == true; }
     function isAdmin() { return activeUser() && profile().role == 'admin'; }
     function isLead() { return activeUser() && profile().role in ['admin', 'coordinator']; }
+    function canWriteProgress() { return activeUser() && profile().role in ['admin', 'coordinator', 'member']; }
     function directoryMatchesProfile(uid) {
       return existsAfter(profilePath(uid)) &&
         request.resource.data.full_name == getAfter(profilePath(uid)).data.full_name &&
@@ -98,7 +99,7 @@ service cloud.firestore {
           exists(casePath(request.resource.data.case_id)) &&
           (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['progress','status','latest_progress_log_id']) ||
             actionProgressMatchesLog(actionId))) ||
-        (activeUser() &&
+        (activeUser() && profile().role == 'member' &&
           resource.data.assigned_to == request.auth.uid &&
           request.resource.data.assigned_to == resource.data.assigned_to &&
           request.resource.data.case_id == resource.data.case_id &&
@@ -116,13 +117,13 @@ service cloud.firestore {
 
       // A progress entry must point to an existing Action and its actual parent Case.
       // The Action's summary progress/status are updated in the same atomic batch.
-      allow create: if activeUser() &&
+      allow create: if canWriteProgress() &&
         request.resource.data.created_by == request.auth.uid &&
         request.resource.data.case_id is string &&
         request.resource.data.action_id is string &&
         actionMatchesCase(request.resource.data.case_id, request.resource.data.action_id) &&
         (isLead() ||
-          get(actionPath(request.resource.data.action_id)).data.assigned_to == request.auth.uid) &&
+          (profile().role == 'member' && get(actionPath(request.resource.data.action_id)).data.assigned_to == request.auth.uid)) &&
         request.resource.data.update_text is string &&
         request.resource.data.progress_before is int &&
         request.resource.data.progress_before >= 0 &&
@@ -140,8 +141,8 @@ service cloud.firestore {
 
       // Only the original author or a lead can correct a progress entry.
       // Its author, timestamps, progress_before, and Case/Action linkage stay immutable.
-      allow update: if activeUser() &&
-        (isLead() || resource.data.created_by == request.auth.uid) &&
+      allow update: if canWriteProgress() &&
+        (isLead() || (profile().role == 'member' && resource.data.created_by == request.auth.uid)) &&
         request.resource.data.edited_by == request.auth.uid &&
         request.resource.data.edited_at is string &&
         request.resource.data.update_text is string &&
@@ -178,7 +179,7 @@ service cloud.firestore {
       allow read: if activeUser();
       // Append-only audit trail. Linkage and the recorded "after" state must
       // match the progress log corrected in the same atomic batch.
-      allow create: if activeUser() &&
+      allow create: if canWriteProgress() &&
         request.resource.data.edited_by == request.auth.uid &&
         request.resource.data.log_id is string &&
         request.resource.data.case_id is string &&
@@ -191,7 +192,7 @@ service cloud.firestore {
         get(progressLogPath(request.resource.data.log_id)).data.case_id == request.resource.data.case_id &&
         get(progressLogPath(request.resource.data.log_id)).data.action_id == request.resource.data.action_id &&
         (isLead() ||
-          get(progressLogPath(request.resource.data.log_id)).data.created_by == request.auth.uid) &&
+          (profile().role == 'member' && get(progressLogPath(request.resource.data.log_id)).data.created_by == request.auth.uid)) &&
         getAfter(progressLogPath(request.resource.data.log_id)).data.case_id == request.resource.data.case_id &&
         getAfter(progressLogPath(request.resource.data.log_id)).data.action_id == request.resource.data.action_id &&
         getAfter(progressLogPath(request.resource.data.log_id)).data.edited_by == request.auth.uid &&
