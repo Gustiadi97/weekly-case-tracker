@@ -1,4 +1,6 @@
-module.exports = function applyGlobalRedesign(html) {\n  if (!html || !html.includes('</body>')) throw new Error('Could not find document body for global UI redesign.');\n  const css = String.raw`
+module.exports = function applyGlobalRedesign(html) {
+  if (!html || !html.includes('</body>')) throw new Error('Could not find document body for global UI redesign.');
+  const css = String.raw`
 :root{--wct-brand:#FEA500;--wct-brand-hover:#E99400;--wct-brand-dark:#9A6200;--wct-brand-soft:#FFF2D8;--wct-brand-pale:#FFFAF0;--wct-ink:#292A30;--wct-muted:#746F66;--wct-line:#ECE4D8;--wct-canvas:#FFFBF5;--wct-surface:#fff;--wct-shadow:0 10px 28px rgba(60,42,12,.07);--secondary:#FEA500;--secondary-dark:#D98B00;--accent:#FFE1A6;--pink-soft:#FFF3D9;--main:#FFFBF5;--bg:#FFFBF5;--ink:#292A30;--muted:#746F66;--line:#ECE4D8;--shadow:0 10px 28px rgba(60,42,12,.07);--radius:18px}
 html{scroll-behavior:smooth;background:var(--wct-canvas)}
 body{color:var(--wct-ink)!important;background:var(--wct-canvas)!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
@@ -195,4 +197,6 @@ label,.field label{color:#5d584f!important;font-size:11px!important;font-weight:
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
-`;\n  return html.replace('</body>', '<style id=\"wct-global-redesign\">' + css + '</style></body>');\n};\n
+`;
+  return html.replace('</body>', '<style id=\"wct-global-redesign\">' + css + '</style></body>');
+};
