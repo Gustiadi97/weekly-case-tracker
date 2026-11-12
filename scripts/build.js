@@ -96,7 +96,7 @@ try {
     ['Eight-item operational Division breakdown', "const DEFAULT_DIVISIONS=['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other']"],
     ['One-time Division migration version', 'division_schema_version:2'],
     ['Admin settings sync Case form choices after save', 'state.caseOptions={categories:clean.categories.slice(),divisions:clean.divisions.slice()}'],
-    ['Active Case options updated after settings changes', 'state.caseOptions={categories:categories,divisions:divisions}'],
+    ['Active Case options updated after settings changes', 'state.caseOptions={categories:categories.slice(),divisions:divisions.slice()}'],
 
     ['admin categories and divisions section', 'wct-settings-grid'],
     ['category/division add form handler', 'data-settings-form="add"'],
