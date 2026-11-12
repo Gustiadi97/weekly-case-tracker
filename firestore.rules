@@ -56,7 +56,7 @@ service cloud.firestore {
         request.resource.data.full_name == getAfter(profilePath(uid)).data.full_name &&
         request.resource.data.role == getAfter(profilePath(uid)).data.role &&
         request.resource.data.active == (getAfter(profilePath(uid)).data.active == true) &&
-        request.resource.data.deleted == (getAfter(profilePath(uid)).data.deleted == true);
+        request.resource.data.deleted == (getAfter(profilePath(uid)).data.get('deleted', false) == true);
     }
 
     match /users/{uid} {
