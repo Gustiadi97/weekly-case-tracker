@@ -1,0 +1,46 @@
+name: Firestore Rules Emulator Tests
+
+on:
+  pull_request:
+    paths:
+      - "firestore.rules"
+      - "firebase.json"
+      - "package.json"
+      - "tests/**"
+      - ".github/workflows/firestore-rules.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "firestore.rules"
+      - "firebase.json"
+      - "package.json"
+      - "tests/**"
+      - ".github/workflows/firestore-rules.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  firestore-rules:
+    name: Firestore Rules (Emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/package.json
+      - name: Set up Java for Firestore Emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install isolated test dependencies
+        run: npm install --prefix tests
+      - name: Run Firestore Security Rules tests
+        run: npm run test:rules
