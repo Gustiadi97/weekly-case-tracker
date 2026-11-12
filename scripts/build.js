@@ -118,7 +118,17 @@ try {
     ['Case edit keeps action plans separate', 'Yang sedang diedit: informasi utama Case'],
     ['Case editor mobile modal layout', 'openModal(html,true)'],
     ['Case edit updates only cases collection', "fireDb.collection('cases').doc(id).update(next)"],
-    ['Case edit save success feedback', 'Perubahan Case berhasil disimpan.']
+    ['Case edit save success feedback', 'Perubahan Case berhasil disimpan.'],
+    ['PICAPA full-page scrolling workspace', 'wct-flow-page'],
+    ['Case detail quick navigation', 'wct-flow-subnav'],
+    ['Case list return navigation', 'wctReturnToCaseList'],
+    ['Action full-page form', 'id="wctActionForm"'],
+    ['Progress full-page form', 'id="wctProgressForm"'],
+    ['Action edit retains selected Action ID', 'openActionForm=function(caseId,type,actionId)'],
+    ['Progress edit retains selected log ID', 'openUpdateForm=function(actionId,logId)'],
+    ['Case and Action forms have sticky save footer', 'wct-flow-form-footer'],
+    ['Action buttons accessible in full page', 'wct-case-action-buttons'],
+    ['Mobile Case workspace grid', '.wct-case-detail-page .wct-case-meta-grid']
   ];
   const missingUiChecks = uiChecks.filter(([name, marker]) => !html.includes(marker)).map(([name]) => name);
   if (missingUiChecks.length) {
