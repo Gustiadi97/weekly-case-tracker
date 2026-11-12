@@ -137,6 +137,15 @@ service cloud.firestore {
         getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.action_id == resource.data.action_id &&
         getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.edited_by == request.auth.uid &&
         getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.created_at == request.resource.data.edited_at &&
+        (
+          !getAfter(progressLogEditPath(request.resource.data.last_edit_audit_id)).data.latest_update ||
+          (
+            getAfter(actionPath(resource.data.action_id)).data.latest_progress_log_id == logId &&
+            getAfter(actionPath(resource.data.action_id)).data.progress == request.resource.data.progress_after &&
+            getAfter(actionPath(resource.data.action_id)).data.status == request.resource.data.status_after &&
+            getAfter(actionPath(resource.data.action_id)).data.updated_at == request.resource.data.edited_at
+          )
+        ) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'update_text', 'progress_after', 'blocker', 'next_step',
           'status_after', 'edited_at', 'edited_by', 'last_edit_audit_id'
