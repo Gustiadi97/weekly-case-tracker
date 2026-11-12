@@ -29,7 +29,39 @@ service cloud.firestore {
     }
     match /progress_logs/{logId} {
       allow read: if activeUser();
-      allow create: if activeUser() && request.resource.data.created_by == request.auth.uid && exists(/databases/$(database)/documents/actions/$(request.resource.data.action_id)) && (isLead() || get(/databases/$(database)/documents/actions/$(request.resource.data.action_id)).data.assigned_to == request.auth.uid);
+      allow create: if activeUser() &&
+        request.resource.data.created_by == request.auth.uid &&
+        exists(/databases/$(database)/documents/actions/$(request.resource.data.action_id)) &&
+        (isLead() || get(/databases/$(database)/documents/actions/$(request.resource.data.action_id)).data.assigned_to == request.auth.uid);
+      // Only the original author or a lead can correct a progress entry.
+      // The original author, timestamps, case/action linkage, and progress_before stay immutable.
+      allow update: if activeUser() &&
+        (isLead() || resource.data.created_by == request.auth.uid) &&
+        request.resource.data.edited_by == request.auth.uid &&
+        request.resource.data.edited_at is string &&
+        request.resource.data.progress_after is int &&
+        request.resource.data.progress_after >= 0 &&
+        request.resource.data.progress_after <= 100 &&
+        request.resource.data.status_after in ['open', 'in_progress', 'review', 'done'] &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'update_text', 'progress_after', 'blocker', 'next_step',
+          'status_after', 'edited_at', 'edited_by'
+        ]);
+      allow delete: if false;
+    }
+
+    match /progress_log_edits/{editId} {
+      allow read: if activeUser();
+      // Append-only audit trail for every correction to a progress log.
+      allow create: if activeUser() &&
+        request.resource.data.edited_by == request.auth.uid &&
+        request.resource.data.log_id is string &&
+        exists(/databases/$(database)/documents/progress_logs/$(request.resource.data.log_id)) &&
+        (isLead() ||
+          get(/databases/$(database)/documents/progress_logs/$(request.resource.data.log_id)).data.created_by == request.auth.uid) &&
+        request.resource.data.case_id is string &&
+        request.resource.data.action_id is string &&
+        request.resource.data.created_at is string;
       allow update, delete: if false;
     }
     match /meetings/{meetingId} {
