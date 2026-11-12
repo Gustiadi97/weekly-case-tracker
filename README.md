@@ -10,6 +10,16 @@ Aplikasi menggunakan Firebase Authentication dan Cloud Firestore. Frontend di-ho
 - Nonaktifkan akun dengan mengubah `active=false`; Firestore Rules menolak akses data.
 - Data operasional tetap berada di koleksi Firestore yang sama.
 
+## Pengujian Firestore Rules (lokal)
+
+Pengujian menggunakan Firestore Emulator dan project demo terpisah. Pengujian ini tidak membutuhkan login Firebase dan tidak mengakses database produksi.
+
+```bash
+npm install --prefix tests
+npm run test:rules
+```
+
+Suite menguji pembuatan Case dan Action, penugasan PIC, kesesuaian Case/Action pada progress log, kewajiban memperbarui Action bersama progress log, serta pencatatan audit ketika riwayat dikoreksi. CI menjalankan suite yang sama setiap ada pull request yang mengubah Rules, konfigurasi emulator, atau test.
 ## Deploy
 Vercel menjalankan `npm run build` dan menerbitkan folder `public`. Push ke branch `main` memicu deployment otomatis jika integrasi GitHub Vercel aktif.
 
