@@ -89,6 +89,7 @@ async function seedBaseData() {
       }),
       setDoc(doc(firestore, "actions", ACTION_ID), {
         case_id: CASE_ID,
+        action_type: "corrective",
         title: "Investigate package",
         assigned_to: MEMBER_UID,
         status: "open",
@@ -295,6 +296,7 @@ test("Action must reference an existing Case", async () => {
 
   await assertSucceeds(setDoc(doc(coordinatorDb, "actions", "valid-action"), {
     case_id: CASE_ID,
+    action_type: "corrective",
     title: "Valid Action",
     assigned_to: MEMBER_UID,
     status: "open",
@@ -303,7 +305,310 @@ test("Action must reference an existing Case", async () => {
   }));
 });
 
+test("Case and initial Corrective/Preventive Actions can be created atomically", async () => {
+  const coordinatorDb = db(COORDINATOR_UID);
+  const batch = writeBatch(coordinatorDb);
+  batch.set(doc(coordinatorDb, "cases", "case-with-actions"), {
+    case_code: "CASE-ATOMIC",
+    title: "Case with initial PICAPA",
+    status: "open",
+    created_by: COORDINATOR_UID,
+    created_at: CREATED_AT
+  });
+  batch.set(doc(coordinatorDb, "actions", "initial-ca"), {
+    case_id: "case-with-actions",
+    action_type: "corrective",
+    title: "Resolve current issue",
+    description: "",
+    assigned_to: MEMBER_UID,
+    due_date: "2026-11-20",
+    status: "open",
+    progress: 0,
+    created_by: COORDINATOR_UID
+  });
+  batch.set(doc(coordinatorDb, "actions", "initial-pa"), {
+    case_id: "case-with-actions",
+    action_type: "preventive",
+    title: "Prevent recurrence",
+    description: "",
+    assigned_to: null,
+    due_date: null,
+    status: "open",
+    progress: 0,
+    created_by: COORDINATOR_UID
+  });
+  await assertSucceeds(batch.commit());
+});
+
+test("Action cannot be assigned to a Viewer or inactive PIC", async () => {
+  const coordinatorDb = db(COORDINATOR_UID);
+  await assertFails(setDoc(doc(coordinatorDb, "actions", "viewer-assigned"), {
+    case_id: CASE_ID, action_type: "corrective", title: "Invalid viewer assignment",
+    assigned_to: VIEWER_UID, status: "open", progress: 0, created_by: COORDINATOR_UID
+  }));
+  await assertFails(setDoc(doc(coordinatorDb, "actions", "inactive-assigned"), {
+    case_id: CASE_ID, action_type: "preventive", title: "Invalid inactive assignment",
+    assigned_to: INACTIVE_UID, status: "open", progress: 0, created_by: COORDINATOR_UID
+  }));
+});
+
+test("Action cannot be added to a closed Case", async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "cases", CASE_ID), { status: "closed" });
+  });
+  const coordinatorDb = db(COORDINATOR_UID);
+  await assertFails(setDoc(doc(coordinatorDb, "actions", "closed-case-action"), {
+    case_id: CASE_ID, action_type: "corrective", title: "Cannot add after archive",
+    assigned_to: MEMBER_UID, status: "open", progress: 0, created_by: COORDINATOR_UID
+  }));
+});
+
+test("Coordinator can close a Case with metadata but cannot reopen an archived Case", async () => {
+  const coordinatorDb = db(COORDINATOR_UID);
+  await assertFails(updateDoc(doc(coordinatorDb, "cases", CASE_ID), { status: "closed", updated_at: EDITED_AT }));
+  await assertSucceeds(updateDoc(doc(coordinatorDb, "cases", CASE_ID), {
+    status: "closed", closed_at: EDITED_AT, closed_by: COORDINATOR_UID, updated_at: EDITED_AT
+  }));
+  await assertFails(updateDoc(doc(coordinatorDb, "cases", CASE_ID), {
+    status: "open", updated_at: "2026-11-12T08:30:00.000Z"
+  }));
+});
+
+test("Action can be marked Done only when progress is 100 percent", async () => {
+  const memberDb = db(MEMBER_UID);
+  const invalidBatch = writeBatch(memberDb);
+  invalidBatch.update(doc(memberDb, "actions", ACTION_ID), {
+    progress: 90, status: "done", updated_at: EDITED_AT, latest_progress_log_id: "log-done-invalid"
+  });
+  invalidBatch.set(doc(memberDb, "progress_logs", "log-done-invalid"), progressRow({ progress_after: 90, status_after: "done" }));
+  await assertFails(invalidBatch.commit());
+
+  const validBatch = writeBatch(memberDb);
+  validBatch.update(doc(memberDb, "actions", ACTION_ID), {
+    progress: 100, status: "done", updated_at: EDITED_AT, latest_progress_log_id: "log-done-valid"
+  });
+  validBatch.set(doc(memberDb, "progress_logs", "log-done-valid"), progressRow({ progress_after: 100, status_after: "done" }));
+  await assertSucceeds(validBatch.commit());
+});
+
+test("closed Case does not accept new progress updates", async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await updateDoc(doc(context.firestore(), "cases", CASE_ID), {
+      status: "closed", closed_at: EDITED_AT, closed_by: COORDINATOR_UID
+    });
+  });
+  const memberDb = db(MEMBER_UID);
+  const batch = writeBatch(memberDb);
+  batch.update(doc(memberDb, "actions", ACTION_ID), {
+    progress: 45, status: "in_progress", updated_at: EDITED_AT, latest_progress_log_id: "log-closed"
+  });
+  batch.set(doc(memberDb, "progress_logs", "log-closed"), progressRow());
+  await assertFails(batch.commit());
+});
 test("assigned PIC can create a progress log and update its Action in one batch", async () => {
+  const memberDb = db(MEMBER_UID);
+  const batch = writeBatch(memberDb);
+
+  batch.update(doc(memberDb, "actions", ACTION_ID), {
+    progress: 45,
+    status: "in_progress",
+    updated_at: EDITED_AT,
+    latest_progress_log_id: "log-valid"
+  });
+  batch.set(doc(memberDb, "progress_logs", "log-valid"), progressRow());
+
+  await assertSucceeds(batch.commit());
+});
+
+test("progress log cannot point to a different Case than its Action", async () => {
+  const memberDb = db(MEMBER_UID);
+  const batch = writeBatch(memberDb);
+
+  batch.update(doc(memberDb, "actions", ACTION_ID), {
+    progress: 45,
+    status: "in_progress",
+    updated_at: EDITED_AT,
+    latest_progress_log_id: "log-wrong-case"
+  });
+  batch.set(doc(memberDb, "progress_logs", "log-wrong-case"), progressRow({
+    case_id: "another-case"
+  }));
+
+  await assertFails(batch.commit());
+});
+
+test("an unassigned member cannot write progress for another PIC's Action", async () => {
+  const otherDb = db(OTHER_MEMBER_UID);
+  const batch = writeBatch(otherDb);
+
+  batch.update(doc(otherDb, "actions", ACTION_ID), {
+    progress: 45,
+    status: "in_progress",
+    updated_at: EDITED_AT,
+    latest_progress_log_id: "log-unassigned"
+  });
+  batch.set(doc(otherDb, "progress_logs", "log-unassigned"), progressRow({
+    created_by: OTHER_MEMBER_UID
+  }));
+
+  await assertFails(batch.commit());
+});
+
+test("Action progress cannot be changed without a corresponding progress log", async () => {
+  const memberDb = db(MEMBER_UID);
+
+  await assertFails(updateDoc(doc(memberDb, "actions", ACTION_ID), {
+    progress: 70,
+    status: "review",
+    updated_at: EDITED_AT
+  }));
+});
+
+test("a progress log cannot be created unless the Action is updated in the same batch", async () => {
+  const memberDb = db(MEMBER_UID);
+
+  await assertFails(setDoc(doc(memberDb, "progress_logs", "log-without-action-update"), progressRow()));
+});
+
+test("editing a progress log without its append-only audit record is denied", async () => {
+  await seedLatestProgressLog();
+  const memberDb = db(MEMBER_UID);
+
+  await assertFails(updateDoc(doc(memberDb, "progress_logs", "log-1"), {
+    update_text: "Edited without audit",
+    progress_after: 70,
+    blocker: "",
+    next_step: "Next step",
+    status_after: "review",
+    edited_at: EDITED_AT,
+    edited_by: MEMBER_UID,
+    last_edit_audit_id: "audit-missing"
+  }));
+});
+
+test("latest progress correction requires its audit and Action update in one batch", async () => {
+  await seedLatestProgressLog();
+  const memberDb = db(MEMBER_UID);
+  const batch = writeBatch(memberDb);
+  const after = {
+    update_text: "Corrected progress update",
+    progress_after: 75,
+    blocker: "Waiting for confirmation",
+    next_step: "Escalate to coordinator",
+    status_after: "review"
+  };
+  const beforeState = {
+    update_text: "Initial progress update",
+    progress_before: 0,
+    progress_after: 40,
+    blocker: "",
+    next_step: "Continue investigation",
+    status_after: "in_progress"
+  };
+
+  batch.update(doc(memberDb, "progress_logs", "log-1"), {
+    ...after,
+    edited_at: EDITED_AT,
+    edited_by: MEMBER_UID,
+    last_edit_audit_id: "audit-1"
+  });
+  batch.set(doc(memberDb, "progress_log_edits", "audit-1"), {
+    case_id: CASE_ID,
+    action_id: ACTION_ID,
+    log_id: "log-1",
+    edited_by: MEMBER_UID,
+    created_at: EDITED_AT,
+    before: beforeState,
+    after,
+    latest_update: true
+  });
+  batch.update(doc(memberDb, "actions", ACTION_ID), {
+    progress: 75,
+    status: "review",
+    updated_at: EDITED_AT,
+    latest_progress_log_id: "log-1"
+  });
+
+  await assertSucceeds(batch.commit());
+});
+
+test("latest progress correction is denied when Action is not updated", async () => {
+  await seedLatestProgressLog();
+  const memberDb = db(MEMBER_UID);
+  const batch = writeBatch(memberDb);
+  const after = {
+    update_text: "Corrected without Action update",
+    progress_after: 75,
+    blocker: "",
+    next_step: "Next step",
+    status_after: "review"
+  };
+
+  batch.update(doc(memberDb, "progress_logs", "log-1"), {
+    ...after,
+    edited_at: EDITED_AT,
+    edited_by: MEMBER_UID,
+    last_edit_audit_id: "audit-2"
+  });
+  batch.set(doc(memberDb, "progress_log_edits", "audit-2"), {
+    case_id: CASE_ID,
+    action_id: ACTION_ID,
+    log_id: "log-1",
+    edited_by: MEMBER_UID,
+    created_at: EDITED_AT,
+    before: {
+      update_text: "Initial progress update",
+      progress_before: 0,
+      progress_after: 40,
+      blocker: "",
+      next_step: "Continue investigation",
+      status_after: "in_progress"
+    },
+    after,
+    latest_update: true
+  });
+
+  await assertFails(batch.commit());
+});
+
+test("a user cannot correct another member's progress log", async () => {
+  await seedLatestProgressLog();
+  const otherDb = db(OTHER_MEMBER_UID);
+  const batch = writeBatch(otherDb);
+  const after = {
+    update_text: "Unauthorized correction",
+    progress_after: 80,
+    blocker: "",
+    next_step: "Next",
+    status_after: "review"
+  };
+
+  batch.update(doc(otherDb, "progress_logs", "log-1"), {
+    ...after,
+    edited_at: EDITED_AT,
+    edited_by: OTHER_MEMBER_UID,
+    last_edit_audit_id: "audit-other"
+  });
+  batch.set(doc(otherDb, "progress_log_edits", "audit-other"), {
+    case_id: CASE_ID,
+    action_id: ACTION_ID,
+    log_id: "log-1",
+    edited_by: OTHER_MEMBER_UID,
+    created_at: EDITED_AT,
+    before: {},
+    after,
+    latest_update: true
+  });
+  batch.update(doc(otherDb, "actions", ACTION_ID), {
+    progress: 80,
+    status: "review",
+    updated_at: EDITED_AT,
+    latest_progress_log_id: "log-1"
+  });
+
+  await assertFails(batch.commit());
+});
+
   const memberDb = db(MEMBER_UID);
   const batch = writeBatch(memberDb);
 
