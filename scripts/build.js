@@ -92,6 +92,13 @@ try {
     ['Case detail Edit uses same data action', 'data-wct-return-detail="true"'],
     ['Division dashboard breakdown', 'id="wct-division-breakdown-runtime"'],
     ['mobile case card layout', 'wct-case-mobile-cards'],
+    ['Canonical Division names in form fallbacks', "divisions:['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other']"],
+    ['Division options v3 fallback normalization', 'const schemaVersion = Number(saved.division_schema_version || 0)'],
+    ['Dashboard Division breakdown cards', 'wct-division-breakdown-list'],
+    ['Dashboard Division breakdown runtime', 'id="wct-division-breakdown-runtime"'],
+    ['Case Edit uses one Firestore save handler', 'window.saveEditedCase=async function(event,explicitForm)'],
+    ['Case Edit uses a direct data action', 'data-wct-case-edit-id'],
+    ['Case Edit runtime loaded last', 'id="wct-case-edit-runtime"'],
     ['design refresh stylesheet', 'id="wct-design-refresh"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
 
