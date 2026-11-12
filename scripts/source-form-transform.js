@@ -5,7 +5,7 @@ module.exports = function applySourceFormTransform(html) {
 
   const replacement = [
     'function wctSourceOptions(){',
-    " const defaults={categories:['Inbound','Outbound','Sorting','Productivity','Service Level','Facility & Safety','People / Manpower','Transportation','Reporting','Other'],divisions:['Hub Operations','Gateway','Last Mile','Facility & Safety','People & Manpower','Transportation','Other']};",
+    " const defaults={categories:['Inbound','Outbound','Sorting','Productivity','Service Level','Facility & Safety','People / Manpower','Transportation','Reporting','Other'],divisions:['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other']};",
     " return state.caseOptions||defaults;",
     '}',
     'function profileSelect(name){',
