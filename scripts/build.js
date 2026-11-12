@@ -184,7 +184,9 @@ try {
   const inlineScriptPattern = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
   let inlineScriptMatch;
   let inlineScriptCount = 0;
+  let inlineScriptIndex = 0;
   while ((inlineScriptMatch = inlineScriptPattern.exec(html)) !== null) {
+    inlineScriptIndex += 1;
     const attributes = inlineScriptMatch[1] || '';
     const source = inlineScriptMatch[2] || '';
     if (/\bsrc\s*=/.test(attributes) || !source.trim()) continue;
@@ -196,7 +198,7 @@ try {
       inlineScriptCount += 1;
     } catch (error) {
       const idMatch = attributes.match(/\bid\s*=\s*["']([^"']+)["']/i);
-      const label = idMatch ? ' #' + idMatch[1] : ' inline script';
+      const label = idMatch ? ' #' + idMatch[1] : ' inline script #' + inlineScriptIndex + ' (' + source.length + ' chars; starts: ' + source.trim().slice(0, 90).replace(/\\s+/g, ' ') + ')';
       throw new Error('Generated JavaScript syntax check failed in' + label + ': ' + error.message);
     }
   }
