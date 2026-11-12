@@ -28,6 +28,8 @@ const MEMBER_UID = "member-1";
 const OTHER_MEMBER_UID = "member-2";
 const COORDINATOR_UID = "coordinator-1";
 const ADMIN_UID = "admin-1";
+const VIEWER_UID = "viewer-1";
+const INACTIVE_UID = "inactive-1";
 const CREATED_AT = "2026-11-12T08:00:00.000Z";
 const EDITED_AT = "2026-11-12T08:15:00.000Z";
 
@@ -62,10 +64,22 @@ async function seedBaseData() {
         role: "member",
         active: true
       }),
+      setDoc(doc(firestore, "users", VIEWER_UID), {
+        full_name: "Viewer Test",
+        role: "viewer",
+        active: true
+      }),
+      setDoc(doc(firestore, "users", INACTIVE_UID), {
+        full_name: "Inactive Test",
+        role: "member",
+        active: false
+      }),
       setDoc(doc(firestore, "team_directory", ADMIN_UID), { full_name: "Admin Test", role: "admin", active: true, deleted: false }),
       setDoc(doc(firestore, "team_directory", COORDINATOR_UID), { full_name: "Coordinator Test", role: "coordinator", active: true, deleted: false }),
       setDoc(doc(firestore, "team_directory", MEMBER_UID), { full_name: "Member Test", role: "member", active: true, deleted: false }),
       setDoc(doc(firestore, "team_directory", OTHER_MEMBER_UID), { full_name: "Other Member Test", role: "member", active: true, deleted: false }),
+      setDoc(doc(firestore, "team_directory", VIEWER_UID), { full_name: "Viewer Test", role: "viewer", active: true, deleted: false }),
+      setDoc(doc(firestore, "team_directory", INACTIVE_UID), { full_name: "Inactive Test", role: "member", active: false, deleted: false }),
       setDoc(doc(firestore, "cases", CASE_ID), {
         case_code: "CASE-001",
         title: "Test case",
@@ -77,6 +91,16 @@ async function seedBaseData() {
         case_id: CASE_ID,
         title: "Investigate package",
         assigned_to: MEMBER_UID,
+        status: "open",
+        progress: 0,
+        created_by: COORDINATOR_UID,
+        created_at: CREATED_AT,
+        updated_at: CREATED_AT
+      }),
+      setDoc(doc(firestore, "actions", "viewer-action"), {
+        case_id: CASE_ID,
+        title: "Viewer should not update",
+        assigned_to: VIEWER_UID,
         status: "open",
         progress: 0,
         created_by: COORDINATOR_UID,
@@ -185,6 +209,57 @@ test("Admin directory writes must mirror the private profile and contain only di
     active: true,
     deleted: false,
     login_id: "PRIVATE-ID"
+  }));
+});
+
+test("viewer is read-only even when an Action is assigned to their UID", async () => {
+  const viewerDb = db(VIEWER_UID);
+  await assertSucceeds(getDoc(doc(viewerDb, "cases", CASE_ID)));
+  const batch = writeBatch(viewerDb);
+  batch.update(doc(viewerDb, "actions", "viewer-action"), {
+    progress: 25,
+    status: "in_progress",
+    updated_at: EDITED_AT,
+    latest_progress_log_id: "viewer-log"
+  });
+  batch.set(doc(viewerDb, "progress_logs", "viewer-log"), progressRow({
+    action_id: "viewer-action",
+    progress_before: 0,
+    progress_after: 25,
+    status_after: "in_progress",
+    created_by: VIEWER_UID
+  }));
+  await assertFails(batch.commit());
+  await assertFails(setDoc(doc(viewerDb, "cases", "viewer-case"), {
+    title: "Viewer cannot create",
+    created_by: VIEWER_UID
+  }));
+  await assertFails(setDoc(doc(viewerDb, "meetings", "viewer-meeting"), {
+    title: "Viewer cannot create",
+    created_by: VIEWER_UID
+  }));
+});
+
+test("inactive users can read their own profile but cannot access operational data", async () => {
+  const inactiveDb = db(INACTIVE_UID);
+  await assertSucceeds(getDoc(doc(inactiveDb, "users", INACTIVE_UID)));
+  await assertFails(getDoc(doc(inactiveDb, "cases", CASE_ID)));
+  await assertFails(getDocs(collection(inactiveDb, "team_directory")));
+  await assertFails(getDocs(collection(inactiveDb, "cases")));
+});
+
+test("regular members cannot edit Cases or app settings; Admin can manage settings", async () => {
+  const memberDb = db(MEMBER_UID);
+  await assertFails(updateDoc(doc(memberDb, "cases", CASE_ID), {
+    title: "Changed by member"
+  }));
+  await assertFails(setDoc(doc(memberDb, "app_settings", "case_options"), {
+    categories: ["Inbound"],
+    divisions: ["Hub Operations"]
+  }));
+  await assertSucceeds(setDoc(doc(db(ADMIN_UID), "app_settings", "case_options"), {
+    categories: ["Inbound"],
+    divisions: ["Hub Operations"]
   }));
 });
 
