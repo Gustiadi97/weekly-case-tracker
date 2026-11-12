@@ -35,9 +35,9 @@ try {
   html = html.replace('Imam (Demo)', 'Pengguna');
 
   // Apply the requested 60 / 30 / 10 colour system.
-  html = html.replace('<meta name="theme-color" content="#c91d78" />', '<meta name="theme-color" content="#5B2A86" />');
+  html = html.replace('<meta name="theme-color" content="#c91d78" />', '<meta name="theme-color" content="#FEA500" />');
   html = html.replace(
-    ':root{--pink:#c91d78;--pink-dark:#a91562;--orange:#f28a2e;--ink:#242633;--muted:#777b89;--line:#ececf1;--bg:#f6f6f9;--white:#fff;--green:#16845b;--red:#d84b4b;--amber:#c77b14;--blue:#3977c3;--shadow:0 10px 30px rgba(32,25,48,.07);--radius:17px}',
+    ':root{--pink:#FEA500;--pink-dark:#D98B00;--orange:#FEA500;--ink:#282A31;--muted:#746F65;--line:#EAE2D4;--bg:#FFFAF2;--white:#fff;--green:#16845b;--red:#d84b4b;--amber:#A96A00;--blue:#3977c3;--shadow:0 10px 30px rgba(54,42,20,.08);--radius:18px}',
     ':root{--pink:#5B2A86;--pink-dark:#452064;--orange:#B8F23A;--main:#F6B6CF;--secondary:#5B2A86;--accent:#B8F23A;--ink:#321B43;--muted:#6D5878;--line:#E7A5C2;--bg:#F6B6CF;--white:#FFF8FB;--green:#3F7D42;--red:#A72D4D;--amber:#75510B;--blue:#4B3672;--shadow:0 10px 30px rgba(91,42,134,.12);--radius:17px}'
   );
   html = html.replace('.sidebar{position:fixed;inset:0 auto 0 0;width:252px;background:#fff;', '.sidebar{position:fixed;inset:0 auto 0 0;width:252px;background:var(--main);');
@@ -75,6 +75,7 @@ try {
   html = require('./picapa-workflow')(html);
   html = require('./case-edit-runtime')(html);
   html = require('./division-breakdown-runtime')(html);
+  html = require('./global-redesign')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -100,6 +101,7 @@ try {
     ['Case Edit uses a direct data action', 'data-wct-case-edit-id'],
     ['Case Edit runtime loaded last', 'id="wct-case-edit-runtime"'],
     ['design refresh stylesheet', 'id="wct-design-refresh"'],
+    ['global orange UI/UX layer', 'id="wct-global-redesign"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
 
     ['direct Admin Settings action handler', 'window.wctAdminSettingAction=function(action,kind,index)'],
