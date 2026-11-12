@@ -13,7 +13,9 @@ Aplikasi menggunakan Firebase Authentication dan Cloud Firestore. Frontend di-ho
 ## Deploy
 Vercel menjalankan `npm run build` dan menerbitkan folder `public`. Push ke branch `main` memicu deployment otomatis jika integrasi GitHub Vercel aktif.
 
-Terbitkan Firestore Rules dari Cloud Shell:
+Terbitkan Firestore Rules terbaru agar koreksi progress memiliki izin yang aman. Bila tidak menggunakan terminal, buka Firebase Console → Firestore Database → Rules, salin seluruh isi file [`firestore.rules`](./firestore.rules), tempel, lalu klik **Publish**. Langkah ini diperlukan satu kali setelah pembaruan aturan.
+
+Alternatif melalui Cloud Shell:
 ```bash
 firebase use weekly-case-tracker
 firebase deploy --only firestore:rules
