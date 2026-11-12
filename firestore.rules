@@ -25,8 +25,11 @@ service cloud.firestore {
         exists(progressLogPath(logId)) &&
         existsAfter(progressLogPath(logId)) &&
         getAfter(progressLogPath(logId)).data.edited_by == request.auth.uid &&
-        getAfter(progressLogPath(logId)).data.edited_at is string &&
-        getAfter(progressLogPath(logId)).data.edited_at != get(progressLogPath(logId)).data.edited_at
+        getAfter(progressLogPath(logId)).data.last_edit_audit_id is string &&
+        !exists(progressLogEditPath(getAfter(progressLogPath(logId)).data.last_edit_audit_id)) &&
+        existsAfter(progressLogEditPath(getAfter(progressLogPath(logId)).data.last_edit_audit_id)) &&
+        getAfter(progressLogEditPath(getAfter(progressLogPath(logId)).data.last_edit_audit_id)).data.log_id == logId &&
+        getAfter(progressLogEditPath(getAfter(progressLogPath(logId)).data.last_edit_audit_id)).data.edited_by == request.auth.uid
       );
     }
     function actionProgressMatchesLog(actionId) {
