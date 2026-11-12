@@ -16,7 +16,7 @@ const terms = [
   'function isAdmin',
   'state.profiles',
   "collection('users')",
-  'users').doc(
+  "collection('users').doc("
 ];
 const seen = new Set();
 for (const term of terms) {
