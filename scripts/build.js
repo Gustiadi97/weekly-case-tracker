@@ -103,6 +103,15 @@ try {
     ['design refresh stylesheet', 'id="wct-design-refresh"'],
     ['global orange UI/UX layer', 'id="wct-global-redesign"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
+    ['self-service password settings form', 'data-account-password'],
+    ['password changes require current-password reauthentication', 'reauthenticateWithCredential(credential)'],
+    ['password changes use Firebase Auth updatePassword', 'updatePassword(next)'],
+    ['all roles receive the password settings card', 'root.innerHTML=\'<div class="page-head"><div><div class="eyebrow">PENGATURAN AKUN'],
+    ['Case detail renders before audit query resolves', 'renderDetail(id,[]);'],
+    ['Case edit audit query runs asynchronously', 'void (async function(){'],
+    ['redesigned KPI cards', '.kpis .kpi:nth-child(4)'],
+    ['mobile KPI layout', '.kpis .kpi{min-height:122px'],
+
 
     ['direct Admin Settings action handler', 'window.wctAdminSettingAction=function(action,kind,index)'],
     ['direct Admin Settings form submit handler', 'window.wctAdminSettingsSubmit=function(event,form)'],
