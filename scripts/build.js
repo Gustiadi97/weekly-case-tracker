@@ -111,6 +111,11 @@ try {
     ['Case edit audit query runs asynchronously', 'void (async function(){'],
     ['redesigned KPI cards', '.kpis .kpi:nth-child(4)'],
     ['mobile KPI layout', '.kpis .kpi{min-height:122px'],
+    ['Case Detail modal uses a single scrollable body', '.modal.wct-case-detail-modal>.modal-body.wct-case-detail{'],
+    ['Case Detail sections use dark surfaces', '.modal.wct-case-detail-modal .wct-case-section{'],
+    ['Case Detail Action buttons remain visible and clickable', '.modal.wct-case-detail-modal .wct-case-action-buttons .btn,'],
+    ['Case Detail modal mobile layout', '@media(max-width:760px){\\n .modal.wct-case-detail-modal{'],
+
 
 
     ['direct Admin Settings action handler', 'window.wctAdminSettingAction=function(action,kind,index)'],
@@ -223,6 +228,16 @@ try {
     }
   }
   if (inlineScriptCount === 0) throw new Error('Generated JavaScript syntax check found no inline scripts.');
+
+  if (!html.includes('.modal.wct-case-detail-modal .wct-case-section{')) {
+    throw new Error('UI regression check failed: Case Detail modal dark section override is missing.');
+  }
+  if (!html.includes('.modal.wct-case-detail-modal .wct-case-action-buttons .btn')) {
+    throw new Error('UI regression check failed: Case Detail modal action button visibility override is missing.');
+  }
+  if (!html.includes('.modal.wct-case-detail-modal>.modal-body.wct-case-detail')) {
+    throw new Error('UI regression check failed: Case Detail modal single-scroll layout is missing.');
+  }
   if (html.includes('window.openCaseDetail=async function(id)')) {
     throw new Error('UI regression check failed: Case detail still waits for audit history before rendering.');
   }
