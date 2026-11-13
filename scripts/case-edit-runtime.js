@@ -65,8 +65,7 @@ module.exports = function addReliableCaseEditRuntime(html) {
       await fireDb.collection('cases').doc(caseId).update(changes);
       Object.assign(current,changes);
 
-      // The database update is authoritative. A failed refresh must not undo a successful save.
-      try{await refreshData();}catch(refreshError){console.warn('Case tersimpan, refresh data gagal:',refreshError);}
+      // Edited Case state is already synchronized locally; avoid refetching every Firestore collection.
       tell('Perubahan Case berhasil disimpan.');
 
       var flow=window.wctPicapaFlow||{};

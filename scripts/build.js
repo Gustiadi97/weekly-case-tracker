@@ -151,7 +151,7 @@ try {
     ['list-row Edit Case handler override', 'window.editCaseFormFromButton=function(button)'],
     ['Edit Case submit capture listener', "form.id!=='wctCaseEditorForm'"],
     ['case occurred date persisted', 'occurred_on:String(f.get(\'occurred_on\')||\'\')||null'],
-    ['detail workspace override', 'window.openCaseDetail=async function(id)'],
+    ['fast Case detail renderer', 'window.openCaseDetail=function(id)'],
     ['action editor override', 'window.openActionForm=function(caseId,type,actionId)'],
     ['action save override', 'window.submitAction=async function(event,caseId,type,actionId)'],
     ['progress editor override', 'window.openUpdateForm=function(actionId,logId)'],
@@ -167,16 +167,25 @@ try {
     ['Case edit updates only the selected Case document', "fireDb.collection('cases').doc(caseId).update(changes)"],
     ['Case edit save success feedback', 'Perubahan Case berhasil disimpan.'],
     ['desktop and mobile legacy modal interceptor', 'wctDispatchWorkflowClick'],
-    ['route old detail clicks into full-page view', 'window.openCaseDetail(detail[1])'],
+    ['route old detail clicks into responsive Case detail', 'window.openCaseDetail(detail[1])'],
     ['route Edit Case clicks into full-page editor', "window.editCaseForm(edit[1],edit[2]==='true')"],
     ['route Edit Action clicks into full-page editor', "window.openActionForm(action[1],action[2],action[3]||'')"],
     ['route Update Progress clicks into full-page form', "window.openUpdateForm(progress[1],progress[2]||'')"],
-    ['close legacy modal before rendering full page', 'wctCloseLegacyModal();'],
+    ['close legacy modal before rendering Case detail or form', 'wctCloseLegacyModal();'],
     ['desktop Action cards overflow visible', '.wct-case-detail-page .wct-case-action{overflow:visible!important'],
     ['desktop Action buttons remain visible', '.wct-case-detail-page .wct-case-action-buttons .btn{display:inline-flex!important'],
     ['PICAPA full-page scrolling workspace', 'wct-flow-page'],
     ['Case detail quick navigation', 'wct-flow-subnav'],
     ['Case list return navigation', 'wctReturnToCaseList'],
+    ['Case list return helper is defined', 'function flowShowList()'],
+    ['Action and Progress forms have a modal shell', 'function flowFormShell(caseId,title,subtitle,formHtml)'],
+    ['Edit Case cancel handler is defined', 'window.wctCancelCaseEdit=function()'],
+    ['Edit Case cancel has delegated click support', 'data-wct-case-edit-cancel'],
+    ['Case detail first paints from local state', 'renderDetail(id,[]);'],
+    ['Case detail audit query runs after first paint', "progress_log_edits').where('case_id','==',id).get()"],
+    ['Action mutations do not refetch all Firestore collections', 'closeModal();window.openCaseDetail(caseId);'],
+    ['Progress mutations do not refetch all Firestore collections', 'closeModal();window.openCaseDetail(a.case_id);'],
+
     ['Action full-page form', 'id="wctActionForm"'],
     ['Progress full-page form', 'id="wctProgressForm"'],
     ['Action edit retains selected Action ID', 'openActionForm=function(caseId,type,actionId)'],
@@ -214,6 +223,19 @@ try {
     }
   }
   if (inlineScriptCount === 0) throw new Error('Generated JavaScript syntax check found no inline scripts.');
+  if (html.includes('window.openCaseDetail=async function(id)')) {
+    throw new Error('UI regression check failed: Case detail still waits for audit history before rendering.');
+  }
+  if (html.includes('flowShowList();') && !html.includes('function flowShowList()')) {
+    throw new Error('UI regression check failed: Case editor cancel points to an undefined list renderer.');
+  }
+  if (html.includes('flowFormShell(') && !html.includes('function flowFormShell(')) {
+    throw new Error('UI regression check failed: Action/Progress forms point to an undefined modal shell.');
+  }
+  if (html.includes('flowRenderDetail(') || html.includes('flowCaptureFilters(') && !html.includes('function flowCaptureFilters()')) {
+    throw new Error('UI regression check failed: PICAPA workflow contains unresolved flow helper references.');
+  }
+
 
   if (html.includes('type="radio" name="priority"')) {
     throw new Error('UI regression check failed: legacy priority radio markup is still present.');
