@@ -116,6 +116,12 @@ try {
     ['Case Detail Action buttons remain visible and clickable', '.modal.wct-case-detail-modal .wct-case-action-buttons .btn,'],
     ['Case Detail modal mobile breakpoint', '@media(max-width:760px){'],
     ['Case Detail modal mobile selector', '.modal.wct-case-detail-modal{'],
+    ['mobile Dashboard panels stack into one column', '#pageContent .wct-dashboard-columns,'],
+    ['mobile Dashboard case rows keep horizontal text flow', '.wct-dashboard-case-row>div:first-child strong{'],
+    ['mobile Case list cards use dark surfaces', '#pageContent .wct-cases-table tbody tr{'],
+    ['mobile Case list rows remove white cell backgrounds', '#pageContent .wct-cases-table tbody td{'],
+    ['mobile Case list action row remains visible', '#pageContent .wct-cases-table tbody td:nth-child(9){'],
+
 
 
 
@@ -238,6 +244,13 @@ try {
   }
   if (!html.includes('.modal.wct-case-detail-modal>.modal-body.wct-case-detail')) {
     throw new Error('UI regression check failed: Case Detail modal single-scroll layout is missing.');
+  }
+
+  if (!html.includes('#pageContent .wct-dashboard-columns,') || !html.includes('grid-template-columns:minmax(0,1fr)!important')) {
+    throw new Error('UI regression check failed: Mobile Dashboard single-column layout is missing.');
+  }
+  if (!html.includes('#pageContent .wct-cases-table tbody tr{') || !html.includes('background:#151F2B!important;box-shadow:0 8px 22px')) {
+    throw new Error('UI regression check failed: Mobile Case cards are not using dark surfaces.');
   }
   if (html.includes('window.openCaseDetail=async function(id)')) {
     throw new Error('UI regression check failed: Case detail still waits for audit history before rendering.');
