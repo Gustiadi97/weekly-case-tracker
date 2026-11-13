@@ -291,6 +291,96 @@ try {
     throw new Error('UI regression check failed: PICAPA workflow runtime is missing.');
   }
 
+
+  // Audit every inline handler and delegated button contract before publishing.
+  const globalHandlerNames = new Set();
+  for (const match of html.matchAll(/\b(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/g)) {
+    globalHandlerNames.add(match[1]);
+  }
+  for (const match of html.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function\b|(?:\([^)]*\)|[A-Za-z_$][\w$]*)\s*=>)/g)) {
+    globalHandlerNames.add(match[1]);
+  }
+  const allowedNativeHandlers = new Set([
+    'preventDefault','stopPropagation','stopImmediatePropagation',
+    'setTimeout','clearTimeout','requestAnimationFrame','alert','confirm'
+  ]);
+  const inlineHandlerAttributes = [...html.matchAll(/\bon(?:click|submit|change|input|keydown|pointerdown)\s*=\s*"([^"]*)"/gi)];
+  const unresolvedHandlers = new Set();
+  for (const attribute of inlineHandlerAttributes) {
+    const source = attribute[1] || '';
+    const calls = [];
+    for (const match of source.matchAll(/(?:^|[^\w.$])([A-Za-z_$][\w$]*)\s*\(/g)) calls.push(match[1]);
+    for (const match of source.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*\(/g)) calls.push(match[1]);
+    for (const name of calls) {
+      if (!globalHandlerNames.has(name) && !allowedNativeHandlers.has(name)) unresolvedHandlers.add(name);
+    }
+  }
+  if (unresolvedHandlers.size) {
+    throw new Error('Button contract audit failed: unresolved inline handler(s): ' + [...unresolvedHandlers].sort().join(', '));
+  }
+
+  const delegatedContracts = [
+    ['priority buttons', 'button.wct-priority-choice', 'window.wctPriorityRuntimeReady = true;'],
+    ['Case Edit buttons', '[data-wct-case-edit-id]', 'closest(\'[data-wct-case-edit-id]\')'],
+    ['Case editor Cancel button', '[data-wct-case-edit-cancel]', 'closest(\'[data-wct-case-edit-cancel]\')'],
+    ['Admin option Edit/Delete buttons', '[data-wct-option-action]', 'closest(\'[data-wct-option-action]\')'],
+    ['Admin settings action buttons', '[data-settings-action]', 'closest(\'[data-settings-action]\')'],
+    ['Admin settings forms', '[data-settings-form]', "form.matches(\'[data-settings-form]\')"],
+    ['Account password form', '[data-account-password]', "form.matches(\'[data-account-password]\')"],
+    ['Case option forms', '[data-wct-option-form]', "form.matches(\'[data-wct-option-form]\')"],
+    ['Progress slider input', '[data-wct-progress-slider]', "closest(\'[data-wct-progress-slider]\')"]
+  ];
+  const missingDelegatedContracts = delegatedContracts
+    .filter(([label, marker, listener]) => html.includes(marker) && !html.includes(listener))
+    .map(([label]) => label);
+  if (missingDelegatedContracts.length) {
+    throw new Error('Button contract audit failed: missing delegated listener(s): ' + missingDelegatedContracts.join(', '));
+  }
+
+  // Non-submit buttons without onclick must be covered by a documented delegated control.
+  const delegatedButtonAttributes = [
+    'data-value','data-wct-case-edit-id','data-wct-option-action'
+  ];
+  const buttonTokens = /<\/?form\b[^>]*>|<button\b[^>]*>/gi;
+  let activeFormDepth = 0;
+  const unhandledButtons = [];
+  for (const match of html.matchAll(buttonTokens)) {
+    const tag = match[0];
+    if (/^<\/form/i.test(tag)) {
+      activeFormDepth = Math.max(0, activeFormDepth - 1);
+      continue;
+    }
+    if (/^<form\b/i.test(tag)) {
+      activeFormDepth += 1;
+      continue;
+    }
+    const attributes = tag.slice(7, -1);
+    if (/\bonclick\s*=/.test(attributes)) continue;
+    const typeMatch = attributes.match(/\btype\s*=\s*["']([^"']+)["']/i);
+    const type = typeMatch ? typeMatch[1].toLowerCase() : '';
+    if (type === 'button') {
+      const delegated = delegatedButtonAttributes.some((name) => new RegExp('\\b' + name + '(?:\\s|=|>)').test(attributes));
+      if (!delegated) unhandledButtons.push(tag.slice(0, 220));
+      continue;
+    }
+    if (type === 'submit' || !type) {
+      if (activeFormDepth === 0) unhandledButtons.push(tag.slice(0, 220));
+    }
+  }
+  if (unhandledButtons.length) {
+    throw new Error('Button contract audit failed: button without click, delegated, or form-submit route: ' + unhandledButtons.join(' | '));
+  }
+
+  const openCaseInterceptorCount = (html.match(/closest\(\'\[onclick\*="openCaseForm"\]\'\)/g) || []).length;
+  if (openCaseInterceptorCount !== 1) {
+    throw new Error('Button contract audit failed: expected exactly one Create Case click interceptor, found ' + openCaseInterceptorCount + '.');
+  }
+  const delayedSettingsNavigationCount = (html.match(/label\.includes\(\'pengaturan\'\)/g) || []).length;
+  if (delayedSettingsNavigationCount !== 1) {
+    throw new Error('Button contract audit failed: settings navigation has duplicate/missing delayed handlers (' + delayedSettingsNavigationCount + ').');
+  }
+  console.log('Button contract audit passed: ' + inlineHandlerAttributes.length + ' inline event handlers; ' + globalHandlerNames.size + ' named functions; delegated button/form routes verified.');
+
   fs.mkdirSync(outputDir, { recursive: true });
   fs.writeFileSync(outputPath, html);
   console.log('Built ' + path.relative(root, outputPath) + ' (' + html.length + ' bytes)');
