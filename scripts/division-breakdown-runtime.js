@@ -4,8 +4,8 @@ module.exports = function addDivisionBreakdownRuntime(html) {
 .wct-division-breakdown-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,1.15fr) 32px;gap:12px;align-items:center}
 .wct-division-breakdown-name{min-width:0;color:#51445e;font-size:11px;font-weight:800;overflow-wrap:anywhere}
 .wct-division-breakdown-track{height:9px;overflow:hidden;border-radius:99px;background:#f0edf3}
-.wct-division-breakdown-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#5B2A86,#a27cc0)}
-.wct-division-breakdown-count{text-align:right;color:#4c2b67;font-size:12px;font-weight:900;font-variant-numeric:tabular-nums}
+.wct-division-breakdown-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#FEA500,#F4B942)}
+.wct-division-breakdown-count{text-align:right;color:#8A5900;font-size:12px;font-weight:900;font-variant-numeric:tabular-nums}
 .wct-division-breakdown-note{margin-top:14px;color:#8c8296;font-size:10px;line-height:1.5}
 @media(max-width:680px){.wct-division-breakdown-row{grid-template-columns:minmax(0,1fr) 75px 25px;gap:8px}.wct-division-breakdown-name{font-size:10px}}
 </style>`;
