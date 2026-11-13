@@ -182,7 +182,7 @@ try {
     ['Edit Case cancel handler is defined', 'window.wctCancelCaseEdit=function()'],
     ['Edit Case cancel has delegated click support', 'data-wct-case-edit-cancel'],
     ['Case detail first paints from local state', 'renderDetail(id,[]);'],
-    ['Case detail audit query runs after first paint', 'progress_log_edits').where('case_id','==',id).get()'],
+    ['Case detail audit query runs after first paint', "progress_log_edits').where('case_id','==',id).get()"],
     ['Action mutations do not refetch all Firestore collections', 'closeModal();window.openCaseDetail(caseId);'],
     ['Progress mutations do not refetch all Firestore collections', 'closeModal();window.openCaseDetail(a.case_id);'],
 
