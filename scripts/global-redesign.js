@@ -439,6 +439,71 @@ body{font-size:14px!important;line-height:1.55!important;color:#E8EDF3!important
 .modal-body{color:#DCE5EE!important}
 .modal-body p,.modal-body small{color:#B7C3CF!important}
 
+
+/* Refined KPI cards: clear label, strong value and one consistent icon slot */
+.kpis{gap:16px!important;align-items:stretch!important}
+.kpis .kpi{
+ position:relative!important;isolation:isolate!important;display:flex!important;flex-direction:column!important;
+ justify-content:space-between!important;gap:14px!important;min-height:132px!important;
+ padding:19px 20px 17px 22px!important;border:1px solid #2B3B4D!important;border-radius:17px!important;
+ background:linear-gradient(145deg,#192735 0%,#141F2B 100%)!important;
+ box-shadow:0 9px 24px rgba(0,0,0,.18)!important;overflow:hidden!important;
+}
+.kpis .kpi:before{
+ content:"";position:absolute;z-index:0;left:0;top:18px;bottom:18px;width:3px;
+ border-radius:0 5px 5px 0;background:var(--kpi-accent,#FEA500)!important;
+}
+.kpis .kpi:after{
+ content:"";position:absolute;z-index:-1;right:-35px;top:-48px;width:125px;height:125px;
+ border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.055),transparent 70%)!important;
+}
+.kpis .kpi-top{
+ position:relative;z-index:1;display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:12px!important;color:#C2CEDA!important;font-size:13px!important;font-weight:750!important;line-height:1.35!important;
+}
+.kpis .kpi-icon{
+ flex:0 0 40px!important;width:40px!important;height:40px!important;display:grid!important;place-items:center!important;
+ border-radius:12px!important;background:var(--kpi-icon-bg)!important;color:var(--kpi-accent)!important;
+ border:1px solid var(--kpi-icon-border)!important;font-size:17px!important;
+}
+.kpis .kpi-value{
+ position:relative;z-index:1;margin:0!important;color:#F4F7FA!important;
+ font-size:35px!important;line-height:1!important;font-weight:900!important;letter-spacing:-.045em!important;
+ font-variant-numeric:tabular-nums!important;
+}
+.kpis .kpi-note{
+ position:relative;z-index:1;margin:0!important;color:#AEBBC8!important;
+ font-size:12px!important;line-height:1.45!important;font-weight:550!important;
+}
+.kpis .kpi:nth-child(1){--kpi-accent:#FEA500;--kpi-icon-bg:rgba(254,165,0,.12);--kpi-icon-border:rgba(254,165,0,.24)}
+.kpis .kpi:nth-child(2){--kpi-accent:#78B9FF;--kpi-icon-bg:rgba(120,185,255,.12);--kpi-icon-border:rgba(120,185,255,.24)}
+.kpis .kpi:nth-child(3){--kpi-accent:#FF8585;--kpi-icon-bg:rgba(255,133,133,.12);--kpi-icon-border:rgba(255,133,133,.24)}
+.kpis .kpi:nth-child(4){--kpi-accent:#6ED6A8;--kpi-icon-bg:rgba(110,214,168,.12);--kpi-icon-border:rgba(110,214,168,.24)}
+.kpis .kpi:hover{border-color:#46586A!important;transform:translateY(-2px)!important;box-shadow:0 14px 28px rgba(0,0,0,.23)!important}
+
+/* Self-service password card available to all signed-in roles */
+.wct-account-password-card{margin:0 0 18px!important}
+.wct-account-password-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important}
+.wct-account-password-grid .field{min-width:0!important}
+.wct-account-password-grid input{width:100%!important}
+.wct-account-password-actions{display:flex!important;justify-content:flex-end!important;margin-top:16px!important}
+.wct-account-password-actions .wct-settings-button{min-width:175px!important;min-height:42px!important}
+.wct-account-password-feedback{margin-top:14px!important;padding:11px 13px!important;border-radius:11px!important;font-size:12px!important;line-height:1.5!important}
+.wct-account-password-feedback.is-success{background:#17372E!important;border:1px solid #28694F!important;color:#9DE4C1!important}
+.wct-account-password-feedback.is-error{background:#3A2429!important;border:1px solid #75404A!important;color:#FFB2B2!important}
+@media(max-width:900px){.wct-account-password-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:680px){
+ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important}
+ .kpis .kpi{min-height:122px!important;padding:14px 13px 13px 15px!important;gap:11px!important;border-radius:15px!important}
+ .kpis .kpi:before{top:14px!important;bottom:14px!important}
+ .kpis .kpi-top{font-size:11px!important;gap:7px!important;align-items:flex-start!important}
+ .kpis .kpi-icon{flex-basis:34px!important;width:34px!important;height:34px!important;border-radius:10px!important;font-size:15px!important}
+ .kpis .kpi-value{font-size:30px!important}
+ .kpis .kpi-note{font-size:11px!important}
+ .wct-account-password-grid{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+ .wct-account-password-actions .wct-settings-button{width:100%!important}
+}
+
 `;
   return html.replace('</body>', '<style id=\"wct-global-redesign\">' + css + '</style></body>');
 };
