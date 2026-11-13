@@ -337,6 +337,108 @@ label,.field label{color:#C2CDD8!important}
  .wct-flow-form-footer{background:rgba(21,31,43,.98)!important}
 }
 
+
+/* Readability refinement across every page: larger type and stronger contrast */
+body{font-size:14px!important;line-height:1.55!important;color:#E8EDF3!important}
+#pageContent{font-size:14px!important;color:#E8EDF3!important}
+#pageContent p{color:#B7C3CF!important;line-height:1.6!important}
+#pageContent .sub,#pageContent small{color:#B7C3CF!important}
+#pageContent .empty{font-size:13px!important;color:#B7C3CF!important}
+#pageContent .eyebrow{font-size:11px!important;letter-spacing:.14em!important;color:#FEA500!important;font-weight:900!important}
+.page-head h1{font-size:clamp(26px,2.3vw,32px)!important;letter-spacing:-.035em!important}
+.page-head p{font-size:14px!important;color:#B7C3CF!important}
+.nav-label{font-size:10px!important;color:#91A0B0!important}
+.nav button{font-size:13px!important;min-height:44px!important}
+.topbar .crumb{font-size:13px!important;color:#AEBBC8!important}
+.topbar .crumb b{color:#F1F5F9!important}
+.topbar .pill,.topbar .status{font-size:11px!important}
+.card-head{padding:19px 21px 16px!important}
+.card-head h3{font-size:15px!important;line-height:1.4!important;color:#F0F4F8!important}
+.card-head p{font-size:12px!important;color:#B7C3CF!important;line-height:1.55!important}
+.card-body{padding:18px 21px 21px!important}
+.kpis{gap:14px!important}
+.kpis .kpi{min-height:116px!important;padding:19px 20px!important;border:1px solid #2A3949!important;border-radius:17px!important;background:#151F2B!important}
+.kpi-top{font-size:13px!important;color:#B8C4D0!important;font-weight:700!important}
+.kpi-value{font-size:32px!important;line-height:1.12!important;color:#F4F7FA!important;font-weight:900!important;margin-top:12px!important}
+.kpi-note{font-size:12px!important;line-height:1.4!important;color:#AEBBC8!important;margin-top:5px!important}
+.kpi-icon{color:#17212B!important}
+.toolbar{gap:11px!important}
+.toolbar input,.toolbar select,.field input,.field select,.field textarea{font-size:14px!important}
+.field label,label{font-size:12px!important;color:#D2DCE5!important}
+.btn{font-size:12px!important;font-weight:800!important}
+.btn-sm{font-size:11px!important;min-height:35px!important}
+.status,.pill{font-size:11px!important;font-weight:850!important}
+.table th{font-size:11px!important;color:#B8C4D0!important}
+.table td{font-size:13px!important;color:#D7E0E8!important;line-height:1.5!important}
+
+/* Dashboard case list: the old purple titles and 9px captions were too dim */
+.wct-dashboard-columns{gap:18px!important;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr)!important}
+.wct-dashboard-case-row{gap:14px!important;padding:15px 0!important;border-bottom:1px solid #304052!important}
+.wct-dashboard-case-row>div:first-child{min-width:0!important;flex:1 1 auto!important}
+.wct-dashboard-case-row>div:first-child strong{display:block!important;color:#E8EDF3!important;font-size:13px!important;line-height:1.45!important;font-weight:800!important;overflow-wrap:anywhere!important}
+.wct-dashboard-case-row>div:first-child small{display:block!important;margin-top:5px!important;color:#B7C3CF!important;font-size:12px!important;line-height:1.5!important;white-space:normal!important}
+.wct-dashboard-case-row>div:last-child{flex:0 0 auto!important;min-width:88px!important}
+.wct-dashboard-case-row>div:last-child .status{font-size:11px!important}
+.wct-dashboard-case-row .btn{font-size:11px!important;min-height:36px!important;padding:7px 11px!important}
+.wct-dashboard-mini-progress{gap:8px!important;margin-top:7px!important}
+.wct-dashboard-mini-progress .wct-case-action-track{width:66px!important;height:7px!important}
+.wct-dashboard-mini-progress b{font-size:12px!important;color:#FFC15B!important}
+.wct-dashboard-case-row:hover{background:rgba(255,255,255,.025)!important}
+
+/* Portfolio progress and status distribution are generated with inline styles */
+#pageContent .card-body>div[style*="margin-bottom:16px"]{margin-bottom:20px!important}
+#pageContent .card-body>div[style*="margin-bottom:16px"] b{font-size:13px!important;color:#E8EDF3!important;font-weight:800!important}
+#pageContent .card-body>div[style*="margin-bottom:16px"] span{font-size:12px!important;color:#B7C3CF!important}
+#pageContent .card-body>div[style*="grid-template-columns:100px"]{grid-template-columns:112px minmax(0,1fr) 28px!important;gap:12px!important;margin:14px 0!important;font-size:12px!important;color:#B7C3CF!important}
+#pageContent .card-body>div[style*="grid-template-columns:100px"] span{font-size:12px!important;color:#B7C3CF!important}
+#pageContent .card-body>div[style*="grid-template-columns:100px"] b{font-size:13px!important;color:#F0F4F8!important}
+
+/* PICAPA detail, Action cards and timeline typography */
+.wct-glass-hero{padding:25px 27px!important}
+.wct-glass-hero h2{font-size:clamp(23px,2.5vw,30px)!important;color:#F1F5F9!important}
+.wct-glass-hero p{font-size:13px!important;line-height:1.65!important;color:#C0CBD6!important}
+.wct-case-tag{font-size:11px!important;color:#D9E2EA!important}
+.wct-case-detail-kicker{font-size:11px!important;color:#FFC15B!important}
+.wct-case-detail-title{font-size:clamp(23px,2.5vw,30px)!important;color:#F1F5F9!important}
+.wct-case-detail-subtitle{font-size:13px!important;color:#B7C3CF!important}
+.wct-case-meta-tile span{font-size:11px!important;color:#B7C3CF!important}
+.wct-case-meta-tile strong{font-size:14px!important;color:#EDF2F7!important}
+.wct-case-section-head{border-bottom-color:#304052!important}
+.wct-case-section-head h3{font-size:15px!important;color:#EDF2F7!important}
+.wct-case-section-head p{font-size:12px!important;color:#B7C3CF!important}
+.wct-case-problem{font-size:13px!important;color:#D2DCE5!important;line-height:1.7!important}
+.wct-case-action-type{font-size:11px!important;color:#FFC15B!important}
+.wct-case-action h4{font-size:15px!important;color:#EDF2F7!important}
+.wct-case-action-desc{font-size:12px!important;color:#B7C3CF!important;line-height:1.65!important}
+.wct-case-action-progress span{font-size:11px!important;color:#B7C3CF!important}
+.wct-case-action-progress strong{font-size:16px!important;color:#FFC15B!important}
+.wct-case-action-meta span{font-size:11px!important;color:#AEBBC8!important}
+.wct-case-action-meta strong{font-size:12px!important;color:#E4EBF2!important}
+.wct-case-timeline-title{font-size:13px!important;color:#EDF2F7!important}
+.wct-case-timeline-text{font-size:12px!important;color:#CFD8E1!important;line-height:1.65!important}
+.wct-case-timeline-meta{font-size:11px!important;color:#AEBBC8!important}
+.wct-case-empty b{font-size:14px!important;color:#EDF2F7!important}
+.wct-case-empty span{font-size:12px!important;color:#B7C3CF!important}
+.wct-flow-context-main strong{font-size:13px!important;color:#EDF2F7!important}
+.wct-flow-context-main small{font-size:11px!important;color:#B7C3CF!important}
+.wct-flow-context-stat{font-size:22px!important;color:#FFC15B!important}
+.wct-flow-help{font-size:12px!important;color:#C3CFDA!important;line-height:1.65!important}
+
+/* Settings, report cards and supporting text */
+.wct-settings-card-header h2{font-size:16px!important;color:#EDF2F7!important}
+.wct-settings-card-header p,.wct-settings-intro p{font-size:12px!important;color:#B7C3CF!important}
+.wct-settings-eyebrow,.wct-settings-card-kicker{font-size:11px!important;color:#FFC15B!important}
+.wct-setting-option-name,.wct-setting-item-name{font-size:13px!important;color:#E8EDF3!important}
+.wct-setting-list-heading strong,.wct-settings-list-label strong{font-size:13px!important;color:#EDF2F7!important}
+.wct-setting-list-heading span,.wct-settings-list-label span{font-size:11px!important;color:#B7C3CF!important}
+.wct-settings-note{font-size:12px!important;color:#C3CFDA!important;line-height:1.65!important}
+.login-card h1{color:#EDF2F7!important}
+.login-card>p{font-size:13px!important;color:#B7C3CF!important}
+.login-note{font-size:12px!important;line-height:1.6!important}
+.modal-head h2{font-size:18px!important;color:#EDF2F7!important}
+.modal-body{color:#DCE5EE!important}
+.modal-body p,.modal-body small{color:#B7C3CF!important}
+
 `;
   return html.replace('</body>', '<style id=\"wct-global-redesign\">' + css + '</style></body>');
 };
