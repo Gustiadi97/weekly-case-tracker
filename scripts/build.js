@@ -114,7 +114,8 @@ try {
     ['Case Detail modal uses a single scrollable body', '.modal.wct-case-detail-modal>.modal-body.wct-case-detail{'],
     ['Case Detail sections use dark surfaces', '.modal.wct-case-detail-modal .wct-case-section{'],
     ['Case Detail Action buttons remain visible and clickable', '.modal.wct-case-detail-modal .wct-case-action-buttons .btn,'],
-    ['Case Detail modal mobile layout', '@media(max-width:760px){\\n .modal.wct-case-detail-modal{'],
+    ['Case Detail modal mobile breakpoint', '@media(max-width:760px){'],
+    ['Case Detail modal mobile selector', '.modal.wct-case-detail-modal{'],
 
 
 
