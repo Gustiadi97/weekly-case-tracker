@@ -427,7 +427,7 @@ try {
   if (delayedSettingsNavigationCount !== 1) {
     throw new Error('Button contract audit failed: settings navigation has duplicate/missing delayed handlers (' + delayedSettingsNavigationCount + ').');
   }
-  const auditedButtonCount = [...html.matchAll(/<button\\b/gi)].length;
+  const auditedButtonCount = [...html.matchAll(/<button\b/gi)].length;
   if (auditedButtonCount < 100) {
     throw new Error('Button audit failed: expected at least 100 application buttons to be inspected; found ' + auditedButtonCount + '.');
   }
