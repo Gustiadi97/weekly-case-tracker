@@ -61,7 +61,7 @@ module.exports = function applySupabaseOnlyPatch(html) {
 
   // Remove any duplicated legacy session listener regardless of script ordering.
   html = html.replace(
-    /\\/\\/ Restore session if a Supabase user is already signed in\\.[\\s\\S]*?\\/\\/ Optional quick preview URL: index\\.html\\?demo=1/g,
+    /\/\/ Restore session if a Supabase user is already signed in\.[\s\S]*?\/\/ Optional quick preview URL: index\.html\?demo=1/g,
     '// Supabase session restoration is handled by /supabase-runtime.js.'
   );
 
