@@ -968,6 +968,104 @@ label,.field label{color:#52657D!important}
  .login-card h1,.login-card h2{font-size:24px!important}
  .login-card input:not([type=checkbox]):not([type=radio]){min-height:48px!important;height:48px!important;font-size:16px!important}
 }
+
+/* Keep the authenticated workspace as the only visible screen after login. */
+#loginScreen.hidden,.login-screen.hidden,#loginScreen[style*="display: none"],.login-screen[style*="display: none"]{
+ display:none!important;visibility:hidden!important;pointer-events:none!important
+}
+#loginScreen:not(.hidden){display:flex!important;align-items:center!important;justify-content:center!important}
+#app.hidden{display:none!important}
+.login-screen:not(.hidden){min-height:100vh!important;min-height:100svh!important}
+.login-card{
+ width:min(100%,456px)!important;max-width:456px!important;
+ padding:34px clamp(24px,5vw,40px) 32px!important;
+ border:1px solid #DCE5F0!important;border-radius:20px!important;
+ box-shadow:0 22px 64px rgba(23,59,104,.13)!important
+}
+.login-card .brand{display:flex!important;align-items:center!important;gap:12px!important;padding:0!important;margin:0 0 28px!important}
+.login-card .brand-mark{width:48px!important;height:48px!important;flex:0 0 48px!important;margin:0!important;border-radius:14px!important}
+.login-card .brand strong{display:block!important;color:#18395F!important;font-size:13px!important;font-weight:900!important;letter-spacing:.025em!important}
+.login-card .brand small{display:block!important;margin-top:4px!important;color:#7D8CA0!important;font-size:10px!important}
+.login-card h1{margin:0 0 8px!important;color:#172B46!important;font-size:25px!important;line-height:1.28!important;letter-spacing:-.035em!important}
+.login-card>p{margin:0 0 25px!important;color:#75869B!important;font-size:12px!important;line-height:1.65!important}
+.login-card .field{margin:0 0 15px!important}
+.login-card .field label{display:block!important;margin-bottom:7px!important;color:#405773!important;font-size:11px!important;font-weight:800!important}
+.login-card input:not([type=checkbox]):not([type=radio]){
+ width:100%!important;height:48px!important;min-height:48px!important;
+ padding:0 14px!important;border:1px solid #D8E2EE!important;border-radius:10px!important;
+ background:#F8FAFD!important;color:#1B2B42!important;font-size:13px!important;
+ box-shadow:none!important;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease!important
+}
+.login-card input:focus{background:#fff!important;border-color:#6F9DD7!important;box-shadow:0 0 0 3px rgba(40,100,199,.11)!important}
+.login-card .login-actions{display:grid!important;gap:10px!important;margin-top:20px!important}
+.login-card .login-actions .btn-primary{
+ width:100%!important;height:48px!important;min-height:48px!important;
+ border:1px solid #1F55AD!important;border-radius:10px!important;
+ background:linear-gradient(105deg,#173B68 0%,#2864C7 100%)!important;
+ color:#fff!important;font-size:13px!important;font-weight:850!important;
+ box-shadow:0 7px 17px rgba(40,100,199,.2)!important;transition:transform .16s ease,box-shadow .16s ease!important
+}
+.login-card .login-actions .btn-primary:hover{transform:translateY(-1px)!important;box-shadow:0 10px 22px rgba(40,100,199,.24)!important}
+.login-card .login-note{
+ margin-top:17px!important;padding:11px 13px!important;border:1px solid #DDE8F6!important;
+ border-radius:10px!important;background:#F4F8FE!important;color:#58718F!important;
+ font-size:10px!important;line-height:1.6!important
+}
+.wct-password-wrap{position:relative!important;display:block!important;width:100%!important}
+.wct-password-wrap input{padding-right:48px!important}
+.wct-password-toggle{
+ position:absolute!important;top:50%!important;right:8px!important;transform:translateY(-50%)!important;
+ display:grid!important;place-items:center!important;width:34px!important;height:34px!important;
+ padding:0!important;border:0!important;border-radius:8px!important;background:transparent!important;
+ color:#75869B!important;cursor:pointer!important
+}
+.wct-password-toggle:hover{background:#EAF2FF!important;color:#2864C7!important}
+.wct-password-toggle svg{width:17px!important;height:17px!important}
+@media(max-width:560px){
+ #loginScreen:not(.hidden){padding:18px!important}
+ .login-card{width:100%!important;max-width:430px!important;padding:28px 22px 25px!important}
+ .login-card .brand{margin-bottom:24px!important}
+ .login-card h1{font-size:23px!important}
+ .login-card input:not([type=checkbox]):not([type=radio]){font-size:16px!important}
+}
+
 `;
-  return html.replace('</body>', '<style id=\"wct-global-redesign\">' + css + '</style><style id=\"wct-login-form-refresh\">' + loginCss + '</style></body>');
+  const loginBehavior = String.raw\`
+(function(){
+  function eye(show){
+    return show
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A11 11 0 0 1 12 5c6.5 0 10 7 10 7a16 16 0 0 1-3.1 3.8M6.2 6.2C3.5 8 2 12 2 12s3.5 7 10 7a10 10 0 0 0 3.1-.5"/></svg>';
+  }
+  function mount(){
+    var input=document.getElementById('loginPassword');
+    if(!input||input.dataset.wctEyeReady==='1')return;
+    var parent=input.parentElement;
+    if(!parent)return;
+    var wrap=document.createElement('div');
+    wrap.className='wct-password-wrap';
+    parent.insertBefore(wrap,input);
+    wrap.appendChild(input);
+    var button=document.createElement('button');
+    button.type='button';
+    button.className='wct-password-toggle';
+    button.setAttribute('aria-label','Tampilkan password');
+    button.setAttribute('aria-pressed','false');
+    button.innerHTML=eye(false);
+    button.addEventListener('click',function(){
+      var show=input.type==='password';
+      input.type=show?'text':'password';
+      button.innerHTML=eye(show);
+      button.setAttribute('aria-label',show?'Sembunyikan password':'Tampilkan password');
+      button.setAttribute('aria-pressed',show?'true':'false');
+      input.focus();
+    });
+    wrap.appendChild(button);
+    input.dataset.wctEyeReady='1';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
+  else mount();
+})();
+\`;
+  return html.replace('</body>', '<style id=\\\"wct-global-redesign\\\">' + css + '</style><style id=\\\"wct-login-form-refresh\\\">' + loginCss + '</style><script id=\\\"wct-login-form-behavior\\\">' + loginBehavior + '</script></body>');
 };
