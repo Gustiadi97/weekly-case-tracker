@@ -1030,7 +1030,7 @@ label,.field label{color:#52657D!important}
 }
 
 `;
-  const loginBehavior = String.raw\`
+  const loginBehavior = String.raw`
 (function(){
   function eye(show){
     return show
@@ -1066,6 +1066,6 @@ label,.field label{color:#52657D!important}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
 })();
-\`;
+`;
   return html.replace('</body>', '<style id=\\\"wct-global-redesign\\\">' + css + '</style><style id=\\\"wct-login-form-refresh\\\">' + loginCss + '</style><script id=\\\"wct-login-form-behavior\\\">' + loginBehavior + '</script></body>');
 };
