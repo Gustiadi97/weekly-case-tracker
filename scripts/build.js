@@ -80,6 +80,7 @@ try {
   html = require('./icon-system')(html);
   html = require('./workspace-modules')(html);
   html = require('./modal-controls')(html);
+  html = require('./picapa-modal-polish')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -109,6 +110,11 @@ try {
     ['Icon observer ready marker', 'window.WCTIconSystemReady=true;'],
     ['Tasks, Team, Calendar and Analytics modules', 'id="wct-workspace-modules"'],
     ['Reliable X / Cancel / Close modal controls', 'id="wct-modal-controls"'],
+    ['PICAPA modal visual polish stylesheet', 'id="wct-picapa-modal-polish-style"'],
+    ['PICAPA modal runtime classifier', 'id="wct-picapa-modal-polish"'],
+    ['Update Progress modal styling', '#modal.wct-modal-progress .modal-body'],
+    ['Preventive and Corrective Action modal styling', '#modal.wct-modal-action .modal-body'],
+    ['Case Detail modal styling', '#modal.wct-case-detail-modal .modal-body.wct-case-detail'],
     ['Visible error feedback above modal backdrop', 'id="wct-modal-feedback-style"'],
     ['Inline Case form error styling', '.wct-form-error{'],
     ['Modal close delegated click controller', "closest('#modalBackdrop button')"],
