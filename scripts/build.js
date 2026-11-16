@@ -387,8 +387,14 @@ try {
   try { new Function(supabaseRuntime); } catch (error) {
     throw new Error('Supabase runtime syntax check failed: ' + error.message);
   }
-  if (/<script[^>]+src=["'][^"']*firebase/i.test(html) || /FIREBASE_CONFIG|firebase\.initializeApp|firebase\.firestore\(/.test(html)) {
-    throw new Error('Firebase SDK/configuration reference remains in the generated app.');
+  const firebaseResidue = {
+    firebaseScript: /<script[^>]+src=["'][^"']*firebase/i.test(html),
+    firebaseConfig: /FIREBASE_CONFIG/.test(html),
+    firebaseInitialize: /firebase\.initializeApp/.test(html),
+    firebaseFirestore: /firebase\.firestore\(/.test(html)
+  };
+  if (Object.values(firebaseResidue).some(Boolean)) {
+    throw new Error('Firebase SDK/configuration reference remains in generated app: ' + JSON.stringify(firebaseResidue));
   }
 
   fs.mkdirSync(outputDir, { recursive: true });
