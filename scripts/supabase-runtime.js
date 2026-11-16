@@ -535,7 +535,9 @@ window.saveUserProfile=async function(event,userId){
       action:'update-profile',userId,
       fullName:String(form.get('full_name')||'').trim(),
       role:String(form.get('role')||'member'),
-      areaName:String(form.get('hub_code')||form.get('area_name')||user.area_name||'All Areas').trim()
+      areaName:String(form.get('hub_code')||form.get('area_name')||user.area_name||'All Areas').trim(),
+      active:user.active!==false,
+      deleted:user.deleted===true
     });
     await refreshData();closeModal();renderUsers();toast('Profil pengguna berhasil diperbarui.');
   }catch(error){toast('Gagal mengubah profil: '+(error.message||error));}
