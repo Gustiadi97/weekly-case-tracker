@@ -15,8 +15,49 @@ module.exports = function applySupabaseOnlyPatch(html) {
     'let state={cases:[],actions:[],logs:[],meetings:[],profiles:[],meetingCases:[]};'
   ].join('\n'));
 
+  const replaceRange = (source, startMarker, endMarker, replacement) => {
+    const start = source.indexOf(startMarker);
+    const end = source.indexOf(endMarker, start < 0 ? 0 : start + startMarker.length);
+    if (start < 0 || end < 0) throw new Error('Old Firebase flow marker not found: ' + startMarker);
+    return source.slice(0, start) + replacement + source.slice(end);
+  };
+
+  // Remove the old login/bootstrap implementation. The Supabase runtime installs
+  // the real ID/password login and first Admin is already provisioned in Auth.
+  html = replaceRange(
+    html,
+    'async function loginSupabase(){',
+    'async function logout(){',
+    "async function loginSupabase(){ toast('Gunakan login Supabase dengan ID dan password.'); }\n" +
+    "function openBootstrapForm(){ toast('Admin pertama sudah terdaftar melalui Supabase Auth.'); }\n" +
+    "async function completeFirstAdmin(event){ if(event)event.preventDefault(); toast('Aktivasi Admin pertama sudah selesai melalui Supabase Auth.'); }\n"
+  );
+  html = replaceRange(
+    html,
+    'async function logout(){',
+    'async function refreshData(){',
+    "async function logout(){ if(auth&&auth.signOut)await auth.signOut(); currentUser=null; mode='supabase'; showLogin(); }\n"
+  );
+
+  // Session restore is handled only by the Supabase runtime, never by Firebase tokens.
+  const restoreStart = html.indexOf('// Restore session if a Supabase user is already signed in.');
+  const restoreEnd = html.indexOf('// Optional quick preview URL: index.html?demo=1', restoreStart);
+  if (restoreStart >= 0 && restoreEnd >= 0) {
+    html = html.slice(0, restoreStart) + '// Supabase session restoration is handled by /supabase-runtime.js.\n' + html.slice(restoreEnd);
+  }
+
+  // The old password handler used Firebase reauthentication. Supabase runtime owns this action.
+  const passwordStart = html.indexOf('async function changeOwnPassword(event){');
+  const passwordEnd = html.indexOf('function renderSettings(){', passwordStart);
+  if (passwordStart >= 0 && passwordEnd > passwordStart) {
+    html = html.slice(0, passwordStart) +
+      "async function changeOwnPassword(event){ if(event)event.preventDefault(); toast('Penggantian password ditangani oleh Supabase Auth.'); }\n" +
+      html.slice(passwordEnd);
+  }
+
   html = html.replace(/mode\s*===\s*['"]firebase['"]/g, "mode==='supabase'");
   html = html.replace(/mode\s*!==\s*['"]firebase['"]/g, "mode!=='supabase'");
+  html = html.replace(/mode\s*=\s*['"]firebase['"]/g, "mode='supabase'");
   html = html.replace(/mode\s*=\s*['"]demo['"]/g, "mode='supabase'");
   html = html.replace(/FIREBASE CONNECTED|FIREBASE DATABASE|Firebase Authentication|Cloud Firestore|Firebase Project/g, value => value.replace(/FIREBASE|Firebase/g, 'SUPABASE'));
   html = html.replace(/Firebase/g, 'Supabase').replace(/FIREBASE/g, 'SUPABASE');
@@ -24,10 +65,16 @@ module.exports = function applySupabaseOnlyPatch(html) {
     .replace(/Cloud Functions/gi, 'Supabase Edge Functions')
     .replace(/firebase\.json/gi, 'README Supabase')
     .replace(/firestore\.rules/gi, 'Row Level Security (RLS)')
-    .replace(/Firestore/gi, 'Supabase');
+    .replace(/Firestore/gi, 'Supabase')
+    .replace(/Supabase\.rules/gi, 'Row Level Security (RLS)');
   html = html.replace(/minimal 6 karakter/gi, 'minimal 8 karakter').replace(/minlength="6"/g, 'minlength="8"');
 
   html = html.replace('</head>', '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n</head>');
   html = html.replace('</body>', '<script src="/supabase-runtime.js"></script>\n</body>');
+  const staleBackend = html.match(/firebase|firestore|cloud functions|cloudfunctions|firebase\\.json|supabase\\.rules/i);
+  if (staleBackend) {
+    const index = html.toLowerCase().indexOf(staleBackend[0].toLowerCase());
+    throw new Error('Old backend reference remains in generated app: ' + html.slice(Math.max(0,index-100), index+180).replace(/\\s+/g,' '));
+  }
   return html;
 };
