@@ -22,8 +22,8 @@ module.exports = function applySupabaseOnlyPatch(html) {
   html = html.replace(/Firebase/g, 'Supabase').replace(/FIREBASE/g, 'SUPABASE');
   html = html.replace(/Cloud Firestore/gi, 'Supabase PostgreSQL')
     .replace(/Cloud Functions/gi, 'Supabase Edge Functions')
-    .replace(/firebase\\.json/gi, 'README Supabase')
-    .replace(/firestore\\.rules/gi, 'Row Level Security (RLS)')
+    .replace(/firebase\.json/gi, 'README Supabase')
+    .replace(/firestore\.rules/gi, 'Row Level Security (RLS)')
     .replace(/Firestore/gi, 'Supabase');
   html = html.replace(/minimal 6 karakter/gi, 'minimal 8 karakter').replace(/minlength="6"/g, 'minlength="8"');
 
