@@ -18,7 +18,7 @@ module.exports = function applySupabaseOnlyPatch(html) {
   const replaceRange = (source, startMarker, endMarker, replacement) => {
     const start = source.indexOf(startMarker);
     const end = source.indexOf(endMarker, start < 0 ? 0 : start + startMarker.length);
-    if (start < 0 || end < 0) throw new Error('Old Firebase flow marker not found: ' + startMarker);
+    if (start < 0 || end < 0) return source;
     return source.slice(0, start) + replacement + source.slice(end);
   };
 
