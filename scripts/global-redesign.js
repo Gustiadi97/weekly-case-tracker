@@ -1067,5 +1067,5 @@ label,.field label{color:#52657D!important}
   else mount();
 })();
 `;
-  return html.replace('</body>', '<style id=\\\"wct-global-redesign\\\">' + css + '</style><style id=\\\"wct-login-form-refresh\\\">' + loginCss + '</style><script id=\\\"wct-login-form-behavior\\\">' + loginBehavior + '</script></body>');
+  return html.replace('</body>', '<style id=\"wct-global-redesign\">' + css + '</style><style id=\"wct-login-form-refresh\">' + loginCss + '</style><script id=\"wct-login-form-behavior\">' + loginBehavior + '</script></body>');
 };
