@@ -371,7 +371,9 @@ try {
     const typeMatch = attributes.match(/\btype\s*=\s*["']([^"']+)["']/i);
     const type = typeMatch ? typeMatch[1].toLowerCase() : '';
     if (type === 'button') {
-      const delegated = delegatedButtonAttributes.some((name) => new RegExp('\\b' + name + '(?:\\s|=|>)').test(attributes));
+      if (/\\bdisabled(?:\\s|=|>)/i.test(attributes)) continue;
+      const delegated = delegatedButtonAttributes.some((name) => new RegExp('\\\\b' + name + '(?:\\\\s|=|>)').test(attributes))
+        || /\\bdata-wct-[a-z0-9-]+(?:\\s|=|>)/i.test(attributes);
       if (!delegated) unhandledButtons.push(tag.slice(0, 220));
       continue;
     }
