@@ -408,7 +408,7 @@ module.exports = function applyWorkspaceModules(html) {
   function enforceOneActiveNav(){
     if(navSyncBusy||!preferredNavButton)return;
     navSyncBusy=true;
-    document.querySelectorAll('.sidebar .nav button,.sidebar .nav a').forEach(function(button){
+    document.querySelectorAll('.sidebar button,.sidebar a').forEach(function(button){
       var shouldBeActive=button===preferredNavButton;
       var isActive=button.classList.contains('active');
       if(shouldBeActive!==isActive)button.classList.toggle('active',shouldBeActive);
@@ -427,7 +427,7 @@ module.exports = function applyWorkspaceModules(html) {
       users:/manajemen pengguna|user management/i
     };
     var matcher=labels[page];
-    var nativeTarget=nativeButton||Array.from(document.querySelectorAll('.sidebar .nav button')).find(function(button){return matcher&&matcher.test((button.textContent||'').trim());});
+    var nativeTarget=nativeButton||Array.from(document.querySelectorAll('.sidebar button')).find(function(button){return matcher&&matcher.test((button.textContent||'').trim());});
     preferredNavButton=nativeTarget||custom||null;
     enforceOneActiveNav();
   }
@@ -438,7 +438,7 @@ module.exports = function applyWorkspaceModules(html) {
     if(sidebar){
       var observer=new MutationObserver(function(){enforceOneActiveNav();});
       observer.observe(sidebar,{subtree:true,attributes:true,attributeFilter:['class']});
-      var initial=sidebar.querySelector('.nav button.active,.nav a.active');
+      var initial=sidebar.querySelector('button.active,a.active');
       if(initial){preferredNavButton=initial;enforceOneActiveNav();}
     }
     if(typeof window.navigate==='function'&&!window.navigate.__wctNavigationWrapped){
@@ -456,13 +456,14 @@ module.exports = function applyWorkspaceModules(html) {
     }
   }
   function setWorkspaceBreadcrumb(label){
-    var crumb=document.querySelector('.topbar .crumb');
+    var crumb=document.getElementById('crumb')||document.querySelector('.topbar .crumb')||document.querySelector('.crumb');
     if(!crumb)return;
     var safeLabel=String(label||'Dashboard').replace(/[&<>"']/g,function(ch){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);});
     crumb.innerHTML='Workspace / <b>'+safeLabel+'</b>';
   }
   function go(page){
     window.wctWorkspaceRoute=page;
+    try{currentPage=page;}catch(ignore){}
     window.scrollTo({top:0,behavior:'smooth'});
     setActiveNav(page);
     setWorkspaceBreadcrumb(({tasks:'Tasks',team:'Team',calendar:'Calendar',analytics:'Analytics',dashboard:'Dashboard'})[page]||page);
@@ -505,13 +506,6 @@ module.exports = function applyWorkspaceModules(html) {
       var nativeLabel=(native.textContent||'').trim();
       setActiveNav('native',native);
       setWorkspaceBreadcrumb(nativeLabel);
-      window.setTimeout(function(){
-        document.querySelectorAll('.sidebar button,.sidebar a').forEach(function(button){button.classList.remove('active');});
-        native.classList.add('active');
-        if(/pengaturan|settings/i.test(nativeLabel)&&typeof window.wctRenderAdminSettings==='function'){
-          window.wctRenderAdminSettings();
-        }
-      },180);
     }
     var t=event.target.closest&&event.target.closest('[data-wct-task-filter]');if(t){activeTaskFilter=t.dataset.wctTaskFilter;renderTasks();return;}
     if(event.target.closest&&event.target.closest('[data-wct-clear-assignee]')){teamAssignee='';renderTasks();return;}
