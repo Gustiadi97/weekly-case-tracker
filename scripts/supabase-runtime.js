@@ -487,6 +487,18 @@ window.submitUser=async function(event){
     await refreshData();closeModal();renderUsers();toast('Akun Supabase Auth berhasil dibuat.');
   }catch(error){toast('Gagal membuat akun: '+(error.message||error));}
 };
+window.submitResetPassword=async function(event,userId){
+  event.preventDefault();
+  if(!isAdmin())return;
+  const form=new FormData(event.target);
+  const password=String(form.get('password')||'');
+  if(password.length<8||password.length>128){toast('Password baru harus 8–128 karakter.');return;}
+  try{
+    await callAdminFunction({action:'reset-password',userId,password});
+    closeModal();
+    toast('Password berhasil di-reset. Sampaikan password baru secara aman kepada pengguna.');
+  }catch(error){toast('Gagal reset password: '+(error.message||error));}
+};
 window.toggleUserActive=async function(userId,active){
   if(!isAdmin())return;
   const user=state.profiles.find(item=>item.id===userId);
