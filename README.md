@@ -1,64 +1,91 @@
-# Weekly Case Tracker — PICAPA
+# Weekly Case Tracker — PICAPA (Supabase)
 
-Aplikasi menggunakan Firebase Authentication dan Cloud Firestore. Frontend di-host di Vercel. Runtime aplikasi tidak menggunakan Cloud Functions dan tidak memerlukan billing Cloud Functions.
+Aplikasi Weekly Case Tracker menggunakan **Supabase Auth dan PostgreSQL sebagai satu-satunya backend aktif**. Frontend dibangun menjadi file statis dan di-host di Vercel.
 
-## Fitur
-- Login dengan ID dan password; ID dipetakan ke email internal `@weeklycasetracker.app`.
-- Dashboard, case monitoring, tindakan PICAPA, progress log, weekly meeting, laporan, dan arsip.
-- Admin membuat akun anggota melalui Firebase Authentication sekunder tanpa memutus sesi Admin.
-- Profil lengkap dan role dibaca dari `users/{uid}`; hanya pemilik akun dan Admin aktif yang dapat membaca dokumen tersebut.
-- Direktori PIC disimpan terpisah di `team_directory/{uid}` dengan field minimum `full_name`, `role`, `active`, dan `deleted`. Anggota aktif dapat membacanya untuk dropdown PIC; hanya Admin yang dapat menyinkronkan direktori.
-- Nonaktifkan akun dengan mengubah `active=false`; Firestore Rules menolak akses data.
-- Data operasional tetap berada di koleksi Firestore yang sama.
+## Backend aktif
 
-## Pengujian Firestore Rules (lokal)
+- Login ID + password melalui Supabase Auth. ID dipetakan ke email internal `@weeklycasetracker.app`.
+- Profil, role, dan status akses disimpan di `public.wct_users`.
+- Direktori PIC disimpan di `public.wct_team_directory`.
+- Data Case, Action, Progress Log, audit koreksi, Weekly Meeting, dan pengaturan disimpan pada tabel `wct_*`.
+- Akses data dibatasi dengan Supabase Row Level Security (RLS).
+- Pembuatan akun anggota menggunakan Supabase Edge Function `wct-admin-users`; service-role key tidak pernah dimasukkan ke browser.
+- Tidak menggunakan Firebase Authentication, Cloud Firestore, Firebase Hosting, atau Firebase Cloud Functions.
 
-Pengujian menggunakan Firestore Emulator dan project demo terpisah. Pengujian ini tidak membutuhkan login Firebase dan tidak mengakses database produksi.
+## Tabel yang digunakan
+
+| Tabel | Fungsi |
+|---|---|
+| `wct_users` | Profil, login ID, role, area, dan status pengguna |
+| `wct_team_directory` | Direktori PIC |
+| `wct_cases` | Data permasalahan / Case |
+| `wct_actions` | Corrective dan Preventive Action |
+| `wct_progress_logs` | Riwayat update progress |
+| `wct_progress_log_edits` | Audit koreksi progress |
+| `wct_meetings` | Weekly Meeting |
+| `wct_meeting_cases` | Relasi Meeting dengan Case |
+| `wct_counters` | Penomoran Case |
+| `wct_app_settings` | Kategori, divisi, dan pengaturan aplikasi |
+
+## Setup database
+
+Tabel dan RLS dasar dibuat terpisah pada project Supabase. Untuk menambahkan transaksi atomik yang dipakai oleh alur Case, PICAPA, dan audit progress:
+
+1. Buka Supabase Dashboard → SQL Editor.
+2. Buka file [`supabase/migrations/20261116_wct_workflows.sql`](./supabase/migrations/20261116_wct_workflows.sql).
+3. Jalankan seluruh SQL satu kali.
+4. Pastikan semua fungsi `wct_*` berhasil dibuat.
+
+Fungsi tersebut memvalidasi role dari `wct_users` dan menjalankan operasi terkait dalam satu transaksi PostgreSQL.
+
+## Setup Edge Function untuk manajemen pengguna
+
+Fungsi ini diperlukan agar Admin dapat membuat akun Auth, mengubah profil, mengaktifkan/nonaktifkan pengguna, dan mengatur ulang password anggota.
+
+Deploy folder `supabase/functions/wct-admin-users` sebagai Edge Function bernama `wct-admin-users` pada project Supabase:
 
 ```bash
-npm install --prefix tests
-npm run test:rules
+supabase functions deploy wct-admin-users --project-ref ktqgtutzgivxjwtdqcbw
 ```
 
-Suite menguji pembuatan Case dan Action, penugasan PIC, kesesuaian Case/Action pada progress log, kewajiban memperbarui Action bersama progress log, serta pencatatan audit ketika riwayat dikoreksi. CI menjalankan suite yang sama setiap ada pull request yang mengubah Rules, konfigurasi emulator, atau test.
-## Deploy
-Vercel menjalankan `npm run build` dan menerbitkan folder `public`. Push ke branch `main` memicu deployment otomatis jika integrasi GitHub Vercel aktif.
+Function memakai environment bawaan Supabase: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, dan `SUPABASE_SERVICE_ROLE_KEY`. Jangan pernah menyalin service-role/secret key ke file frontend, GitHub, atau Vercel public environment.
 
-Terbitkan Firestore Rules terbaru agar koreksi progress memiliki izin yang aman. Bila tidak menggunakan terminal, buka Firebase Console → Firestore Database → Rules, salin seluruh isi file [`firestore.rules`](./firestore.rules), tempel, lalu klik **Publish**. Langkah ini diperlukan satu kali setelah pembaruan aturan.
+## Admin pertama
 
-Alternatif melalui Cloud Shell:
+Akun pertama sudah dibuat melalui Supabase Authentication dan profilnya sudah dipasangkan ke `wct_users`:
+
+- Login ID: `admin`
+- Email internal: `admin@weeklycasetracker.app`
+- Role: `admin`
+- Status: aktif
+
+Tidak perlu membuat ulang akun atau menjalankan ulang INSERT admin.
+
+## Build dan deploy Vercel
+
+Build:
+
 ```bash
-firebase use weekly-case-tracker
-firebase deploy --only firestore:rules
+npm run build
 ```
-Tidak ada target Cloud Functions pada konfigurasi Firebase.
 
-## Aktivasi Admin pertama — satu kali
-Akun Admin pertama harus dibuat sekali oleh pemilik project melalui Firebase Console karena browser tidak boleh diberi kemampuan membuat Admin pertama secara publik.
+Konfigurasi Vercel:
+- Build command: `npm run build`
+- Output directory: `public`
+- Framework preset: Other
+- Root directory: `./`
 
-1. Firebase Console → Authentication → Sign-in method → aktifkan **Email/Password**.
-2. Authentication → Users → Add user.
-3. Email: `10001596@weeklycasetracker.app`.
-4. Password awal: gunakan password kuat yang kamu tentukan (Firebase minimum 6 karakter). Jika memakai `123456` untuk tes, segera ganti setelah login.
-5. Salin UID akun.
-6. Firestore Database → Data → buat koleksi `users`; Document ID harus sama dengan UID tadi.
-7. Isi field:
-   - `full_name` string: `Admin Weekly Case Tracker`
-   - `login_id` string: `10001596`
-   - `employee_id` string: `10001596`
-   - `area_name` string: `All Areas`
-   - `role` string: `admin`
-   - `active` boolean: `true`
-   - `created_at` string: waktu ISO
-   - `created_by` string: `setup`
-8. Pastikan Firestore Rules terbaru sudah diterbitkan. Login ke website dengan ID `10001596` dan password yang dibuat di langkah 4.
+URL Supabase dan publishable key dipakai pada frontend. Publishable key memang dirancang untuk browser; keamanan database tetap bergantung pada RLS dan validasi fungsi server-side.
 
-Jangan buat profil Admin pertama melalui form website. Setelah Admin pertama aktif, akun anggota dapat dibuat dari menu **Manajemen Pengguna**.
+## Perilaku aplikasi
 
-## Batasan tanpa backend
-Admin dapat membuat akun dan menonaktifkan/mengaktifkan profil. Admin tidak dapat mengganti password Firebase milik pengguna lain dari browser tanpa backend tepercaya; pengguna harus mengganti password melalui sesi akunnya sendiri. Email internal dipakai sebagai identitas login dan bukan alamat email pemulihan yang dapat menerima pesan.
+Fitur yang dipertahankan: Dashboard, Case Monitoring, PICAPA, penugasan PIC, update progress, koreksi riwayat dengan audit trail, Weekly Meeting, Reports & Archive, Pengaturan, dan Manajemen Pengguna.
 
-## Koleksi Firestore
-`users`, `team_directory`, `cases`, `actions`, `progress_logs`, `meetings`, dan `counters`.
+Case baru dan action awal disimpan secara atomik. Update progress dan koreksi riwayat juga menggunakan fungsi PostgreSQL atomik supaya ringkasan Action dan audit log tidak terpisah.
 
-Firestore Rules hanya mengatur izin akses; tidak menghapus atau memigrasikan data lama.
+## Catatan migrasi
+
+- Aplikasi pada branch ini tidak lagi menggunakan Firebase SDK atau Firebase sebagai backend.
+- Data lama Firebase tidak otomatis dipindahkan. Project Firebase lama tidak dihapus dari konsol; data lama tetap menjadi arsip terpisah.
+- Database Supabase baru berawal dengan akun Admin yang sudah dibuat. Data Case, Action, Meeting, dan pengguna lain dimulai kosong sampai dibuat melalui aplikasi.
+- Branch `supabase-migration` dipakai untuk uji sebelum dijadikan branch produksi.
