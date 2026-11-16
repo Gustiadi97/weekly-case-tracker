@@ -354,10 +354,45 @@ window.showApp=function(){
   }catch(error){console.error('Workspace render after login failed:',error);safeToast('Login berhasil, tetapi Dashboard gagal dibuka: '+(error.message||error));}
 };
 
+function wctCaseErrorDetails(error){
+  const parts=[];
+  if(error&&error.message)parts.push(String(error.message));
+  if(error&&error.details)parts.push('Detail: '+String(error.details));
+  if(error&&error.hint)parts.push('Petunjuk: '+String(error.hint));
+  if(error&&error.code)parts.push('Kode: '+String(error.code));
+  return parts.length?parts.join('\n'):'Terjadi kesalahan yang belum dapat dijelaskan. Periksa koneksi dan coba kembali.';
+}
+
+function wctShowCaseFormError(form,error){
+  const message=wctCaseErrorDetails(error);
+  const box=document.createElement('div');
+  box.className='wct-form-error';
+  box.setAttribute('role','alert');
+  box.setAttribute('aria-live','assertive');
+  const title=document.createElement('strong');
+  title.textContent='Case belum berhasil disimpan';
+  const detail=document.createElement('pre');
+  detail.textContent=message;
+  const note=document.createElement('small');
+  note.textContent='Form dan isianmu tetap disimpan. Perbaiki penyebabnya lalu tekan Simpan Case kembali.';
+  box.replaceChildren(title,detail,note);
+  const previous=form&&form.querySelector('.wct-form-error');
+  if(previous)previous.remove();
+  const body=form&&form.querySelector('.modal-body');
+  if(body)body.insertBefore(box,body.firstChild);
+  else if(form)form.insertBefore(box,form.firstChild);
+  if(box.scrollIntoView)box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  return message;
+}
+
 window.submitCase=async function(event){
   event.preventDefault();
-  if(!isCoordinator())return;
-  const form=new FormData(event.target);
+  const formElement=event.currentTarget||event.target;
+  if(!isCoordinator()){
+    wctShowCaseFormError(formElement,new Error('Akun ini tidak memiliki izin membuat Case. Gunakan akun Admin atau Koordinator aktif.'));
+    return;
+  }
+  const form=new FormData(formElement);
   const row={
     hub_code:String(form.get('hub_code')||'').trim().toUpperCase(),
     category:String(form.get('category')||'').trim(),
@@ -371,28 +406,66 @@ window.submitCase=async function(event){
     target_date:String(form.get('target_date')||'')||null
   };
   if(!row.hub_code||!row.category||!row.division||!row.title||!row.problem_identification||!row.occurred_on){
-    toast('Lengkapi HUB, kategori, divisi, judul, tanggal kejadian, dan uraian masalah.');return;
+    wctShowCaseFormError(formElement,new Error('Lengkapi HUB, kategori, divisi, judul, tanggal kejadian, dan uraian masalah.'));
+    return;
   }
   const actions=[];
   [['corrective','ca'],['preventive','pa']].forEach(item=>{
     const title=String(form.get(item[1]+'_title')||'').trim();
     if(title)actions.push({
-      action_type:item[0],title,description:'',
+      action_type:item[0],
+      title,
+      description:'',
       assigned_to:String(form.get(item[1]+'_assigned')||'')||null,
       due_date:String(form.get(item[1]+'_due')||'')||null
     });
   });
-  const button=event.submitter||event.target.querySelector('button[type=submit]');
+  const button=event.submitter||formElement.querySelector('button[type=submit]');
   if(button&&button.disabled)return;
-  if(button){button.disabled=true;button.dataset.originalLabel=button.textContent;button.textContent='Menyimpan...';}
+  if(button){
+    button.disabled=true;
+    button.dataset.originalLabel=button.textContent;
+    button.textContent='Menyimpan...';
+  }
+  let persisted=false;
   try{
     const result=await sb.rpc('wct_create_case',{p_case:row,p_actions:actions});
     if(result.error)throw result.error;
-    await refreshData();closeModal();toast('Case berhasil dibuat.');renderPage();
+    persisted=true;
+
+    let refreshError=null;
+    try{
+      await refreshData();
+    }catch(error){
+      refreshError=error;
+      console.error('Case saved, but data refresh failed:',error);
+    }
+
+    closeModal();
+    if(typeof window.wctWorkspaceRoute==='string'&&window.wctWorkspaceRoute){
+      if(typeof window.renderDashboard==='function'&&window.wctWorkspaceRoute==='dashboard')window.renderDashboard();
+      else if(typeof window.renderPage==='function')window.renderPage();
+    }else if(typeof window.renderPage==='function'){
+      window.renderPage();
+    }
+
+    if(refreshError){
+      toast('Case berhasil disimpan, tetapi daftar belum berhasil diperbarui. Muat ulang halaman untuk melihat Case.');
+    }else{
+      toast('Case berhasil dibuat.');
+    }
   }catch(error){
-    console.error(error);
-    if(button){button.disabled=false;button.textContent=button.dataset.originalLabel||'Simpan Case';}
-    toast('Gagal menyimpan Case: '+(error.message||error));
+    console.error('Gagal membuat Case melalui Supabase:',error);
+    const message=wctShowCaseFormError(formElement,error);
+    toast('Gagal menyimpan Case: '+message);
+    if(button){
+      button.disabled=false;
+      button.textContent=button.dataset.originalLabel||'Simpan Case';
+    }
+  }finally{
+    // If the database save succeeded, do not re-enable the submit action in the
+    // still-open modal: the form is closed immediately afterwards.
+    if(persisted&&button)button.disabled=true;
   }
 };
 
