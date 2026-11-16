@@ -109,6 +109,8 @@ try {
     ['Icon observer ready marker', 'window.WCTIconSystemReady=true;'],
     ['Tasks, Team, Calendar and Analytics modules', 'id="wct-workspace-modules"'],
     ['Reliable X / Cancel / Close modal controls', 'id="wct-modal-controls"'],
+    ['Visible error feedback above modal backdrop', 'id="wct-modal-feedback-style"'],
+    ['Inline Case form error styling', '.wct-form-error{'],
     ['Modal close delegated click controller', "closest('#modalBackdrop button')"],
     ['Modal controls normalise cancel buttons to type button', "button.type='button'"],
     ['Escape key closes open modal', "if(event.key!=='Escape')return;"],
@@ -444,7 +446,11 @@ try {
   const requiredSupabaseRuntime = [
     ['current-password verification', 'sb.auth.signInWithPassword({email,password:current})'],
     ['password update', 'sb.auth.updateUser({password:next})'],
-    ['WCT settings storage', "sb.from('wct_app_settings').upsert"]
+    ['WCT settings storage', "sb.from('wct_app_settings').upsert"],
+    ['Structured Case save error details', 'function wctCaseErrorDetails(error)'],
+    ['Inline Case form error feedback', 'function wctShowCaseFormError(form,error)'],
+    ['Case save success separated from refresh failure', 'Case berhasil disimpan, tetapi daftar belum berhasil diperbarui.'],
+    ['Case save uses Supabase atomic RPC', "sb.rpc('wct_create_case',{p_case:row,p_actions:actions})"]
   ];
   const missingSupabaseRuntime = requiredSupabaseRuntime.filter(([, marker]) => !supabaseRuntime.includes(marker)).map(([name]) => name);
   if (missingSupabaseRuntime.length) {
