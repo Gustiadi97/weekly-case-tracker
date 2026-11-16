@@ -124,7 +124,7 @@ module.exports = function applyPicapaModalPolish(html) {
   box-sizing:border-box!important;padding:11px 13px!important;
   border:1px solid #D7E1ED!important;border-radius:10px!important;
   background:#FFFFFF!important;color:#1C3554!important;
-  font:500 12px/1.5 inherit!important;
+  font-family:inherit!important;font-size:12px!important;font-weight:500!important;line-height:1.5!important;
   box-shadow:0 1px 2px rgba(25,49,79,.025)!important;
 }
 #modal.wct-modal-progress .field textarea,
