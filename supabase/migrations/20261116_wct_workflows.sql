@@ -23,7 +23,7 @@ begin
   from public.wct_users
   where id = v_uid and active = true;
 
-  if v_uid is null or v_role not in ('admin','coordinator') then
+  if v_uid is null or v_role is null or v_role not in ('admin','coordinator') then
     raise exception 'Hanya Admin atau Koordinator aktif yang dapat membuat Case.' using errcode = '42501';
   end if;
 
