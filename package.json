@@ -1,11 +1,9 @@
 {
   "name": "weekly-case-tracker",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Weekly PICAPA and operational case tracking application",
+  "description": "Weekly PICAPA and operational case tracking application using Supabase",
   "scripts": {
-    "build": "node scripts/build.js",
-    "deploy:firebase": "npm run build && firebase deploy --only firestore:rules,hosting",
-    "test:rules": "npx --prefix tests firebase emulators:exec --only firestore --project demo-weekly-case-tracker \"node --test tests/firestore.rules.test.cjs\""
+    "build": "node scripts/build.js"
   }
 }
