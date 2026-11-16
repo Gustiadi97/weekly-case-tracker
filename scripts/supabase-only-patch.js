@@ -10,7 +10,7 @@ module.exports = function applySupabaseOnlyPatch(html) {
   html = html.replace(oldBootstrap, [
     'const SUPABASE_URL = ' + JSON.stringify(supabaseUrl) + ';',
     'const SUPABASE_PUBLISHABLE_KEY = ' + JSON.stringify(publishableKey) + ';',
-    'let auth={onAuthStateChanged:function(){return {unsubscribe:function(){}};},signOut:function(){return Promise.resolve();}}, fireDb=null, cloudFunctions=null;',
+    'let auth={onAuthStateChanged:function(){return {unsubscribe:function(){}};},signOut:function(){return Promise.resolve();}}, fireDb=null;',
     "let mode='supabase', currentUser=null, currentPage='dashboard';",
     'let state={cases:[],actions:[],logs:[],meetings:[],profiles:[],meetingCases:[]};'
   ].join('\n'));
