@@ -146,13 +146,21 @@ Deno.serve(async (req) => {
       if (fullName.length < 2 || fullName.length > 100) return json({ error: "Nama lengkap tidak valid." }, 400);
       if (!["admin", "coordinator", "member", "viewer"].includes(role)) return json({ error: "Role tidak valid." }, 400);
 
+      const { data: currentProfile, error: currentProfileError } = await adminClient
+        .from("wct_users").select("active").eq("id", userId).maybeSingle();
+      if (currentProfileError || !currentProfile) return json({ error: "Profil pengguna tidak ditemukan." }, 404);
+      const { data: currentDirectory } = await adminClient
+        .from("wct_team_directory").select("active, deleted").eq("user_id", userId).maybeSingle();
+      const active = typeof body.active === "boolean" ? body.active : currentProfile.active;
+      const deleted = typeof body.deleted === "boolean" ? body.deleted : (currentDirectory?.deleted === true);
+
       const { error: userError } = await adminClient.from("wct_users")
         .update({ full_name: fullName, role, area_name: areaName, updated_at: new Date().toISOString() })
         .eq("id", userId);
       if (userError) return json({ error: userError.message }, 400);
 
       const { error: directoryError } = await adminClient.from("wct_team_directory")
-        .upsert({ user_id: userId, full_name: fullName, role, active: true, deleted: false, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
+        .upsert({ user_id: userId, full_name: fullName, role, active, deleted, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
       if (directoryError) return json({ error: directoryError.message }, 400);
       return json({ ok: true });
     }
