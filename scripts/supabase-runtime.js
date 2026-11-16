@@ -293,29 +293,66 @@ refreshData=async function(){await loadRuntimeData();};
 window.refreshData=refreshData;
 
 window.loginFirebase=async function(){
-  const loginId=normalizeLoginId($('loginId').value),password=$('loginPassword').value||'';
-  if(!/^[a-z0-9._-]{3,32}$/.test(loginId)){toast('Format ID Login tidak valid.');return;}
-  if(!password){toast('Masukkan password.');return;}
+  if(manualLoginInProgress)return;
+  const loginInput=document.getElementById('loginId');
+  const passwordInput=document.getElementById('loginPassword');
+  const loginId=normalizeLoginId(loginInput&&loginInput.value);
+  const password=passwordInput&&passwordInput.value||'';
+  if(!/^[a-z0-9._-]{3,32}$/.test(loginId)){safeToast('Format ID Login tidak valid.');return;}
+  if(!password){safeToast('Masukkan password.');return;}
+  manualLoginInProgress=true;
+  sessionRestoreInProgress=false;
+  const version=++authFlowVersion;
+  const button=document.querySelector('#loginScreen .login-actions button');
+  const oldLabel=button&&button.textContent;
+  if(button){button.disabled=true;button.textContent='Memverifikasi...';}
   try{
     const result=await sb.auth.signInWithPassword({email:emailForLogin(loginId),password});
     if(result.error)throw result.error;
     const profile=await getProfile(result.data.user.id);
-    if(!profile){await sb.auth.signOut();throw new Error('Profil akun tidak aktif atau belum terdaftar. Hubungi Admin.');}
-    currentUser=profile;mode='supabase';await refreshData();showApp();
-    const badge=$('modePill');if(badge){badge.textContent='● SUPABASE CONNECTED';badge.className='pill live';}
-  }catch(error){toast('Login gagal: '+(error.message||'Periksa ID dan password.'));}
+    if(!profile)throw new Error('Profil akun tidak aktif atau belum terdaftar. Hubungi Admin.');
+    currentUser=profile;
+    mode='supabase';
+    await refreshData();
+    if(version!==authFlowVersion)return;
+    showApp();
+    const badge=document.getElementById('modePill');
+    if(badge){badge.textContent='● SUPABASE CONNECTED';badge.className='pill live';}
+  }catch(error){
+    if(version===authFlowVersion){
+      console.error('Weekly Case Tracker login failed:',error);
+      currentUser=null;
+      safeToast('Login gagal: '+(error.message||'Periksa ID dan password.'));
+    }
+  }finally{
+    manualLoginInProgress=false;
+    if(button){button.disabled=false;button.textContent=oldLabel||'Masuk';}
+  }
 };
 window.logout=async function(){
   try{await sb.auth.signOut();}catch(error){console.warn(error);}
   currentUser=null;mode='supabase';showLogin();
 };
-const originalShowApp=window.showApp;
-if(typeof originalShowApp==='function'){
-  window.showApp=function(){
-    originalShowApp();
-    const badge=$('modePill');if(badge){badge.textContent='● SUPABASE CONNECTED';badge.className='pill live';}
-  };
-}
+window.showApp=function(){
+  const loginScreen=document.getElementById('loginScreen');
+  const app=document.getElementById('app');
+  if(loginScreen)loginScreen.classList.add('hidden');
+  if(app)app.classList.remove('hidden');
+  const setText=(id,value)=>{const node=document.getElementById(id);if(node)node.textContent=String(value==null?'':value);};
+  const badge=document.getElementById('modePill');
+  if(badge){badge.className='pill live';badge.textContent='● SUPABASE CONNECTED';}
+  setText('userName',currentUser&&(currentUser.full_name||currentUser.login_id)||'User');
+  setText('userRole',roleLabel[currentUser&&currentUser.role]||'Member');
+  setText('userAvatar',(currentUser&&currentUser.full_name||'U').split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase());
+  setText('todayLabel',new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}));
+  const usersNav=document.getElementById('usersNav');
+  if(usersNav)usersNav.style.display=currentUser&&currentUser.role==='admin'?'flex':'none';
+  try{
+    if(typeof window.wctWorkspaceNavigate==='function')window.wctWorkspaceNavigate('dashboard');
+    else if(typeof window.navigate==='function')window.navigate('dashboard');
+    else if(typeof window.renderPage==='function')window.renderPage();
+  }catch(error){console.error('Workspace render after login failed:',error);safeToast('Login berhasil, tetapi Dashboard gagal dibuka: '+(error.message||error));}
+};
 
 window.submitCase=async function(event){
   event.preventDefault();
@@ -610,22 +647,62 @@ window.saveCaseOptions=async function(next){
   }catch(error){toast('Gagal menyimpan pengaturan: '+(error.message||error));return false;}
 };
 
+let authFlowVersion=0;
+let manualLoginInProgress=false;
+let sessionRestoreInProgress=false;
+
+function safeToast(message){
+  const node=document.getElementById('toast');
+  if(!node){console.warn('[WCT notification]',message);return;}
+  node.textContent=String(message||'');
+  node.classList.add('show');
+  window.setTimeout(()=>node.classList.remove('show'),3200);
+}
+window.toast=safeToast;
+
 async function restoreSupabaseSession(session){
-  if(!session||!session.user){currentUser=null;return;}
+  if(manualLoginInProgress)return;
+  if(!session||!session.user){
+    if(!currentUser)showLogin();
+    return;
+  }
+  if(sessionRestoreInProgress)return;
+  sessionRestoreInProgress=true;
+  const version=++authFlowVersion;
   try{
     const profile=await getProfile(session.user.id);
-    if(!profile){await sb.auth.signOut();currentUser=null;showLogin();return;}
-    currentUser=profile;mode='supabase';await refreshData();showApp();
+    if(version!==authFlowVersion||manualLoginInProgress)return;
+    if(!profile){
+      currentUser=null;
+      showLogin();
+      safeToast('Akun belum aktif atau profil tidak ditemukan. Hubungi Admin.');
+      return;
+    }
+    currentUser=profile;
+    mode='supabase';
+    await refreshData();
+    if(version!==authFlowVersion||manualLoginInProgress)return;
+    showApp();
   }catch(error){
+    if(version!==authFlowVersion||manualLoginInProgress)return;
     console.error('Supabase session restore failed:',error);
-    currentUser=null;await sb.auth.signOut();showLogin();
-    toast('Sesi tidak dapat diverifikasi. Login kembali.');
+    currentUser=null;
+    showLogin();
+    safeToast('Sesi belum dapat dimuat: '+(error.message||'Periksa koneksi, lalu coba login kembali.'));
+  }finally{
+    if(version===authFlowVersion)sessionRestoreInProgress=false;
   }
 }
+
 sb.auth.onAuthStateChange((event,session)=>{
-  if(event==='INITIAL_SESSION'||event==='SIGNED_IN'||event==='TOKEN_REFRESHED'){
-    Promise.resolve().then(()=>restoreSupabaseSession(session));
-  }else if(event==='SIGNED_OUT'){currentUser=null;}
+  if(event==='INITIAL_SESSION'){
+    if(!manualLoginInProgress)Promise.resolve().then(()=>restoreSupabaseSession(session));
+  }else if(event==='SIGNED_OUT'){
+    currentUser=null;
+    if(!manualLoginInProgress)showLogin();
+  }
+  // SIGNED_IN is handled by loginFirebase. TOKEN_REFRESHED keeps the existing
+  // in-memory profile and must not trigger a second full-page hydration.
 });
 
 const loginButton=document.querySelector('#loginScreen .login-actions button');
