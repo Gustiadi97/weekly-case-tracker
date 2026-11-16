@@ -279,7 +279,13 @@ async function loadRuntimeData(){
     caseOptions:{categories:[],divisions:[]}
   };
   const settings=(data.wct_app_settings||[]).find(row=>row.setting_key==='case_options');
-  if(settings&&settings.setting_value)state.caseOptions=Object.assign({categories:[],divisions:[]},settings.setting_value);
+  const savedOptions=settings&&settings.setting_value?settings.setting_value:{};
+  const defaultCategories=['Inbound','Outbound','Sorting','Productivity','Service Level','Facility & Safety','People / Manpower','Transportation','Reporting','Other'];
+  const defaultDivisions=['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other'];
+  state.caseOptions={
+    categories:Array.isArray(savedOptions.categories)&&savedOptions.categories.length?savedOptions.categories.slice():defaultCategories,
+    divisions:Array.isArray(savedOptions.divisions)&&savedOptions.divisions.length?savedOptions.divisions.slice():defaultDivisions
+  };
   return state;
 }
 
