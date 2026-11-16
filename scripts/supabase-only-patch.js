@@ -39,6 +39,17 @@ module.exports = function applySupabaseOnlyPatch(html) {
     "async function logout(){ if(auth&&auth.signOut)await auth.signOut(); currentUser=null; mode='supabase'; showLogin(); }\n"
   );
 
+  // The source template still carries a separate one-time Firebase bootstrap
+  // block. The Supabase Admin account is already provisioned; remove that code.
+  html = replaceRange(
+    html,
+    'function openBootstrapForm(loginId){',
+    'async function refreshData(){',
+    "function openBootstrapForm(){ toast('Admin pertama sudah terdaftar melalui Supabase Auth.'); }\n" +
+    "async function completeFirstAdmin(event){ if(event)event.preventDefault(); toast('Aktivasi Admin pertama sudah selesai melalui Supabase Auth.'); }\n" +
+    "async function logout(){ if(auth&&auth.signOut)await auth.signOut(); currentUser=null; mode='supabase'; showLogin(); }\n"
+  );
+
   // Session restore is handled only by the Supabase runtime, never by Firebase tokens.
   const restoreStart = html.indexOf('// Restore session if a Supabase user is already signed in.');
   const restoreEnd = html.indexOf('// Optional quick preview URL: index.html?demo=1', restoreStart);
