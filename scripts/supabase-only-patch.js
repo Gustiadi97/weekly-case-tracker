@@ -10,7 +10,7 @@ module.exports = function applySupabaseOnlyPatch(html) {
   html = html.replace(oldBootstrap, [
     'const SUPABASE_URL = ' + JSON.stringify(supabaseUrl) + ';',
     'const SUPABASE_PUBLISHABLE_KEY = ' + JSON.stringify(publishableKey) + ';',
-    'let auth={onAuthStateChanged:function(){return {unsubscribe:function(){}};},signOut:function(){return Promise.resolve();}}, fireDb=null;',
+    'let auth={onAuthStateChanged:function(){return {unsubscribe:function(){}};},signOut:function(){return Promise.resolve();}}, fireDb=null, legacyAdminApiDisabled={httpsCallable:function(){return function(){return Promise.reject(new Error(\'Backend Firebase sudah dinonaktifkan. Gunakan Supabase.\'));};}};',
     "let mode='supabase', currentUser=null, currentPage='dashboard';",
     'let state={cases:[],actions:[],logs:[],meetings:[],profiles:[],meetingCases:[]};'
   ].join('\n'));
@@ -51,6 +51,10 @@ module.exports = function applySupabaseOnlyPatch(html) {
   );
 
   // Session restore is handled only by the Supabase runtime, never by Firebase tokens.
+  // Replace legacy Cloud Function calls with a disabled compatibility stub.
+  // User administration is reimplemented by the Supabase Edge Function runtime.
+  html = html.replace(/\\bcloudFunctions\\b/g, 'legacyAdminApiDisabled');
+
   const restoreStart = html.indexOf('// Restore session if a Supabase user is already signed in.');
   const restoreEnd = html.indexOf('// Optional quick preview URL: index.html?demo=1', restoreStart);
   if (restoreStart >= 0 && restoreEnd >= 0) {
