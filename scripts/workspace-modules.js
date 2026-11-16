@@ -426,6 +426,44 @@ module.exports = function applyWorkspaceModules(html) {
     var exp=event.target.closest&&event.target.closest('[data-wct-analytics-export]');if(exp){var rows=[['KPI','Value'],['Total Case',cases().length],['Closed Case',cases().filter(function(c){return c.status==='closed';}).length],['Running Case',cases().filter(function(c){return c.status==='in_progress';}).length],['Progress Updates',rangeLogs().length],['Active PIC',profiles().filter(function(p){return p.active!==false&&p.deleted!==true;}).length]];var csv='\uFEFF'+rows.map(function(r){return r.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(';');}).join('\r\n');var a=document.createElement('a'),u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.href=u;a.download='WCT_Analytics_'+todayKey+'.csv';a.click();URL.revokeObjectURL(u);return;}
     var theme=event.target.closest&&event.target.closest('[data-wct-theme]');if(theme){document.querySelectorAll('[data-wct-theme]').forEach(function(b){b.classList.toggle('active',b===theme);});applyTheme(theme.dataset.wctTheme);return;}
   },true);
+
+  document.addEventListener('click',function(event){
+    var invite=event.target.closest&&event.target.closest('[data-wct-invite-member]');
+    if(invite){
+      if(!isAdminSafe()){if(window.toast)window.toast('Hanya Admin yang dapat mengundang anggota.');return;}
+      var inviteHtml='<div class="modal-head"><div><div class="eyebrow">TEAM / INVITE MEMBER</div><h2>Buat Akun Anggota</h2><p class="sub">Buat akun login untuk anggota tim. ID dan password dikelola oleh Admin.</p></div><button type="button" class="close" onclick="closeModal()">×</button></div>'+
+        '<form onsubmit="submitUser(event)"><div class="modal-body"><div class="form-grid">'+
+        '<div class="field"><label>Nama lengkap *</label><input name="full_name" required maxlength="120"></div>'+
+        '<div class="field"><label>ID Pengguna *</label><input name="login_id" required minlength="3" maxlength="32" autocomplete="off"></div>'+
+        '<div class="field"><label>Role *</label><select name="role" required><option value="coordinator">Koordinator</option><option value="member">PIC / Member</option><option value="viewer">Viewer</option><option value="admin">Admin</option></select></div>'+
+        '<div class="field"><label>HUB / Area</label><input name="area_name" placeholder="Contoh: MKS / BPP / MND"></div>'+
+        '<div class="field"><label>Employee ID</label><input name="employee_id" placeholder="Opsional"></div>'+
+        '<div class="field"><label>Password awal *</label><input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></div>'+
+        '</div></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-primary">Buat Akun</button></div></form>';
+      if(window.openModal)window.openModal(inviteHtml,true);
+      return;
+    }
+    var message=event.target.closest&&event.target.closest('[data-wct-member-message]');
+    if(message){
+      var member=person(message.dataset.wctMemberMessage);
+      if(!member)return;
+      var draft='Halo '+(member.full_name||'')+', saya ingin menindaklanjuti pekerjaan PICAPA yang menjadi tanggung jawabmu. Mohon berikan update progres terbaru, kendala yang dihadapi, dan rencana tindak lanjut. Terima kasih.';
+      var messageHtml='<div class="modal-head"><div><div class="eyebrow">TEAM / MESSAGE</div><h2>Pesan untuk '+esc(member.full_name||'Anggota')+'</h2><p class="sub">Siapkan pesan lalu salin untuk dikirim melalui kanal komunikasi tim.</p></div><button type="button" class="close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="field"><label>Draft pesan</label><textarea id="wct-message-draft" rows="5">'+esc(draft)+'</textarea></div><p class="sub">Belum tersedia chat internal; fitur ini menyiapkan dan menyalin pesan, bukan mengirimkannya.</p></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Tutup</button><button type="button" class="btn btn-primary" data-wct-copy-message>Salin Pesan</button></div>';
+      if(window.openModal)window.openModal(messageHtml,true);
+      return;
+    }
+    var copyMessage=event.target.closest&&event.target.closest('[data-wct-copy-message]');
+    if(copyMessage){
+      var field=$('wct-message-draft'),value=field?field.value:'';
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(value).then(function(){if(window.toast)window.toast('Pesan berhasil disalin.');}).catch(function(){if(field){field.select();document.execCommand('copy');if(window.toast)window.toast('Pesan disalin.');}});
+      }else if(field){field.select();document.execCommand('copy');if(window.toast)window.toast('Pesan disalin.');}
+      return;
+    }
+    var openAction=event.target.closest&&event.target.closest('[data-wct-open-action]');
+    if(openAction){if(window.openUpdateForm)window.openUpdateForm(openAction.dataset.wctOpenAction);return;}
+  },true);
+
   document.addEventListener('input',function(event){
     if(event.target.matches('[data-wct-task-search]')){taskSearch=event.target.value;var el=event.target,position=el.selectionStart;renderTasks();var next=document.querySelector('[data-wct-task-search]');if(next){next.focus();next.setSelectionRange(position,position);}return;}
     if(event.target.matches('[data-wct-team-search]')){teamSearch=event.target.value;var el2=event.target,pos=el2.selectionStart;renderTeam();var next2=document.querySelector('[data-wct-team-search]');if(next2){next2.focus();next2.setSelectionRange(pos,pos);}return;}
