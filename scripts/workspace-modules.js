@@ -145,6 +145,18 @@ module.exports = function applyWorkspaceModules(html) {
 .wct-analytics-kpi span{color:#8A98A9;font-size:9px}
 .wct-analytics-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.85fr);gap:15px;margin-bottom:15px}
 .wct-heatmap{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:4px}
+.wct-donut-layout{display:grid;grid-template-columns:145px minmax(0,1fr);align-items:center;gap:14px}
+.wct-donut{position:relative;display:grid;place-items:center;width:136px;height:136px;border-radius:50%}
+.wct-donut:before{content:"";position:absolute;inset:13px;border-radius:50%;background:#fff}
+.wct-donut>div{position:relative;z-index:1;text-align:center}
+.wct-donut strong{display:block;color:#173B68;font-size:25px;font-weight:900}
+.wct-donut small{display:block;color:#8290A4;font-size:9px}
+.wct-donut-legend{display:grid;gap:8px;min-width:0}
+.wct-donut-legend>div{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#718198;font-size:10px}
+.wct-donut-legend span{display:flex;align-items:center;gap:7px;min-width:0}
+.wct-donut-legend span i{width:9px;height:9px;flex:0 0 9px;border-radius:3px}
+.wct-donut-legend b{color:#30465F;font-size:10px;white-space:nowrap}
+
 .wct-heat-cell{aspect-ratio:1;border-radius:3px;background:#EFF3F8}
 .wct-heat-cell.l1{background:#D9E7F9}.wct-heat-cell.l2{background:#A8C8F0}.wct-heat-cell.l3{background:#6F9EDD}.wct-heat-cell.l4{background:#2864C7}
 .wct-contributor{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #EDF1F6}
