@@ -47,6 +47,18 @@ function cleanRow(table,row){
     if(table==='wct_app_settings'&&key==='id')target='setting_key';
     if(allowed.includes(target)&&row[key]!==undefined)out[target]=row[key];
   });
+  if(table==='wct_meetings'){
+    const hasLegacyMeetingFields=['summary','decisions','next_steps','case_ids'].some(key=>Object.prototype.hasOwnProperty.call(row||{},key));
+    if(hasLegacyMeetingFields){
+      out.notes=JSON.stringify({
+        wct_meeting_payload:1,
+        summary:String(row.summary||''),
+        decisions:String(row.decisions||''),
+        next_steps:String(row.next_steps||''),
+        case_ids:Array.isArray(row.case_ids)?row.case_ids.map(String):[]
+      });
+    }
+  }
   return out;
 }
 function presentRow(table,row){
@@ -56,6 +68,27 @@ function presentRow(table,row){
   if(table==='wct_team_directory')out.id=row.user_id;
   if(table==='wct_counters')out.id=row.counter_key;
   if(table==='wct_users')out.hub_code=row.area_name||'';
+  if(table==='wct_meetings'){
+    try{
+      const notes=typeof row.notes==='string'?JSON.parse(row.notes):null;
+      if(notes&&notes.wct_meeting_payload===1){
+        out.summary=String(notes.summary||'');
+        out.decisions=String(notes.decisions||'');
+        out.next_steps=String(notes.next_steps||'');
+        out.case_ids=Array.isArray(notes.case_ids)?notes.case_ids:[];
+      }else{
+        out.summary=String(row.notes||'');
+        out.decisions='';
+        out.next_steps='';
+        out.case_ids=[];
+      }
+    }catch(ignore){
+      out.summary=String(row.notes||'');
+      out.decisions='';
+      out.next_steps='';
+      out.case_ids=[];
+    }
+  }
   if(table==='wct_app_settings'){
     const value=row.setting_value&&typeof row.setting_value==='object'?row.setting_value:{};
     return Object.assign({id:row.setting_key,setting_key:row.setting_key},value,{
