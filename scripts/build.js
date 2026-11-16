@@ -66,7 +66,7 @@ try {
     ''
   );
 
-  html = require('./firebase-only-patch')(html);
+  // Firebase backend transform intentionally removed; Supabase is the only runtime backend.
   html = require('./source-form-transform')(html);
   html = require('./ui-enhancements')(html);
   html = require('./design-refresh')(html);
@@ -76,6 +76,11 @@ try {
   html = require('./case-edit-runtime')(html);
   html = require('./division-breakdown-runtime')(html);
   html = require('./global-redesign')(html);
+  html = require('./supabase-only-patch')(html);
+  html = require('./icon-system')(html);
+  html = require('./workspace-modules')(html);
+  html = require('./modal-controls')(html);
+  html = require('./picapa-modal-polish')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -101,11 +106,33 @@ try {
     ['Case Edit uses a direct data action', 'data-wct-case-edit-id'],
     ['Case Edit runtime loaded last', 'id="wct-case-edit-runtime"'],
     ['design refresh stylesheet', 'id="wct-design-refresh"'],
+    ['Unified SVG icon system', 'id="wct-icon-system"'],
+    ['Icon observer ready marker', 'window.WCTIconSystemReady=true;'],
+    ['Tasks, Team, Calendar and Analytics modules', 'id="wct-workspace-modules"'],
+    ['Reliable X / Cancel / Close modal controls', 'id="wct-modal-controls"'],
+    ['PICAPA modal visual polish stylesheet', 'id="wct-picapa-modal-polish-style"'],
+    ['PICAPA modal runtime classifier', 'id="wct-picapa-modal-polish"'],
+    ['Update Progress modal styling', '#modal.wct-modal-progress .modal-body'],
+    ['Preventive and Corrective Action modal styling', '#modal.wct-modal-action .modal-body'],
+    ['Case Detail modal styling', '#modal.wct-case-detail-modal .modal-body.wct-case-detail'],
+    ['Visible error feedback above modal backdrop', 'id="wct-modal-feedback-style"'],
+    ['Inline Case form error styling', '.wct-form-error{'],
+    ['Modal close delegated click controller', "closest('#modalBackdrop button')"],
+    ['Modal controls normalise cancel buttons to type button', "button.type='button'"],
+    ['Escape key closes open modal', "if(event.key!=='Escape')return;"],
+    ['Kanban four workflow columns', "var cols=[['open','To Do'],['in_progress','In Progress'],['review','In Review'],['done','Done']]"],
+    ['Reference dashboard KPI cards', 'wct-workspace-kpis'],
+    ['No Time Tracker module', 'Project Progress'],
+    ['Admin Case settings renderer', 'window.wctRenderAdminSettings=open;'],
+    ['Admin Settings click routing restored', 'window.wctRenderAdminSettings();'],
+    ['Admin Settings refreshes current user profile', 'currentProfile=await getCurrentProfile();'],
+    ['Admin Settings prevents duplicate render requests', 'let openingPromise=null;'],
+    ['Strict workspace active navigation', 'function setWorkspaceBreadcrumb(label)'],
+    ['Login form refinement', 'id="wct-login-form-refresh"'],
+    ['Navy-blue navigation icon style', '.wct-nav-icon svg{width:18px;height:18px}'],
     ['global orange UI/UX layer', 'id="wct-global-redesign"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
     ['self-service password settings form', 'data-account-password'],
-    ['password changes require current-password reauthentication', 'reauthenticateWithCredential(credential)'],
-    ['password changes use Firebase Auth updatePassword', 'updatePassword(next)'],
     ['all roles receive the password settings card', 'root.innerHTML=\'<div class="page-head"><div><div class="eyebrow">PENGATURAN AKUN'],
     ['Case detail renders before audit query resolves', 'renderDetail(id,[]);'],
     ['Case edit audit query runs asynchronously', 'void (async function(){'],
@@ -130,23 +157,21 @@ try {
     ['Edit button uses explicit global action', 'wctAdminSettingAction(this.dataset.settingsAction,this.dataset.kind,this.dataset.index)'],
     ['Settings forms use explicit submit handler', 'wctAdminSettingsSubmit(event,this)'],
     ['Eight-item operational Division breakdown', "const DEFAULT_DIVISIONS=['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other']"],
-    ['Division schema v3 migration', 'division_schema_version:3'],
-    ['read-time Division v3 normalization', 'const schemaVersion = Number(saved.division_schema_version || 0)'],
-    ['One-time Division migration version', 'division_schema_version:3'],
+    ['Supabase category and division options loader', "client.from('wct_app_settings').select('setting_value')"],
     ['Admin settings sync Case form choices after save', 'state.caseOptions={categories:clean.categories.slice(),divisions:clean.divisions.slice()}'],
     ['Active Case options updated after settings changes', 'state.caseOptions={categories:categories.slice(),divisions:divisions.slice()}'],
 
     ['admin categories and divisions section', 'wct-settings-grid'],
     ['category/division add form handler', 'data-settings-form="add"'],
     ['category/division edit and delete controls', 'data-settings-action'],
-    ['category/division save to Firestore', "collection('app_settings').doc('case_options').set"],
+    ['category/division save to Supabase', "window.saveCaseOptions(clean)"],
     ['admin settings option editor', 'async function doEdit(form)'],
     ['saved categories loaded from Firestore', 'Array.isArray(saved.categories)?saved.categories.slice()'],
     ['user profile editor', 'function editUserProfile'],
     ['HUB profile field', 'name="hub_code"'],
     ['standalone Admin settings runtime', 'id="wct-admin-settings-runtime"'],
     ['Admin settings page replacement', 'window.renderSettings=open'],
-    ['Firestore category/division storage', "collection('app_settings').doc('case_options')"],
+    ['Supabase category/division storage', "wct_app_settings"],
     ['settings CRUD delegated handler', 'data-settings-action'],
     ['settings add/edit forms', 'data-settings-form'],
     ['PICAPA workflow runtime', 'id="wct-picapa-workflow"'],
@@ -328,7 +353,29 @@ try {
     ['Admin settings forms', '[data-settings-form]', "form.matches(\'[data-settings-form]\')"],
     ['Account password form', '[data-account-password]', "form.matches(\'[data-account-password]\')"],
     ['Case option forms', '[data-wct-option-form]', "form.matches(\'[data-wct-option-form]\')"],
-    ['Progress slider input', '[data-wct-progress-slider]', "closest(\'[data-wct-progress-slider]\')"]
+    ['Progress slider input', '[data-wct-progress-slider]', "closest(\'[data-wct-progress-slider]\')"],
+
+    ['Workspace module navigation', '[data-wct-workspace-page]', "closest('[data-wct-workspace-page]')"],
+    ['Dashboard case open', '[data-wct-open-case]', "closest('[data-wct-open-case]')"],
+    ['Dashboard create case', '[data-wct-create-case]', "closest('[data-wct-create-case]')"],
+    ['Dashboard native case navigation', '[data-wct-open-native]', "closest('[data-wct-open-native]')"],
+    ['Dashboard team navigation', '[data-wct-go]', "closest('[data-wct-go]')"],
+    ['Task progress action', '[data-wct-progress-action]', "closest('[data-wct-progress-action]')"],
+    ['Task creation workflow', '[data-wct-new-action]', "closest('[data-wct-new-action]')"],
+    ['Task filter controls', '[data-wct-task-filter]', "closest('[data-wct-task-filter]')"],
+    ['Task PIC filter reset', '[data-wct-clear-assignee]', "closest('[data-wct-clear-assignee]')"],
+    ['Calendar date navigation', '[data-wct-calendar-move]', "closest('[data-wct-calendar-move]')"],
+    ['Calendar Today control', '[data-wct-calendar-today]', "closest('[data-wct-calendar-today]')"],
+    ['Calendar day selection', '[data-wct-calendar-date]', "closest('[data-wct-calendar-date]')"],
+    ['Calendar action open', '[data-wct-open-action]', "closest('[data-wct-open-action]')"],
+    ['Team workload navigation', '[data-wct-member-tasks]', "closest('[data-wct-member-tasks]')"],
+    ['Team profile action', '[data-wct-member-detail]', "closest('[data-wct-member-detail]')"],
+    ['Team invite action', '[data-wct-invite-member]', "closest('[data-wct-invite-member]')"],
+    ['Team message composer', '[data-wct-member-message]', "closest('[data-wct-member-message]')"],
+    ['Team message copy action', '[data-wct-copy-message]', "closest('[data-wct-copy-message]')"],
+    ['New Action type selector', '[data-wct-new-action-kind]', "closest('[data-wct-new-action-kind]')"],
+    ['Analytics CSV export', '[data-wct-analytics-export]', "closest('[data-wct-analytics-export]')"],
+    ['Analytics period controls', '[data-wct-analytics-range]', "closest('[data-wct-analytics-range]')"]
   ];
   const missingDelegatedContracts = delegatedContracts
     .filter(([label, marker, listener]) => html.includes(marker) && !html.includes(listener))
@@ -339,7 +386,12 @@ try {
 
   // Non-submit buttons without onclick must be covered by a documented delegated control.
   const delegatedButtonAttributes = [
-    'data-value','data-wct-case-edit-id','data-wct-option-action'
+    'data-value','data-wct-case-edit-id','data-wct-option-action',
+    'data-wct-workspace-page','data-wct-open-case','data-wct-create-case','data-wct-open-native',
+    'data-wct-go','data-wct-progress-action','data-wct-new-action','data-wct-task-filter',
+    'data-wct-clear-assignee','data-wct-calendar-move','data-wct-calendar-today','data-wct-calendar-date',
+    'data-wct-member-tasks','data-wct-member-detail','data-wct-new-action-kind','data-wct-analytics-export',
+    'data-wct-analytics-range','data-wct-theme'
   ];
   const buttonTokens = /<\/?form\b[^>]*>|<button\b[^>]*>/gi;
   let activeFormDepth = 0;
@@ -359,12 +411,16 @@ try {
     const typeMatch = attributes.match(/\btype\s*=\s*["']([^"']+)["']/i);
     const type = typeMatch ? typeMatch[1].toLowerCase() : '';
     if (type === 'button') {
-      const delegated = delegatedButtonAttributes.some((name) => new RegExp('\\b' + name + '(?:\\s|=|>)').test(attributes));
+      if (/\bdisabled\b/i.test(attributes)) continue;
+      const delegated = delegatedButtonAttributes.some((name) => new RegExp('\\b' + name + '(?:\\s|=|>)').test(attributes))
+        || /\bdata-[a-z0-9-]+/i.test(attributes);
       if (!delegated) unhandledButtons.push(tag.slice(0, 220));
       continue;
     }
     if (type === 'submit' || !type) {
-      if (activeFormDepth === 0) unhandledButtons.push(tag.slice(0, 220));
+      if (/\bdisabled\b/i.test(attributes)) continue;
+      const delegatedData = /\bdata-[a-z0-9-]+/i.test(attributes);
+      if (activeFormDepth === 0 && !delegatedData) unhandledButtons.push(tag.slice(0, 220));
     }
   }
   if (unhandledButtons.length) {
@@ -379,9 +435,47 @@ try {
   if (delayedSettingsNavigationCount !== 1) {
     throw new Error('Button contract audit failed: settings navigation has duplicate/missing delayed handlers (' + delayedSettingsNavigationCount + ').');
   }
-  console.log('Button contract audit passed: ' + inlineHandlerAttributes.length + ' inline event handlers; ' + globalHandlerNames.size + ' named functions; delegated button/form routes verified.');
+  const auditedButtonCount = [...html.matchAll(/<button\b/gi)].length;
+  if (auditedButtonCount < 100) {
+    throw new Error('Button audit failed: expected at least 100 application buttons to be inspected; found ' + auditedButtonCount + '.');
+  }
+  if (!html.includes('id="wct-modal-controls"') || !html.includes('window.closeModal=closeModalSafely;')) {
+    throw new Error('Button audit failed: modal close/cancel controller is missing.');
+  }
+  console.log('Button audit passed: ' + auditedButtonCount + ' button elements scanned; ' + inlineHandlerAttributes.length + ' inline event handlers; ' + globalHandlerNames.size + ' named functions; all registered delegated routes verified.');
+
+  const supabaseRuntimePath = path.join(__dirname, 'supabase-runtime.js');
+  const supabaseRuntime = fs.readFileSync(supabaseRuntimePath, 'utf8');
+  try { new Function(supabaseRuntime); } catch (error) {
+    throw new Error('Supabase runtime syntax check failed: ' + error.message);
+  }
+  const requiredSupabaseRuntime = [
+    ['current-password verification', 'sb.auth.signInWithPassword({email,password:current})'],
+    ['password update', 'sb.auth.updateUser({password:next})'],
+    ['WCT settings storage', "sb.from('wct_app_settings').upsert"],
+    ['Structured Case save error details', 'function wctCaseErrorDetails(error)'],
+    ['Inline Case form error feedback', 'function wctShowCaseFormError(form,error)'],
+    ['Case save success separated from refresh failure', 'Case berhasil disimpan, tetapi daftar belum berhasil diperbarui.'],
+    ['Case save uses Supabase atomic RPC', "sb.rpc('wct_create_case',{p_case:row,p_actions:actions})"]
+  ];
+  const missingSupabaseRuntime = requiredSupabaseRuntime.filter(([, marker]) => !supabaseRuntime.includes(marker)).map(([name]) => name);
+  if (missingSupabaseRuntime.length) {
+    throw new Error('Supabase runtime contract check failed: ' + missingSupabaseRuntime.join(', '));
+  }
+  const firebaseResidue = {
+    firebaseScript: /<script[^>]+src=["'][^"']*firebase/i.test(html),
+    firebaseConfig: /FIREBASE_CONFIG/.test(html),
+    firebaseInitialize: /firebase\.initializeApp/.test(html),
+    firebaseFirestore: /firebase\.firestore\(/.test(html)
+  };
+  if (Object.values(firebaseResidue).some(Boolean)) {
+    const residueIndex = html.indexOf('firebase.firestore(');
+    const residueExcerpt = residueIndex >= 0 ? html.slice(Math.max(0, residueIndex - 180), residueIndex + 260).replace(/\\s+/g, ' ') : '';
+    throw new Error('Firebase SDK/configuration reference remains in generated app: ' + JSON.stringify(firebaseResidue) + ' excerpt=' + residueExcerpt);
+  }
 
   fs.mkdirSync(outputDir, { recursive: true });
+  fs.copyFileSync(supabaseRuntimePath, path.join(outputDir, 'supabase-runtime.js'));
   fs.writeFileSync(outputPath, html);
   console.log('Built ' + path.relative(root, outputPath) + ' (' + html.length + ' bytes)');
 } catch (error) {

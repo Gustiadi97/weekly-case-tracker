@@ -1,0 +1,4 @@
+project_id = "weekly-case-tracker"
+
+[functions.wct-admin-users]
+verify_jwt = true
