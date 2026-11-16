@@ -371,14 +371,14 @@ try {
     const typeMatch = attributes.match(/\btype\s*=\s*["']([^"']+)["']/i);
     const type = typeMatch ? typeMatch[1].toLowerCase() : '';
     if (type === 'button') {
-      if (/\bdisabled(?:\s|=|>)/i.test(attributes)) continue;
+      if (/\bdisabled\b/i.test(attributes)) continue;
       const delegated = delegatedButtonAttributes.some((name) => new RegExp('\\b' + name + '(?:\\s|=|>)').test(attributes))
         || /\bdata-[a-z0-9-]+/i.test(attributes);
       if (!delegated) unhandledButtons.push(tag.slice(0, 220));
       continue;
     }
     if (type === 'submit' || !type) {
-      if (/\bdisabled(?:\s|=|>)/i.test(attributes)) continue;
+      if (/\bdisabled\b/i.test(attributes)) continue;
       const delegatedData = /\bdata-[a-z0-9-]+/i.test(attributes);
       if (activeFormDepth === 0 && !delegatedData) unhandledButtons.push(tag.slice(0, 220));
     }
