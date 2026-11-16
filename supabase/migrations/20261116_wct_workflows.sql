@@ -199,6 +199,10 @@ begin
   select * into v_action from public.wct_actions where id = v_log.action_id for update;
   if not found then raise exception 'Action tidak ditemukan.' using errcode = 'P0002'; end if;
 
+  if exists (select 1 from public.wct_cases where id = v_log.case_id and status = 'closed') then
+    raise exception 'Case sudah ditutup.' using errcode = '42501';
+  end if;
+
   if v_role not in ('admin','coordinator') and v_log.created_by is distinct from v_uid then
     raise exception 'Tidak memiliki izin edit riwayat ini.' using errcode = '42501';
   end if;
@@ -304,6 +308,14 @@ begin
       occurred_on = nullif(p_case->>'occurred_on','')::date,
       target_date = nullif(p_case->>'target_date','')::date,
       reporter = nullif(trim(p_case->>'reporter'),''),
+      closed_at = case
+        when coalesce(nullif(p_case->>'status',''),'open') = 'closed' then coalesce(v_case.closed_at, now())
+        else v_case.closed_at
+      end,
+      closed_by = case
+        when coalesce(nullif(p_case->>'status',''),'open') = 'closed' then coalesce(v_case.closed_by, v_uid)
+        else v_case.closed_by
+      end,
       updated_by = v_uid,
       updated_at = now()
   where id = p_case_id;
