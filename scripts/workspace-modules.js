@@ -506,6 +506,13 @@ module.exports = function applyWorkspaceModules(html) {
       var nativeLabel=(native.textContent||'').trim();
       setActiveNav('native',native);
       setWorkspaceBreadcrumb(nativeLabel);
+      if(/pengaturan|settings/i.test(nativeLabel)){
+        window.setTimeout(function(){
+          if(typeof window.wctRenderAdminSettings==='function'){
+            window.wctRenderAdminSettings();
+          }
+        },140);
+      }
     }
     var t=event.target.closest&&event.target.closest('[data-wct-task-filter]');if(t){activeTaskFilter=t.dataset.wctTaskFilter;renderTasks();return;}
     if(event.target.closest&&event.target.closest('[data-wct-clear-assignee]')){teamAssignee='';renderTasks();return;}
