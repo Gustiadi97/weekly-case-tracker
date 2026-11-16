@@ -14,8 +14,26 @@ function json(body: unknown, status = 200) {
 }
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+function readDefaultKeyMap(variableName: string, legacyName: string): string {
+  const raw = Deno.env.get(variableName);
+  if (raw) {
+    const keyMap = JSON.parse(raw) as Record<string, string>;
+    const value = keyMap.default;
+    if (typeof value !== "string" || !value) {
+      throw new Error(variableName + " tidak memiliki key bernama default.");
+    }
+    return value;
+  }
+
+  // Backward compatibility while this Supabase project finishes API-key migration.
+  const legacyValue = Deno.env.get(legacyName);
+  if (legacyValue) return legacyValue;
+  throw new Error("Environment variable " + variableName + " tidak tersedia.");
+}
+
+const ANON_KEY = readDefaultKeyMap("SUPABASE_PUBLISHABLE_KEYS", "SUPABASE_ANON_KEY");
+const SERVICE_ROLE_KEY = readDefaultKeyMap("SUPABASE_SECRET_KEYS", "SUPABASE_SERVICE_ROLE_KEY");
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
