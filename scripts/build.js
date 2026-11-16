@@ -77,6 +77,7 @@ try {
   html = require('./division-breakdown-runtime')(html);
   html = require('./global-redesign')(html);
   html = require('./supabase-only-patch')(html);
+  html = require('./icon-system')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -102,6 +103,9 @@ try {
     ['Case Edit uses a direct data action', 'data-wct-case-edit-id'],
     ['Case Edit runtime loaded last', 'id="wct-case-edit-runtime"'],
     ['design refresh stylesheet', 'id="wct-design-refresh"'],
+    ['Unified SVG icon system', 'id="wct-icon-system"'],
+    ['Icon observer ready marker', 'window.WCTIconSystemReady=true;'],
+    ['Navy-blue navigation icon style', '.wct-nav-icon svg{width:18px;height:18px}'],
     ['global orange UI/UX layer', 'id="wct-global-redesign"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
     ['self-service password settings form', 'data-account-password'],
