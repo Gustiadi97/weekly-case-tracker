@@ -394,7 +394,9 @@ try {
     firebaseFirestore: /firebase\.firestore\(/.test(html)
   };
   if (Object.values(firebaseResidue).some(Boolean)) {
-    throw new Error('Firebase SDK/configuration reference remains in generated app: ' + JSON.stringify(firebaseResidue));
+    const residueIndex = html.indexOf('firebase.firestore(');
+    const residueExcerpt = residueIndex >= 0 ? html.slice(Math.max(0, residueIndex - 180), residueIndex + 260).replace(/\\s+/g, ' ') : '';
+    throw new Error('Firebase SDK/configuration reference remains in generated app: ' + JSON.stringify(firebaseResidue) + ' excerpt=' + residueExcerpt);
   }
 
   fs.mkdirSync(outputDir, { recursive: true });
