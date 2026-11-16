@@ -409,8 +409,9 @@ module.exports = function applyWorkspaceModules(html) {
     if(navSyncBusy||!preferredNavButton)return;
     navSyncBusy=true;
     document.querySelectorAll('.sidebar .nav button,.sidebar .nav a').forEach(function(button){
-      if(button===preferredNavButton)button.classList.add('active');
-      else button.classList.remove('active');
+      var shouldBeActive=button===preferredNavButton;
+      var isActive=button.classList.contains('active');
+      if(shouldBeActive!==isActive)button.classList.toggle('active',shouldBeActive);
     });
     navSyncBusy=false;
   }
