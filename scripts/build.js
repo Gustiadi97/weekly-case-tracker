@@ -112,7 +112,7 @@ try {
     ['No Time Tracker module', 'Project Progress'],
     ['Admin Case settings renderer', 'window.wctRenderAdminSettings=open;'],
     ['Strict workspace active navigation', 'function setWorkspaceBreadcrumb(label)'],
-    ['Login form refinement', 'id=\\\"wct-login-form-refresh\\\"'],
+    ['Login form refinement', 'id="wct-login-form-refresh"'],
     ['Navy-blue navigation icon style', '.wct-nav-icon svg{width:18px;height:18px}'],
     ['global orange UI/UX layer', 'id="wct-global-redesign"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
