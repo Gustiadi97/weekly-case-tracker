@@ -403,18 +403,27 @@ module.exports = function applyWorkspaceModules(html) {
     else{nav.appendChild(group);nav.appendChild(wrap);}
     return true;
   }
-  function setActiveNav(page){
-    document.querySelectorAll('[data-wct-workspace-page]').forEach(function(b){b.classList.toggle('active',b.dataset.wctWorkspacePage===page);});
-    if(page==='dashboard'){
-      document.querySelectorAll('.nav button').forEach(function(b){if(/dashboard/i.test(b.textContent||''))b.classList.add('active');});
-    }else{
-      document.querySelectorAll('.nav button').forEach(function(b){if(/dashboard/i.test(b.textContent||''))b.classList.remove('active');});
+  function setActiveNav(page, nativeButton){
+    document.querySelectorAll('.sidebar button,.sidebar a').forEach(function(button){button.classList.remove('active');});
+    document.querySelectorAll('[data-wct-workspace-page]').forEach(function(button){button.classList.toggle('active',button.dataset.wctWorkspacePage===page);});
+    if(page==='dashboard'||page==='cases'||page==='weeklymeeting'||page==='reports'||page==='settings'||page==='users'){
+      var labels={dashboard:/^dashboard\b/i,cases:/case monitoring/i,weeklymeeting:/weekly meeting/i,reports:/reports\s*&?\s*archive|reports|archive/i,settings:/pengaturan|settings/i,users:/manajemen pengguna|user management/i};
+      var matcher=labels[page];
+      var target=nativeButton||Array.from(document.querySelectorAll('.sidebar .nav button')).find(function(button){return matcher&&matcher.test((button.textContent||'').trim());});
+      if(target)target.classList.add('active');
     }
+  }
+  function setWorkspaceBreadcrumb(label){
+    var crumb=document.querySelector('.topbar .crumb');
+    if(!crumb)return;
+    var safeLabel=String(label||'Dashboard').replace(/[&<>"']/g,function(ch){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);});
+    crumb.innerHTML='Workspace / <b>'+safeLabel+'</b>';
   }
   function go(page){
     window.wctWorkspaceRoute=page;
     window.scrollTo({top:0,behavior:'smooth'});
     setActiveNav(page);
+    setWorkspaceBreadcrumb(({tasks:'Tasks',team:'Team',calendar:'Calendar',analytics:'Analytics',dashboard:'Dashboard'})[page]||page);
     renderWorkspacePage(page);
   }
   window.wctWorkspaceNavigate=go;
@@ -436,13 +445,8 @@ module.exports = function applyWorkspaceModules(html) {
   function getWeekStart(){return savedPrefs().weekStart==='Sunday'?'Sunday':'Monday';}
   function savePrefs(key,value){var prefs=savedPrefs();prefs[key]=!!value;try{localStorage.setItem('wctNotificationPrefs',JSON.stringify(prefs));}catch(e){}}
   function addSettingsPanel(){
-    var root=$('pageContent');if(!root||root.querySelector('#wct-workspace-preferences'))return;
-    var heading=root.querySelector('.page-head h1,.wct-page-head h1');
-    if(!heading||!/pengaturan|settings/i.test(heading.textContent||''))return;
-    var pref=document.createElement('section');pref.id='wct-workspace-preferences';pref.style.marginTop='16px';
-    var t=savedTheme(),prefs=savedPrefs();
-    pref.innerHTML='<div class="wct-workspace-grid"><section class="wct-panel"><div class="wct-panel-head"><div><h3>Appearance</h3><p>Sesuaikan warna aksen workspace seperti pada referensi.</p></div></div><div class="wct-panel-body"><div class="wct-theme-options">'+[['Forest','#2F806B'],['Ocean','#2864C7'],['Plum','#7651A6'],['Ember','#D9773D']].map(function(x){return '<button type="button" class="wct-theme-choice '+(t===x[0]?'active':'')+'" data-wct-theme="'+x[0]+'"><i class="wct-theme-swatch" style="--swatch:'+x[1]+'"></i>'+x[0]+'</button>';}).join('')+'</div></div></section><section class="wct-panel"><div class="wct-panel-head"><div><h3>Notifications</h3><p>Preferensi pengingat yang ditampilkan di dalam aplikasi.</p></div></div><div class="wct-panel-body"><label class="wct-pref-toggle"><span>Deadline mendekat</span><input type="checkbox" data-wct-pref="dueSoon" '+(prefs.dueSoon===false?'':'checked')+'></label><label class="wct-pref-toggle"><span>Case melewati target</span><input type="checkbox" data-wct-pref="overdue" '+(prefs.overdue===false?'':'checked')+'></label><label class="wct-pref-toggle"><span>Pengingat Weekly Meeting</span><input type="checkbox" data-wct-pref="meetings" '+(prefs.meetings===false?'':'checked')+'></label></div></section><section class="wct-panel"><div class="wct-panel-head"><div><h3>Calendar</h3><p>Tentukan hari pertama dalam tampilan kalender.</p></div></div><div class="wct-panel-body"><label for="wct-week-start">Week starts</label><select id="wct-week-start" data-wct-week-start><option value="Monday" '+(prefs.weekStart==='Sunday'?'':'selected')+'>Monday</option><option value="Sunday" '+(prefs.weekStart==='Sunday'?'selected':'')+'>Sunday</option></select></div></section></div>';
-    root.appendChild(pref);applyTheme(t);
+    var existing=$('wct-workspace-preferences');
+    if(existing)existing.remove();
   }
   var settingsObserver=new MutationObserver(function(){addNav();if(!window.wctWorkspaceRoute)addSettingsPanel();});
   function init(){
@@ -455,7 +459,17 @@ module.exports = function applyWorkspaceModules(html) {
     if(nav){event.preventDefault();event.stopImmediatePropagation();go(nav.dataset.wctWorkspacePage);return;}
     var native=event.target.closest&&event.target.closest('.sidebar .nav button');
     if(native&&!native.hasAttribute('data-wct-workspace-page')){
-      window.wctWorkspaceRoute=null;setActiveNav('native');
+      window.wctWorkspaceRoute=null;
+      var nativeLabel=(native.textContent||'').trim();
+      setActiveNav('native',native);
+      setWorkspaceBreadcrumb(nativeLabel);
+      window.setTimeout(function(){
+        document.querySelectorAll('.sidebar button,.sidebar a').forEach(function(button){button.classList.remove('active');});
+        native.classList.add('active');
+        if(/pengaturan|settings/i.test(nativeLabel)&&typeof window.wctRenderAdminSettings==='function'){
+          window.wctRenderAdminSettings();
+        }
+      },180);
     }
     var t=event.target.closest&&event.target.closest('[data-wct-task-filter]');if(t){activeTaskFilter=t.dataset.wctTaskFilter;renderTasks();return;}
     if(event.target.closest&&event.target.closest('[data-wct-clear-assignee]')){teamAssignee='';renderTasks();return;}
