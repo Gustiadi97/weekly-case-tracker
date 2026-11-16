@@ -50,6 +50,21 @@ module.exports = function applySupabaseOnlyPatch(html) {
     "async function logout(){ if(auth&&auth.signOut)await auth.signOut(); currentUser=null; mode='supabase'; showLogin(); }\n"
   );
 
+  // The enhanced template has a second loginSupabase declaration in another
+  // inline script. Replace it up to the bootstrap helper boundary as well.
+  html = replaceRange(
+    html,
+    'async function loginSupabase(){',
+    'function openBootstrapForm',
+    "async function loginSupabase(){ toast('Gunakan login ID dan password melalui Supabase.'); }\n"
+  );
+
+  // Remove any duplicated legacy session listener regardless of script ordering.
+  html = html.replace(
+    /\\/\\/ Restore session if a Supabase user is already signed in\\.[\\s\\S]*?\\/\\/ Optional quick preview URL: index\\.html\\?demo=1/g,
+    '// Supabase session restoration is handled by /supabase-runtime.js.'
+  );
+
   // Session restore is handled only by the Supabase runtime, never by Firebase tokens.
   // Replace legacy Cloud Function calls with a disabled compatibility stub.
   // User administration is reimplemented by the Supabase Edge Function runtime.
