@@ -328,18 +328,50 @@ module.exports = function applyWorkspaceModules(html) {
     return logs().filter(function(l){return String(l.created_at||'').slice(0,10)>=key;});
   }
   function renderAnalytics(){
-    var ll=rangeLogs(),done=actions().filter(function(a){return a.status==='done';}),onTime=done.filter(function(a){var c=caseBy(a.case_id),target=a.due_date||c&&c.target_date;return target&&String(target).slice(0,10)>=String((a.updated_at||a.created_at||'')).slice(0,10);}),rate=done.length?Math.round(onTime.length/done.length*100):0,avg=done.length?Math.round(done.reduce(function(n,a){var created=new Date(a.created_at||today),updated=new Date(a.updated_at||a.created_at||today);return n+Math.max(0,(updated-created)/86400000);},0)/done.length*10)/10:0;
+    var ll=rangeLogs(),done=actions().filter(function(a){return a.status==='done';});
+    var onTime=done.filter(function(a){var parent=caseBy(a.case_id),target=a.due_date||parent&&parent.target_date;return target&&String(target).slice(0,10)>=String((a.updated_at||a.created_at||'')).slice(0,10);});
+    var rate=done.length?Math.round(onTime.length/done.length*100):0;
+    var avg=done.length?Math.round(done.reduce(function(n,a){var created=new Date(a.created_at||today),updated=new Date(a.updated_at||a.created_at||today);return n+Math.max(0,(updated-created)/86400000);},0)/done.length*10)/10:0;
     var contributors=profiles().map(function(p){var n=ll.filter(function(l){return String(l.created_by)===String(p.id);}).length;return {p:p,n:n};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
-    var daily=[];for(var i=13;i>=0;i--){var d=new Date(today);d.setDate(today.getDate()-i);var key=isoDay(d),n=ll.filter(function(l){return String(l.created_at||'').slice(0,10)===key;}).length;daily.push({key:key,label:d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'}),n:n});}
-    var max=Math.max(1,...daily.map(function(x){return x.n;})),points=daily.map(function(x,i){return (32+i*41)+','+(125-x.n/max*95);}).join(' '),poly='<polyline points="'+points+'" fill="none" stroke="#2864C7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+daily.map(function(x,i){var yy=125-x.n/max*95;return '<circle cx="'+(32+i*41)+'" cy="'+yy+'" r="3.3" fill="#2864C7"><title>'+x.label+': '+x.n+' update</title></circle>';}).join('');
-    var grid=[0,1,2,3].map(function(i){var yy=125-i*31.6;return '<line x1="25" y1="'+yy+'" x2="610" y2="'+yy+'" class="wct-chart-gridline"/>';}).join('');
-    var throughput='<svg class="wct-chart-svg" viewBox="0 0 640 160">'+grid+poly+daily.map(function(x,i){return i%2===0?'<text x="'+(32+i*41)+'" y="149" text-anchor="middle" class="wct-chart-label">'+esc(x.label)+'</text>':'';}).join('')+'</svg>';
+    var periodStart=new Date(today);periodStart.setDate(today.getDate()-analyticsRange+1);
+    var previousStart=new Date(periodStart);previousStart.setDate(periodStart.getDate()-analyticsRange);
+    var prevKey=isoDay(previousStart),startKey=isoDay(periodStart);
+    var prevLogs=logs().filter(function(l){var d=String(l.created_at||'').slice(0,10);return d>=prevKey&&d<startKey;});
+    var daily=[],currentValues=[],previousValues=[];
+    for(var i=analyticsRange-1;i>=0;i--){
+      var day=new Date(today);day.setDate(today.getDate()-i);
+      var key=isoDay(day),prevDay=new Date(day);prevDay.setDate(day.getDate()-analyticsRange);var prevDayKey=isoDay(prevDay);
+      var currentCount=ll.filter(function(l){return String(l.created_at||'').slice(0,10)===key;}).length;
+      var previousCount=prevLogs.filter(function(l){return String(l.created_at||'').slice(0,10)===prevDayKey;}).length;
+      daily.push({key:key,label:day.toLocaleDateString('id-ID',{day:'2-digit',month:'short'}),n:currentCount,previous:previousCount});
+      currentValues.push(currentCount);previousValues.push(previousCount);
+    }
+    var moving=currentValues.map(function(v,i){var from=Math.max(0,i-6),sum=0,count=0;for(var j=from;j<=i;j++){sum+=currentValues[j];count++;}return count?sum/count:0;});
+    var max=Math.max(1,...currentValues,...previousValues,...moving);
+    var xAt=function(i){return 30+(analyticsRange<=1?0:i*580/(analyticsRange-1));};
+    var yAt=function(v){return 126-(v/max*94);};
+    var pathOf=function(values){return values.map(function(v,i){return xAt(i)+','+yAt(v);}).join(' ');};
+    var ticks=[],step=Math.max(1,Math.ceil(analyticsRange/7));
+    for(var t=0;t<daily.length;t+=step){ticks.push('<text x="'+xAt(t)+'" y="151" text-anchor="middle" class="wct-chart-label">'+esc(daily[t].label)+'</text>');}
+    if(ticks.length&&daily.length>1&&((daily.length-1)%step)!==0)ticks.push('<text x="'+xAt(daily.length-1)+'" y="151" text-anchor="middle" class="wct-chart-label">'+esc(daily[daily.length-1].label)+'</text>');
+    var grid=[0,1,2,3].map(function(i){var yy=126-i*31.3;return '<line x1="25" y1="'+yy+'" x2="615" y2="'+yy+'" class="wct-chart-gridline"/><text x="17" y="'+(yy+3)+'" text-anchor="end" class="wct-chart-label">'+Math.round(max*i/3)+'</text>';}).join('');
+    var throughput='<div class="wct-chart-legend" style="margin-bottom:8px"><span><i style="background:#2864C7"></i>Periode ini</span><span><i style="background:#AEB9C8"></i>Periode sebelumnya</span><span><i style="background:#7FA5D8"></i>Moving average 7 hari</span></div><svg class="wct-chart-svg" viewBox="0 0 640 162">'+grid+
+      '<polyline points="'+pathOf(previousValues)+'" fill="none" stroke="#AEB9C8" stroke-width="2.2" stroke-dasharray="5 5" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<polyline points="'+pathOf(moving)+'" fill="none" stroke="#7FA5D8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<polyline points="'+pathOf(currentValues)+'" fill="none" stroke="#2864C7" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>'+
+      daily.map(function(x,i){return '<circle cx="'+xAt(i)+'" cy="'+yAt(x.n)+'" r="'+(analyticsRange>30?'1.7':'3')+'" fill="#2864C7"><title>'+x.label+': '+x.n+' update</title></circle>';}).join('')+ticks.join('')+'</svg>';
     var heat=Array.from({length:140},function(_,i){var d=new Date(today);d.setDate(today.getDate()-(139-i));var k=isoDay(d),n=logs().filter(function(l){return String(l.created_at||'').slice(0,10)===k;}).length,level=n===0?'':n===1?'l1':n<=3?'l2':n<=6?'l3':'l4';return '<i class="wct-heat-cell '+level+'" title="'+k+': '+n+' update"></i>';}).join('');
-    var hubCounts={};cases().forEach(function(c){var k=c.hub_code||'Lainnya';hubCounts[k]=(hubCounts[k]||0)+1;});var hubRows=Object.keys(hubCounts).sort(function(a,b){return hubCounts[b]-hubCounts[a];}).slice(0,5);
+    var hubCounts={};cases().forEach(function(c){var k=c.hub_code||'Lainnya';hubCounts[k]=(hubCounts[k]||0)+1;});
+    var colors=['#2864C7','#7D69B2','#47A5A0','#E3A44B','#7DA5D7','#A6B7CC'];
+    var hubRows=Object.keys(hubCounts).sort(function(a,b){return hubCounts[b]-hubCounts[a];}).slice(0,6);
+    var totalHub=hubRows.reduce(function(n,h){return n+hubCounts[h];},0);
+    var offset=0,segments=hubRows.map(function(h,i){var start=offset,part=totalHub?hubCounts[h]/totalHub*100:0;offset+=part;return colors[i%colors.length]+' '+start.toFixed(1)+'% '+offset.toFixed(1)+'%';});
+    var donutStyle=segments.length?'conic-gradient('+segments.join(',')+')':'conic-gradient(#E8EEF5 0% 100%)';
+    var donut='<div class="wct-donut-layout"><div class="wct-donut" style="background:'+donutStyle+'"><div><strong>'+cases().length+'</strong><small>Total Case</small></div></div><div class="wct-donut-legend">'+(hubRows.length?hubRows.map(function(h,i){var share=totalHub?Math.round(hubCounts[h]/totalHub*100):0;return '<div><span><i style="background:'+colors[i%colors.length]+'"></i>'+esc(h)+'</span><b>'+hubCounts[h]+' · '+share+'%</b></div>';}).join(''):'<div class="wct-empty">Belum ada Case.</div>')+'</div></div>';
     var html=head('WORKSPACE / ANALYTICS','Analytics','Analisis penyelesaian tindakan, ketepatan deadline, aktivitas, dan kontribusi PIC.','<div style="display:flex;gap:7px;flex-wrap:wrap"><button type="button" class="wct-workspace-export" data-wct-analytics-export>Export CSV</button></div>');
     html+='<div class="wct-filterbar">'+[7,30,90].map(function(n){return '<button type="button" class="wct-filter-chip '+(analyticsRange===n?'active':'')+'" data-wct-analytics-range="'+n+'">'+n+'D</button>';}).join('')+'<span class="wct-mini-pill">Periode '+analyticsRange+' hari</span></div>';
     html+='<div class="wct-analytics-kpis"><div class="wct-analytics-kpi"><small>Tasks Completed</small><strong>'+done.length+'</strong><span>Action berstatus selesai</span></div><div class="wct-analytics-kpi"><small>Progress Updates</small><strong>'+ll.length+'</strong><span>Catatan update pada periode</span></div><div class="wct-analytics-kpi"><small>On-time Delivery</small><strong>'+rate+'%</strong><span>'+onTime.length+' dari '+done.length+' Action selesai</span></div><div class="wct-analytics-kpi"><small>Avg. Cycle Time</small><strong>'+avg+'</strong><span>Estimasi hari dari dibuat ke update terakhir</span></div></div>';
-    html+='<div class="wct-analytics-grid">'+panel('Throughput','Jumlah Progress Update per hari selama periode terpilih',throughput,'<span class="wct-mini-pill">'+ll.length+' Update</span>')+panel('Case by HUB','Distribusi Case berdasarkan HUB',hubRows.length?hubRows.map(function(h){var n=hubCounts[h],p=Math.round(n/cases().length*100);return '<div style="margin:9px 0"><div style="display:flex;justify-content:space-between;gap:8px;color:#718198;font-size:10px;margin-bottom:5px"><b>'+esc(h)+'</b><span>'+n+' · '+p+'%</span></div><div class="wct-progress-bar"><span style="width:'+p+'%"></span></div></div>';}).join(''):'<div class="wct-empty">Belum ada data Case.</div>')+'</div>';
+    html+='<div class="wct-analytics-grid">'+panel('Throughput','Jumlah Progress Update per hari · periode berjalan dibanding periode sebelumnya',throughput,'<span class="wct-mini-pill">'+ll.length+' Update</span>')+panel('Case Distribution by HUB','Distribusi Case berdasarkan HUB · pengganti Time by Project',donut,'<span class="wct-mini-pill">'+hubRows.length+' HUB</span>')+'</div>';
     html+='<div class="wct-analytics-grid">'+panel('Activity','Heatmap aktivitas Progress Update · 20 minggu terakhir','<div class="wct-heatmap">'+heat+'</div><div class="wct-chart-legend" style="justify-content:flex-end;margin-top:10px"><span>Less</span>'+['#EFF3F8','#D9E7F9','#A8C8F0','#6F9EDD','#2864C7'].map(function(c){return '<i style="background:'+c+'"></i>';}).join('')+'<span>More</span></div>')+panel('Top Contributors','Anggota dengan jumlah update terbanyak',contributors.length?'<div>'+contributors.slice(0,6).map(function(x,i){return '<div class="wct-contributor"><span class="wct-contributor-rank">#'+(i+1)+'</span><div><strong>'+esc(x.p.full_name||x.p.login_id||'Anggota')+'</strong><small>'+esc(x.p.role||'Member')+'</small></div><b>'+x.n+'</b></div>';}).join('')+'</div>':'<div class="wct-empty">Belum ada aktivitas pada periode ini.</div>')+'</div>';
     var root=$('pageContent');if(root)root.innerHTML=html;
   }
