@@ -622,6 +622,14 @@ module.exports = function applyWorkspaceModules(html) {
       window.navigate=wrappedNavigate;
     }
   }
+  function closeMobileSidebar(){
+    var isMobile=window.matchMedia
+      ? window.matchMedia('(max-width: 760px)').matches
+      : window.innerWidth<=760;
+    if(!isMobile)return;
+    var sidebar=document.getElementById('sidebar')||document.querySelector('.sidebar');
+    if(sidebar)sidebar.classList.remove('open');
+  }
   function setWorkspaceBreadcrumb(label){
     var crumb=document.getElementById('crumb')||document.querySelector('.topbar .crumb')||document.querySelector('.crumb');
     if(!crumb)return;
@@ -635,6 +643,7 @@ module.exports = function applyWorkspaceModules(html) {
     setActiveNav(page);
     setWorkspaceBreadcrumb(({tasks:'Tasks',team:'Team',calendar:'Calendar',analytics:'Analytics',dashboard:'Dashboard'})[page]||page);
     renderWorkspacePage(page);
+    closeMobileSidebar();
   }
   window.wctWorkspaceNavigate=go;
   var originalRenderPage=window.renderPage;
@@ -665,6 +674,11 @@ module.exports = function applyWorkspaceModules(html) {
   }
 
   document.addEventListener('click',function(event){
+    // Close the mobile drawer for every sidebar route, regardless of which
+    // module owns the page navigation (native menu or workspace module).
+    var sidebarItem=event.target.closest&&event.target.closest('.sidebar .nav button,.sidebar .nav a,.sidebar [data-wct-workspace-page]');
+    if(sidebarItem)closeMobileSidebar();
+
     var nav=event.target.closest&&event.target.closest('[data-wct-workspace-page]');
     if(nav){event.preventDefault();event.stopImmediatePropagation();go(nav.dataset.wctWorkspacePage);return;}
     var native=event.target.closest&&event.target.closest('.sidebar .nav button');
