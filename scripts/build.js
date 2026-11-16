@@ -78,6 +78,7 @@ try {
   html = require('./global-redesign')(html);
   html = require('./supabase-only-patch')(html);
   html = require('./icon-system')(html);
+  html = require('./workspace-modules')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -105,6 +106,11 @@ try {
     ['design refresh stylesheet', 'id="wct-design-refresh"'],
     ['Unified SVG icon system', 'id="wct-icon-system"'],
     ['Icon observer ready marker', 'window.WCTIconSystemReady=true;'],
+    ['Tasks, Team, Calendar and Analytics modules', 'id="wct-workspace-modules"'],
+    ['Kanban four workflow columns', 'data-wct-drop-status="in_progress"'],
+    ['Reference dashboard KPI cards', 'wct-workspace-kpis'],
+    ['No Time Tracker module', 'Project Progress'],
+    ['Workspace settings and appearance', 'id="wct-workspace-preferences"'],
     ['Navy-blue navigation icon style', '.wct-nav-icon svg{width:18px;height:18px}'],
     ['global orange UI/UX layer', 'id="wct-global-redesign"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
