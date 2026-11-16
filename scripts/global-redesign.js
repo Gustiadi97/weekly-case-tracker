@@ -902,5 +902,72 @@ label,.field label{color:#52657D!important}
 
 
 `;
-  return html.replace('</body>', '<style id=\"wct-global-redesign\">' + css + '</style></body>');
+  const loginCss = String.raw`
+/* Refined Supabase login page */
+.login-screen{
+ min-height:100vh!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:28px 16px!important;box-sizing:border-box!important;
+ background:radial-gradient(ellipse at 12% 10%,rgba(40,100,199,.13),transparent 34%),
+            radial-gradient(ellipse at 90% 90%,rgba(23,59,104,.10),transparent 31%),#F3F6FB!important
+}
+.login-card{
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
+ width:min(100%,468px)!important;max-width:468px!important;
+ padding:38px clamp(23px,5vw,42px) 34px!important;
+ border:1px solid #E0E8F2!important;border-radius:22px!important;
+ background:#FFFFFF!important;color:#1B2B42!important;
+ box-shadow:0 24px 70px rgba(25,49,79,.13)!important
+}
+.login-card:before{content:"";position:absolute;z-index:-1;inset:0 0 auto;height:5px;background:linear-gradient(90deg,#173B68,#2864C7,#82AEE8)!important}
+.login-card:after{content:"";position:absolute;z-index:-1;right:-72px;top:-92px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(40,100,199,.07),transparent 70%);pointer-events:none}
+.login-card h1,.login-card h2{margin:0 0 8px!important;color:#172B46!important;font-size:27px!important;font-weight:850!important;letter-spacing:-.04em!important;line-height:1.2!important}
+.login-card>p{margin:0 0 24px!important;color:#718198!important;font-size:13px!important;line-height:1.65!important}
+.login-card .brand-mark,.login-card .login-brand-mark{
+ display:grid!important;place-items:center!important;width:48px!important;height:48px!important;
+ margin:0 0 20px!important;border-radius:14px!important;
+ background:linear-gradient(145deg,#173B68,#2864C7)!important;color:#fff!important;
+ box-shadow:0 8px 20px rgba(40,100,199,.20)!important;font-weight:900!important
+}
+.login-card form{display:grid!important;gap:15px!important;margin-top:18px!important}
+.login-card .field,.login-card .form-group{min-width:0!important;margin:0!important}
+.login-card label,.login-card .field label,.login-card .form-group label{
+ display:block!important;margin:0 0 7px!important;color:#4E627B!important;
+ font-size:11px!important;font-weight:800!important;letter-spacing:.01em!important
+}
+.login-card input:not([type=checkbox]):not([type=radio]),.login-card select{
+ display:block!important;width:100%!important;min-height:48px!important;height:48px!important;
+ box-sizing:border-box!important;padding:0 14px!important;border:1px solid #DCE5F0!important;
+ border-radius:11px!important;background:#F9FBFE!important;color:#1B2B42!important;
+ font-size:14px!important;box-shadow:none!important;outline:none!important
+}
+.login-card input::placeholder{color:#9AA8B9!important}
+.login-card input:focus,.login-card select:focus{
+ border-color:#6B99D6!important;background:#fff!important;
+ box-shadow:0 0 0 3px rgba(40,100,199,.12)!important
+}
+.login-card button[type=submit],.login-card .btn-primary,.login-card .login-submit{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:9px!important;
+ width:100%!important;min-height:48px!important;margin-top:5px!important;padding:0 18px!important;
+ border:1px solid #2864C7!important;border-radius:11px!important;
+ background:linear-gradient(110deg,#173B68,#2864C7)!important;color:#fff!important;
+ box-shadow:0 8px 18px rgba(40,100,199,.18)!important;
+ font-size:13px!important;font-weight:850!important;letter-spacing:.01em!important;cursor:pointer!important
+}
+.login-card button[type=submit]:hover,.login-card .btn-primary:hover,.login-card .login-submit:hover{
+ background:linear-gradient(110deg,#173B68,#1F55AD)!important;transform:translateY(-1px)!important
+}
+.login-note{margin-top:17px!important;padding:11px 13px!important;border:1px solid #DCE8F7!important;
+ border-radius:10px!important;background:#F2F7FE!important;color:#496789!important;font-size:10px!important;line-height:1.55!important}
+.login-card .error,.login-card .login-error,[id*=loginError]{
+ border-radius:9px!important;background:#FFF1F1!important;border:1px solid #F3D0D0!important;
+ color:#A33A43!important;padding:10px 12px!important;font-size:11px!important
+}
+@media(max-width:560px){
+ .login-screen{min-height:100svh!important;padding:16px!important}
+ .login-card{width:100%!important;max-width:430px!important;padding:30px 22px 25px!important;border-radius:18px!important}
+ .login-card h1,.login-card h2{font-size:24px!important}
+ .login-card input:not([type=checkbox]):not([type=radio]){min-height:48px!important;height:48px!important;font-size:16px!important}
+}
+`;
+  return html.replace('</body>', '<style id=\"wct-global-redesign\">' + css + '</style><style id=\"wct-login-form-refresh\">' + loginCss + '</style></body>');
 };
