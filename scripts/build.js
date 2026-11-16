@@ -378,7 +378,9 @@ try {
       continue;
     }
     if (type === 'submit' || !type) {
-      if (activeFormDepth === 0) unhandledButtons.push(tag.slice(0, 220));
+      if (/\bdisabled(?:\s|=|>)/i.test(attributes)) continue;
+      const delegatedData = /\bdata-[a-z0-9-]+/i.test(attributes);
+      if (activeFormDepth === 0 && !delegatedData) unhandledButtons.push(tag.slice(0, 220));
     }
   }
   if (unhandledButtons.length) {
