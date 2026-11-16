@@ -367,3 +367,34 @@ grant execute on function public.wct_create_case(jsonb,jsonb) to authenticated;
 grant execute on function public.wct_update_progress(uuid,text,integer,text,text,text) to authenticated;
 grant execute on function public.wct_edit_progress(uuid,text,integer,text,text,text) to authenticated;
 grant execute on function public.wct_save_case_and_actions(uuid,jsonb,jsonb) to authenticated;
+
+
+-- Security hardening: all progress writes/edits must go through the atomic RPCs above.
+-- Members must not be able to change unrelated Action columns through a direct table update.
+drop policy if exists wct_actions_member_update_assigned on public.wct_actions;
+
+-- Remove direct write policies for the append-only progress and audit tables.
+do $$
+declare
+  policy_row record;
+begin
+  for policy_row in
+    select schemaname, tablename, policyname
+    from pg_policies
+    where schemaname = 'public'
+      and tablename in ('wct_progress_logs', 'wct_progress_log_edits')
+      and cmd in ('INSERT', 'UPDATE', 'DELETE')
+  loop
+    execute format(
+      'drop policy if exists %I on %I.%I',
+      policy_row.policyname,
+      policy_row.schemaname,
+      policy_row.tablename
+    );
+  end loop;
+end
+$$;
+
+revoke insert, update, delete on table public.wct_progress_logs from anon, authenticated;
+revoke insert, update, delete on table public.wct_progress_log_edits from anon, authenticated;
+
