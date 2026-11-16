@@ -36,6 +36,8 @@ Tabel dan RLS dasar dibuat terpisah pada project Supabase. Untuk menambahkan tra
 3. Jalankan seluruh SQL satu kali.
 4. Pastikan semua fungsi `wct_*` berhasil dibuat.
 
+Jalankan file ini hanya satu kali setelah tabel dan RLS dasar berhasil dibuat. Jangan menghapus atau mengganti tabel/data lain di schema `public`.
+
 Fungsi tersebut memvalidasi role dari `wct_users` dan menjalankan operasi terkait dalam satu transaksi PostgreSQL.
 
 ## Setup Edge Function untuk manajemen pengguna
@@ -48,7 +50,7 @@ Deploy folder `supabase/functions/wct-admin-users` sebagai Edge Function bernama
 supabase functions deploy wct-admin-users --project-ref ktqgtutzgivxjwtdqcbw
 ```
 
-Function memakai environment bawaan Supabase: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, dan `SUPABASE_SERVICE_ROLE_KEY`. Jangan pernah menyalin service-role/secret key ke file frontend, GitHub, atau Vercel public environment.
+Function memakai environment bawaan Supabase: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEYS`, dan `SUPABASE_SECRET_KEYS` (mengambil key bernama `default`). Ada fallback ke nama legacy selama masa transisi API key. Jangan pernah menyalin secret key ke file frontend, GitHub, atau Vercel public environment. Secret key hanya digunakan di Edge Function.
 
 ## Admin pertama
 
