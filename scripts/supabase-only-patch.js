@@ -101,6 +101,30 @@ module.exports = function applySupabaseOnlyPatch(html) {
 
   html = html.replace('</head>', '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n</head>');
   html = html.replace('</body>', '<script src="/supabase-runtime.js"></script>\n</body>');
+  // Final pass: there are legacy login/session scripts in the template that
+  // are separated by script tags, so remove them by their unique boundaries.
+  const oldLoginStart = html.indexOf('async function loginSupabase(){');
+  if (oldLoginStart >= 0) {
+    const oldLoginEnd = html.indexOf('function openBootstrapForm', oldLoginStart);
+    if (oldLoginEnd >= 0) {
+      html = html.slice(0, oldLoginStart) +
+        "async function loginSupabase(){ toast('Login menggunakan Supabase Auth.'); }\n" +
+        html.slice(oldLoginEnd);
+    }
+  }
+  let sessionStart = html.indexOf('// Restore session if a Supabase user is already signed in.');
+  while (sessionStart >= 0) {
+    const sessionEnd = html.indexOf('// Optional quick preview URL: index.html?demo=1', sessionStart);
+    if (sessionEnd < 0) break;
+    html = html.slice(0, sessionStart) +
+      '// Supabase session restoration is handled by /supabase-runtime.js.\n' +
+      html.slice(sessionEnd);
+    sessionStart = html.indexOf('// Restore session if a Supabase user is already signed in.', sessionStart + 1);
+  }
+  if (html.includes('getIdTokenResult') || html.includes('reauthenticateWithCredential')) {
+    throw new Error('Legacy Firebase token/password methods remain in generated HTML.');
+  }
+
   const staleBackend = html.match(/firebase|firestore|cloud functions|cloudfunctions|firebase\\.json|supabase\\.rules/i);
   if (staleBackend) {
     const index = html.toLowerCase().indexOf(staleBackend[0].toLowerCase());
