@@ -53,7 +53,7 @@ module.exports = function applySupabaseOnlyPatch(html) {
   // Session restore is handled only by the Supabase runtime, never by Firebase tokens.
   // Replace legacy Cloud Function calls with a disabled compatibility stub.
   // User administration is reimplemented by the Supabase Edge Function runtime.
-  html = html.replace(/\\bcloudFunctions\\b/g, 'legacyAdminApiDisabled');
+  html = html.replace(/\bcloudFunctions\b/g, 'legacyAdminApiDisabled');
 
   const restoreStart = html.indexOf('// Restore session if a Supabase user is already signed in.');
   const restoreEnd = html.indexOf('// Optional quick preview URL: index.html?demo=1', restoreStart);
