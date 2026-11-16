@@ -105,8 +105,6 @@ try {
     ['global orange UI/UX layer', 'id="wct-global-redesign"'],
     ['admin settings renderer', 'window.wctRenderAdminSettings=open'],
     ['self-service password settings form', 'data-account-password'],
-    ['password changes verify the current password with Supabase Auth', 'sb.auth.signInWithPassword({email,password:current})'],
-    ['password changes use Supabase Auth updateUser', 'sb.auth.updateUser({password:next})'],
     ['all roles receive the password settings card', 'root.innerHTML=\'<div class="page-head"><div><div class="eyebrow">PENGATURAN AKUN'],
     ['Case detail renders before audit query resolves', 'renderDetail(id,[]);'],
     ['Case edit audit query runs asynchronously', 'void (async function(){'],
@@ -132,7 +130,6 @@ try {
     ['Settings forms use explicit submit handler', 'wctAdminSettingsSubmit(event,this)'],
     ['Eight-item operational Division breakdown', "const DEFAULT_DIVISIONS=['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other']"],
     ['Supabase category and division options loader', "client.from('wct_app_settings').select('setting_value')"],
-    ['Supabase category and division options storage', "sb.from('wct_app_settings').upsert"],
     ['Admin settings sync Case form choices after save', 'state.caseOptions={categories:clean.categories.slice(),divisions:clean.divisions.slice()}'],
     ['Active Case options updated after settings changes', 'state.caseOptions={categories:categories.slice(),divisions:divisions.slice()}'],
 
@@ -385,6 +382,15 @@ try {
   const supabaseRuntime = fs.readFileSync(supabaseRuntimePath, 'utf8');
   try { new Function(supabaseRuntime); } catch (error) {
     throw new Error('Supabase runtime syntax check failed: ' + error.message);
+  }
+  const requiredSupabaseRuntime = [
+    ['current-password verification', 'sb.auth.signInWithPassword({email,password:current})'],
+    ['password update', 'sb.auth.updateUser({password:next})'],
+    ['WCT settings storage', "sb.from('wct_app_settings').upsert"]
+  ];
+  const missingSupabaseRuntime = requiredSupabaseRuntime.filter(([, marker]) => !supabaseRuntime.includes(marker)).map(([name]) => name);
+  if (missingSupabaseRuntime.length) {
+    throw new Error('Supabase runtime contract check failed: ' + missingSupabaseRuntime.join(', '));
   }
   const firebaseResidue = {
     firebaseScript: /<script[^>]+src=["'][^"']*firebase/i.test(html),
