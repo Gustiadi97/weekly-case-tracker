@@ -403,14 +403,55 @@ module.exports = function applyWorkspaceModules(html) {
     else{nav.appendChild(group);nav.appendChild(wrap);}
     return true;
   }
+  var preferredNavButton=null;
+  var navSyncBusy=false;
+  function enforceOneActiveNav(){
+    if(navSyncBusy||!preferredNavButton)return;
+    navSyncBusy=true;
+    document.querySelectorAll('.sidebar .nav button,.sidebar .nav a').forEach(function(button){
+      if(button===preferredNavButton)button.classList.add('active');
+      else button.classList.remove('active');
+    });
+    navSyncBusy=false;
+  }
   function setActiveNav(page, nativeButton){
-    document.querySelectorAll('.sidebar button,.sidebar a').forEach(function(button){button.classList.remove('active');});
-    document.querySelectorAll('[data-wct-workspace-page]').forEach(function(button){button.classList.toggle('active',button.dataset.wctWorkspacePage===page);});
-    if(page==='dashboard'||page==='cases'||page==='weeklymeeting'||page==='reports'||page==='settings'||page==='users'){
-      var labels={dashboard:/^dashboard\b/i,cases:/case monitoring/i,weeklymeeting:/weekly meeting/i,reports:/reports\s*&?\s*archive|reports|archive/i,settings:/pengaturan|settings/i,users:/manajemen pengguna|user management/i};
-      var matcher=labels[page];
-      var target=nativeButton||Array.from(document.querySelectorAll('.sidebar .nav button')).find(function(button){return matcher&&matcher.test((button.textContent||'').trim());});
-      if(target)target.classList.add('active');
+    var custom=Array.from(document.querySelectorAll('[data-wct-workspace-page]')).find(function(button){return button.dataset.wctWorkspacePage===page;});
+    var labels={
+      dashboard:/^dashboard\b/i,
+      cases:/case monitoring/i,
+      meeting:/weekly meeting/i,
+      weeklymeeting:/weekly meeting/i,
+      reports:/reports\s*&?\s*archive|reports|archive/i,
+      settings:/pengaturan|settings/i,
+      users:/manajemen pengguna|user management/i
+    };
+    var matcher=labels[page];
+    var nativeTarget=nativeButton||Array.from(document.querySelectorAll('.sidebar .nav button')).find(function(button){return matcher&&matcher.test((button.textContent||'').trim());});
+    preferredNavButton=nativeTarget||custom||null;
+    enforceOneActiveNav();
+  }
+  function installNavigationSync(){
+    if(window.__wctNavigationSyncInstalled)return;
+    window.__wctNavigationSyncInstalled=true;
+    var sidebar=document.querySelector('#sidebar')||document.querySelector('.sidebar');
+    if(sidebar){
+      var observer=new MutationObserver(function(){enforceOneActiveNav();});
+      observer.observe(sidebar,{subtree:true,attributes:true,attributeFilter:['class']});
+      var initial=sidebar.querySelector('.nav button.active,.nav a.active');
+      if(initial){preferredNavButton=initial;enforceOneActiveNav();}
+    }
+    if(typeof window.navigate==='function'&&!window.navigate.__wctNavigationWrapped){
+      var originalNavigate=window.navigate;
+      var wrappedNavigate=function(page){
+        window.wctWorkspaceRoute=null;
+        var result=originalNavigate.apply(this,arguments);
+        setActiveNav(page==='meeting'?'meeting':page);
+        var labels={dashboard:'Dashboard',cases:'Case Monitoring',meeting:'Weekly Meeting',reports:'Reports & Archive',settings:'Pengaturan',users:'Manajemen Pengguna'};
+        setWorkspaceBreadcrumb(labels[page]||page);
+        return result;
+      };
+      wrappedNavigate.__wctNavigationWrapped=true;
+      window.navigate=wrappedNavigate;
     }
   }
   function setWorkspaceBreadcrumb(label){
@@ -450,7 +491,7 @@ module.exports = function applyWorkspaceModules(html) {
   }
   var settingsObserver=new MutationObserver(function(){addNav();if(!window.wctWorkspaceRoute)addSettingsPanel();});
   function init(){
-    addNav();applyTheme(savedTheme());addSettingsPanel();
+    addNav();installNavigationSync();applyTheme(savedTheme());addSettingsPanel();
     if($('pageContent'))settingsObserver.observe($('pageContent'),{childList:true,subtree:true});
   }
 
