@@ -346,7 +346,12 @@ try {
 
   // Non-submit buttons without onclick must be covered by a documented delegated control.
   const delegatedButtonAttributes = [
-    'data-value','data-wct-case-edit-id','data-wct-option-action'
+    'data-value','data-wct-case-edit-id','data-wct-option-action',
+    'data-wct-workspace-page','data-wct-open-case','data-wct-create-case','data-wct-open-native',
+    'data-wct-go','data-wct-progress-action','data-wct-new-action','data-wct-task-filter',
+    'data-wct-clear-assignee','data-wct-calendar-move','data-wct-calendar-today','data-wct-calendar-date',
+    'data-wct-member-tasks','data-wct-member-detail','data-wct-new-action-kind','data-wct-analytics-export',
+    'data-wct-analytics-range','data-wct-theme'
   ];
   const buttonTokens = /<\/?form\b[^>]*>|<button\b[^>]*>/gi;
   let activeFormDepth = 0;
