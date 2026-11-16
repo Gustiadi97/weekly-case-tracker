@@ -66,7 +66,7 @@ try {
     ''
   );
 
-  html = require('./firebase-only-patch')(html);
+  // Firebase backend transform intentionally removed; Supabase is the only runtime backend.
   html = require('./source-form-transform')(html);
   html = require('./ui-enhancements')(html);
   html = require('./design-refresh')(html);
@@ -76,6 +76,7 @@ try {
   html = require('./case-edit-runtime')(html);
   html = require('./division-breakdown-runtime')(html);
   html = require('./global-redesign')(html);
+  html = require('./supabase-only-patch')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -381,7 +382,17 @@ try {
   }
   console.log('Button contract audit passed: ' + inlineHandlerAttributes.length + ' inline event handlers; ' + globalHandlerNames.size + ' named functions; delegated button/form routes verified.');
 
+  const supabaseRuntimePath = path.join(__dirname, 'supabase-runtime.js');
+  const supabaseRuntime = fs.readFileSync(supabaseRuntimePath, 'utf8');
+  try { new Function(supabaseRuntime); } catch (error) {
+    throw new Error('Supabase runtime syntax check failed: ' + error.message);
+  }
+  if (/<script[^>]+src=["'][^"']*firebase/i.test(html) || /FIREBASE_CONFIG|firebase\.initializeApp|firebase\.firestore\(/.test(html)) {
+    throw new Error('Firebase SDK/configuration reference remains in the generated app.');
+  }
+
   fs.mkdirSync(outputDir, { recursive: true });
+  fs.copyFileSync(supabaseRuntimePath, path.join(outputDir, 'supabase-runtime.js'));
   fs.writeFileSync(outputPath, html);
   console.log('Built ' + path.relative(root, outputPath) + ' (' + html.length + ' bytes)');
 } catch (error) {
