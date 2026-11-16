@@ -182,6 +182,128 @@ module.exports = function applyWorkspaceModules(html) {
 @media(max-width:850px){.wct-workspace-grid,.wct-workspace-grid.three,.wct-calendar-layout,.wct-analytics-grid{grid-template-columns:minmax(0,1fr)}.wct-workspace-grid.three .wct-gauge-panel{grid-column:auto}.wct-workspace-kpis,.wct-analytics-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.wct-page-head{flex-direction:column;align-items:stretch}.wct-page-head .btn,.wct-page-head button{width:100%}.wct-welcome{align-items:flex-start;flex-direction:column;padding:17px}.wct-welcome-meta{justify-content:flex-start}.wct-workspace-kpis{gap:9px}.wct-workspace-kpi{min-height:104px;padding:12px 11px}.wct-workspace-kpi-value{font-size:27px}.wct-workspace-kpi-label{font-size:10px}.wct-workspace-kpi-icon{width:32px;height:32px;flex-basis:32px}.wct-analytics-kpis{gap:8px}.wct-analytics-kpi{padding:11px}.wct-analytics-kpi strong{font-size:21px}.wct-member-grid{grid-template-columns:minmax(0,1fr)}.wct-calendar-day{min-height:52px;padding:5px 4px}.wct-calendar-grid{gap:3px}.wct-calendar{padding:9px}.wct-panel-head{padding:14px}.wct-panel-body{padding:13px}.wct-case-table{min-width:600px}.wct-pref-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:390px){.wct-workspace-kpi{gap:7px}.wct-workspace-kpi-icon{display:none}.wct-workspace-kpi-value{font-size:25px}.wct-calendar-day{min-height:46px}.wct-calendar-dots i{width:5px;height:5px}}
+
+
+/* Calendar page: balanced layout, readable month controls and compact agenda */
+.wct-calendar-layout{
+  grid-template-columns:minmax(0,1.68fr) minmax(300px,.9fr)!important;
+  align-items:start!important;
+  gap:18px!important;
+}
+.wct-calendar-main,.wct-calendar-agenda{min-width:0;align-self:start}
+.wct-calendar-main{overflow:hidden}
+.wct-calendar-main .wct-panel-body{padding:20px 22px!important}
+.wct-calendar-top{
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-height:54px;
+  margin:0 0 13px!important;
+  padding:0 0 13px!important;
+  border-bottom:1px solid #EAF0F7;
+}
+.wct-calendar-month{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.wct-calendar-month strong{color:#173B68;font-size:15px;font-weight:900;letter-spacing:-.02em}
+.wct-calendar-month small{color:#8A9AAF;font-size:9px;font-weight:700}
+.wct-calendar-nav{display:flex;align-items:center;justify-content:flex-end;gap:7px}
+.wct-calendar-top button[data-wct-calendar-move]{
+  display:grid;place-items:center;width:36px!important;min-width:36px;height:36px!important;
+  border:1px solid #DDE7F3;border-radius:10px;background:#fff;color:#315D93;
+  font-size:17px;font-weight:800;cursor:pointer;transition:background .16s,border-color .16s,transform .16s;
+}
+.wct-calendar-top button[data-wct-calendar-move]:hover{background:#F1F6FD;border-color:#B7CBE5;transform:translateY(-1px)}
+.wct-calendar-top button[data-wct-calendar-today]{
+  display:inline-flex;align-items:center;justify-content:center;width:auto!important;min-width:62px;
+  height:36px!important;padding:0 12px!important;border:1px solid #D8E5F5;border-radius:10px;
+  background:#F2F7FE;color:#285B98;font-size:10px;font-weight:850;white-space:nowrap;cursor:pointer;
+}
+.wct-calendar-top button[data-wct-calendar-today]:hover{background:#E7F0FC;border-color:#B7CBE5}
+.wct-calendar-grid{gap:7px!important}
+.wct-calendar-weekday{padding:8px 2px 10px!important;color:#8797AB!important;font-size:9px!important;letter-spacing:.06em}
+.wct-calendar-day{
+  display:flex;flex-direction:column;align-items:flex-start;gap:9px;
+  min-height:72px!important;padding:9px 9px!important;
+  border:1px solid #E8EEF6!important;border-radius:11px!important;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FCFDFE 100%)!important;
+  color:#263F5D!important;transition:border-color .16s,background .16s,box-shadow .16s,transform .16s;
+}
+.wct-calendar-day:hover{border-color:#B9CDE8!important;background:#F6F9FE!important;box-shadow:0 4px 12px rgba(39,83,135,.07);transform:translateY(-1px)}
+.wct-calendar-day strong{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;color:#294564;font-size:10px;font-weight:900}
+.wct-calendar-day.outside{background:#F7F9FC!important;border-color:#EDF1F6!important;cursor:default}
+.wct-calendar-day.outside strong{color:#AEBBCB}
+.wct-calendar-day.today{border-color:#A9C4E8!important;background:#F2F7FE!important}
+.wct-calendar-day.today strong{background:#E0ECFC;color:#245B9C}
+.wct-calendar-day.selected{outline:0!important;border:1.5px solid #2864C7!important;background:#EDF4FE!important;box-shadow:0 0 0 2px rgba(40,100,199,.10)!important}
+.wct-calendar-day.selected strong{background:#2864C7;color:#fff}
+.wct-calendar-dots{display:flex;align-items:center;gap:4px;min-height:7px;margin-top:0!important;padding-left:2px}
+.wct-calendar-dots i{width:6px;height:6px;border-radius:50%;box-shadow:0 0 0 2px rgba(40,100,199,.08)}
+.wct-calendar-dots i.action{box-shadow:0 0 0 2px rgba(139,112,193,.10)}
+.wct-calendar-dots i.meeting{box-shadow:0 0 0 2px rgba(225,163,78,.12)}
+.wct-calendar-legend{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:15px;padding-top:13px;border-top:1px solid #EDF1F6}
+.wct-calendar-legend .wct-chart-legend{margin:0!important}
+.wct-calendar-legend-note{color:#92A0B1;font-size:9px}
+.wct-calendar-agenda .wct-panel-head{padding:17px 18px!important}
+.wct-calendar-agenda .wct-panel-head h3{font-size:12px!important}
+.wct-calendar-agenda .wct-panel-head p{margin-top:5px!important;font-size:9px!important}
+.wct-calendar-agenda .wct-panel-body{display:grid;gap:0;padding:14px 17px 16px!important}
+.wct-calendar-agenda-section{min-width:0}
+.wct-calendar-agenda-section+.wct-calendar-agenda-section{margin-top:15px;padding-top:14px;border-top:1px solid #EAF0F6}
+.wct-calendar-agenda-section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.wct-calendar-agenda-section-head strong{color:#24405F;font-size:11px;font-weight:850}
+.wct-calendar-agenda-section-head span{color:#8A9AAF;font-size:9px;font-weight:750}
+.wct-calendar-empty{
+  display:flex;align-items:center;gap:11px;min-height:76px;padding:13px;
+  border:1px dashed #DDE6F1;border-radius:12px;background:#FAFCFF;
+}
+.wct-calendar-empty-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:#EDF4FE;color:#4C7DB9}
+.wct-calendar-empty-icon svg{width:16px;height:16px}
+.wct-calendar-empty-copy{min-width:0}
+.wct-calendar-empty-copy strong{display:block;color:#506781;font-size:10px;font-weight:800}
+.wct-calendar-empty-copy small{display:block;margin-top:4px;color:#91A0B2;font-size:9px;line-height:1.45}
+.wct-calendar-side-list{gap:7px!important}
+.wct-calendar-event{align-items:center!important;gap:9px!important;padding:10px 11px!important;border:1px solid #E8EEF5!important;border-radius:11px!important;background:#fff!important;transition:border-color .15s,box-shadow .15s}
+.wct-calendar-event:hover{border-color:#C8D8EB!important;box-shadow:0 3px 10px rgba(25,57,94,.05)}
+.wct-calendar-event-dot{margin-top:0!important}
+.wct-calendar-event strong{font-size:10px!important;color:#28415F!important}
+.wct-calendar-event small{font-size:9px!important;line-height:1.4}
+.wct-calendar-event .wct-panel-action{flex:0 0 auto;padding:6px 9px;border-radius:8px;background:#F1F6FD;font-size:9px;font-weight:850}
+@media(max-width:1100px){
+  .wct-calendar-layout{grid-template-columns:minmax(0,1.45fr) minmax(270px,.9fr)!important;gap:14px!important}
+  .wct-calendar-main .wct-panel-body{padding:17px!important}
+  .wct-calendar-day{min-height:66px!important}
+}
+@media(max-width:850px){
+  .wct-calendar-layout{grid-template-columns:minmax(0,1fr)!important}
+  .wct-calendar-agenda{width:100%}
+  .wct-calendar-agenda .wct-panel-body{grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+  .wct-calendar-agenda-section+.wct-calendar-agenda-section{margin:0 0 0 14px;padding:0 0 0 14px;border-top:0;border-left:1px solid #EAF0F6}
+}
+@media(max-width:650px){
+  .wct-calendar-main .wct-panel-body{padding:13px!important}
+  .wct-calendar-top{grid-template-columns:34px minmax(0,1fr) auto!important;gap:6px!important;min-height:48px}
+  .wct-calendar-month strong{font-size:13px}
+  .wct-calendar-month small{font-size:8px}
+  .wct-calendar-top button[data-wct-calendar-move]{width:32px!important;min-width:32px;height:32px!important}
+  .wct-calendar-top button[data-wct-calendar-today]{min-width:54px;height:32px!important;padding:0 8px!important;font-size:9px}
+  .wct-calendar-grid{gap:4px!important}
+  .wct-calendar-weekday{padding:6px 1px 8px!important;font-size:8px!important}
+  .wct-calendar-day{min-height:57px!important;padding:6px 5px!important;gap:6px;border-radius:9px!important}
+  .wct-calendar-day strong{width:21px;height:21px;font-size:9px}
+  .wct-calendar-dots{gap:3px}
+  .wct-calendar-dots i{width:5px;height:5px}
+  .wct-calendar-agenda .wct-panel-body{grid-template-columns:minmax(0,1fr);gap:0}
+  .wct-calendar-agenda-section+.wct-calendar-agenda-section{margin:13px 0 0;padding:13px 0 0;border-left:0;border-top:1px solid #EAF0F6}
+}
+@media(max-width:390px){
+  .wct-calendar-top{grid-template-columns:30px minmax(0,1fr) auto!important;gap:5px!important}
+  .wct-calendar-top button[data-wct-calendar-move]{width:29px!important;min-width:29px;height:30px!important}
+  .wct-calendar-top button[data-wct-calendar-today]{min-width:49px;padding:0 6px!important;font-size:8px}
+  .wct-calendar-grid{gap:3px!important}
+  .wct-calendar-day{min-height:48px!important;padding:5px 3px!important;gap:5px}
+  .wct-calendar-dots{gap:2px}
+}
+
 `;
 
   const runtime = String.raw`
@@ -322,17 +444,62 @@ module.exports = function applyWorkspaceModules(html) {
     return out.filter(function(e){return !!e.date;});
   }
   function renderCalendar(){
-    var y=calendarCursor.getFullYear(),m=calendarCursor.getMonth(),first=new Date(y,m,1),weekStart=getWeekStart(),offset=weekStart==='Sunday'?first.getDay():(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),events=eventList(),selected=events.filter(function(e){return e.date===calendarSelected;}),upcoming=events.filter(function(e){return e.date>=todayKey;}).sort(function(a,b){return a.date.localeCompare(b.date);}).slice(0,5);
-    var cells='';for(var i=0;i<offset;i++){var prev=new Date(y,m,0);cells+='<button class="wct-calendar-day outside" type="button" disabled><strong>'+Math.max(1,prev.getDate()-offset+i+1)+'</strong></button>';}
-    for(var d=1;d<=days;d++){var dt=new Date(y,m,d),key=isoDay(dt),ev=events.filter(function(e){return e.date===key;}),classes='wct-calendar-day'+(key===todayKey?' today':'')+(key===calendarSelected?' selected':'');cells+='<button class="'+classes+'" type="button" data-wct-calendar-date="'+key+'"><strong>'+d+'</strong><span class="wct-calendar-dots">'+ev.slice(0,5).map(function(e){return '<i class="'+e.kind+'"></i>';}).join('')+'</span></button>';}
-    var rem=(7-(offset+days)%7)%7;for(var j=1;j<=rem;j++)cells+='<button class="wct-calendar-day outside" type="button" disabled><strong>'+j+'</strong></button>';
-    var eventCards=function(list){return '<div class="wct-calendar-side-list">'+list.map(function(e){var action=e.actionId?'<button class="wct-panel-action" data-wct-open-action="'+esc(e.actionId)+'">Buka</button>':e.caseId?'<button class="wct-panel-action" data-wct-open-case="'+esc(e.caseId)+'">Buka</button>':'';return '<div class="wct-calendar-event"><i class="wct-calendar-event-dot '+e.kind+'"></i><div style="min-width:0;flex:1"><strong>'+esc(e.title)+'</strong><small>'+fmtDate(e.date)+' · '+esc(e.detail)+'</small></div>'+action+'</div>';}).join('')+'</div>';};
-    var agendaBody=(selected.length?eventCards(selected):'<div class="wct-empty">Tidak ada kegiatan pada tanggal ini.</div>')+
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 0 8px;padding-top:13px;border-top:1px solid #EDF1F6"><strong style="color:#1B2B42;font-size:11px">Coming Up</strong><span class="wct-mini-pill">'+upcoming.length+' Agenda</span></div>'+
-      (upcoming.length?eventCards(upcoming):'<div class="wct-empty">Belum ada agenda mendatang.</div>');
+    var y=calendarCursor.getFullYear(),m=calendarCursor.getMonth(),
+      first=new Date(y,m,1),weekStart=getWeekStart(),
+      offset=weekStart==='Sunday'?first.getDay():(first.getDay()+6)%7,
+      days=new Date(y,m+1,0).getDate(),events=eventList(),
+      monthKey=String(y)+'-'+String(m+1).padStart(2,'0'),
+      monthEvents=events.filter(function(e){return String(e.date).slice(0,7)===monthKey;}),
+      selected=events.filter(function(e){return e.date===calendarSelected;}),
+      upcoming=events.filter(function(e){return e.date>=todayKey;}).sort(function(a,b){return a.date.localeCompare(b.date);}).slice(0,5);
+    var cells='';
+    for(var i=0;i<offset;i++){
+      var prev=new Date(y,m,0);
+      cells+='<button class="wct-calendar-day outside" type="button" disabled aria-hidden="true"><strong>'+Math.max(1,prev.getDate()-offset+i+1)+'</strong></button>';
+    }
+    for(var d=1;d<=days;d++){
+      var dt=new Date(y,m,d),key=isoDay(dt),
+        ev=events.filter(function(e){return e.date===key;}),
+        classes='wct-calendar-day'+(key===todayKey?' today':'')+(key===calendarSelected?' selected':'')+(ev.length?' has-events':''),
+        aria=dt.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      cells+='<button class="'+classes+'" type="button" data-wct-calendar-date="'+key+'" aria-label="'+esc('Pilih '+aria+(ev.length?', '+ev.length+' agenda':''))+'" title="'+esc(aria+(ev.length?' · '+ev.length+' agenda':''))+'"><strong>'+d+'</strong><span class="wct-calendar-dots">'+ev.slice(0,5).map(function(e){return '<i class="'+e.kind+'"></i>';}).join('')+'</span></button>';
+    }
+    var rem=(7-(offset+days)%7)%7;
+    for(var j=1;j<=rem;j++)cells+='<button class="wct-calendar-day outside" type="button" disabled aria-hidden="true"><strong>'+j+'</strong></button>';
+
+    var eventCards=function(list){
+      return '<div class="wct-calendar-side-list">'+list.map(function(e){
+        var action=e.actionId?'<button type="button" class="wct-panel-action" data-wct-open-action="'+esc(e.actionId)+'">Buka</button>':
+          e.caseId?'<button type="button" class="wct-panel-action" data-wct-open-case="'+esc(e.caseId)+'">Buka</button>':'';
+        return '<div class="wct-calendar-event"><i class="wct-calendar-event-dot '+e.kind+'"></i><div style="min-width:0;flex:1"><strong>'+esc(e.title)+'</strong><small>'+fmtDate(e.date)+' · '+esc(e.detail)+'</small></div>'+action+'</div>';
+      }).join('')+'</div>';
+    };
+    var emptyState=function(kind,title,description){
+      return '<div class="wct-calendar-empty"><span class="wct-calendar-empty-icon">'+icon(kind)+'</span><div class="wct-calendar-empty-copy"><strong>'+title+'</strong><small>'+description+'</small></div></div>';
+    };
+    var agendaBody=
+      '<div class="wct-calendar-agenda-section"><div class="wct-calendar-agenda-section-head"><strong>Agenda pada tanggal dipilih</strong><span>'+selected.length+' Agenda</span></div>'+
+      (selected.length?eventCards(selected):emptyState('calendar','Belum ada agenda','Pilih tanggal lain atau tambahkan Case, Action, maupun Weekly Meeting.'))+
+      '</div>'+
+      '<div class="wct-calendar-agenda-section"><div class="wct-calendar-agenda-section-head"><strong>Coming Up</strong><span>'+upcoming.length+' Agenda</span></div>'+
+      (upcoming.length?eventCards(upcoming):emptyState('bell','Belum ada agenda mendatang','Jadwal Case, Action, dan meeting berikutnya akan muncul di sini.'))+
+      '</div>';
+
     var html=head('WORKSPACE / CALENDAR','Calendar','Kalender jadwal Case, target Corrective/Preventive Action, dan Weekly Meeting.');
-    html+='<div class="wct-calendar-layout"><section class="wct-panel"><div class="wct-panel-body"><div class="wct-calendar-top"><button type="button" data-wct-calendar-move="-1" aria-label="Bulan sebelumnya">‹</button><strong>'+calendarCursor.toLocaleDateString('id-ID',{month:'long',year:'numeric'})+'</strong><div style="display:flex;gap:6px"><button type="button" data-wct-calendar-today>Today</button><button type="button" data-wct-calendar-move="1" aria-label="Bulan berikutnya">›</button></div></div><div class="wct-calendar-grid">'+(weekStart==='Sunday'?['Min','Sen','Sel','Rab','Kam','Jum','Sab']:['Sen','Sel','Rab','Kam','Jum','Sab','Min']).map(function(x){return '<div class="wct-calendar-weekday">'+x+'</div>';}).join('')+cells+'</div><div class="wct-chart-legend" style="margin-top:13px"><span><i style="background:#2864C7"></i>Case</span><span><i style="background:#8B70C1"></i>Action</span><span><i style="background:#E1A34E"></i>Meeting</span></div></div></section>'+
-      panel('Agenda Harian',fmtDate(calendarSelected),agendaBody,'<span class="wct-mini-pill">'+selected.length+' Hari Ini</span>')+'</div>';
+    html+='<div class="wct-calendar-layout">'+
+      '<section class="wct-panel wct-calendar-main"><div class="wct-panel-body">'+
+      '<div class="wct-calendar-top">'+
+      '<button type="button" data-wct-calendar-move="-1" aria-label="Bulan sebelumnya" title="Bulan sebelumnya">‹</button>'+
+      '<div class="wct-calendar-month"><strong>'+calendarCursor.toLocaleDateString('id-ID',{month:'long',year:'numeric'})+'</strong><small>'+monthEvents.length+' agenda pada bulan ini</small></div>'+
+      '<div class="wct-calendar-nav"><button type="button" data-wct-calendar-today>Today</button><button type="button" data-wct-calendar-move="1" aria-label="Bulan berikutnya" title="Bulan berikutnya">›</button></div>'+
+      '</div>'+
+      '<div class="wct-calendar-grid">'+
+      (weekStart==='Sunday'?['Min','Sen','Sel','Rab','Kam','Jum','Sab']:['Sen','Sel','Rab','Kam','Jum','Sab','Min']).map(function(x){return '<div class="wct-calendar-weekday">'+x+'</div>';}).join('')+
+      cells+'</div>'+
+      '<div class="wct-calendar-legend"><div class="wct-chart-legend"><span><i style="background:#2864C7"></i>Case</span><span><i style="background:#8B70C1"></i>Action</span><span><i style="background:#E1A34E"></i>Meeting</span></div><span class="wct-calendar-legend-note">Pilih tanggal untuk melihat agenda</span></div>'+
+      '</div></section>'+
+      panel('Agenda Harian',fmtDate(calendarSelected),agendaBody,'<span class="wct-mini-pill">'+selected.length+' Hari Ini</span>','wct-calendar-agenda')+
+      '</div>';
     var root=$('pageContent');if(root)root.innerHTML=html;
   }
   function rangeLogs(){
@@ -459,7 +626,7 @@ module.exports = function applyWorkspaceModules(html) {
     var crumb=document.getElementById('crumb')||document.querySelector('.topbar .crumb')||document.querySelector('.crumb');
     if(!crumb)return;
     var safeLabel=String(label||'Dashboard').replace(/[&<>"']/g,function(ch){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);});
-    crumb.innerHTML='Workspace / <b>'+safeLabel+'</b>';
+    crumb.textContent=safeLabel;
   }
   function go(page){
     window.wctWorkspaceRoute=page;
