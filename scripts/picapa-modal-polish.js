@@ -1,6 +1,198 @@
 module.exports = function applyPicapaModalPolish(html) {
   if (!html || !html.includes('</body>')) throw new Error('Could not find document body for PICAPA modal polish.');
   const css = String.raw`
+
+/* Update Progress uses the dedicated wctProgressForm / flow-shell structure. */
+#modal:has(#wctProgressForm),
+#modal.wct-modal-progress{
+  background:#FFFFFF!important;color:#172B46!important;
+}
+#modal:has(#wctProgressForm) .modal-body.wct-flow-modal-body,
+#modal.wct-modal-progress .modal-body.wct-flow-modal-body{
+  display:block!important;
+  background:#F4F7FB!important;
+  color:#243B57!important;
+  padding:18px 20px 22px!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-form-top,
+#modal.wct-modal-progress .wct-flow-form-top{
+  padding:17px 19px!important;
+  border:1px solid #DFE7F1!important;
+  border-bottom:1px solid #E7EDF5!important;
+  border-radius:14px 14px 0 0!important;
+  background:#FFFFFF!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-form-top h2,
+#modal.wct-modal-progress .wct-flow-form-top h2{
+  margin:0!important;color:#173B68!important;
+  font-size:15px!important;font-weight:900!important;letter-spacing:-.02em!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-form-top p,
+#modal.wct-modal-progress .wct-flow-form-top p{
+  margin:5px 0 0!important;color:#71849A!important;
+  font-size:10px!important;line-height:1.6!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm,
+#modal.wct-modal-progress #wctProgressForm{
+  display:block!important;overflow:visible!important;min-height:0!important;
+  padding:0!important;margin:0!important;border:1px solid #DFE7F1!important;
+  border-top:0!important;border-radius:0 0 14px 14px!important;
+  background:#FFFFFF!important;color:#263A54!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-form-body,
+#modal.wct-modal-progress .wct-flow-form-body{
+  padding:18px 19px 20px!important;
+  background:#FFFFFF!important;color:#263A54!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-context,
+#modal.wct-modal-progress .wct-flow-context{
+  display:flex!important;align-items:center!important;gap:12px!important;
+  margin:0 0 18px!important;padding:13px 15px!important;
+  border:1px solid #D9E6F5!important;border-radius:12px!important;
+  background:linear-gradient(110deg,#F0F6FE 0%,#F8FBFF 100%)!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-context-icon,
+#modal.wct-modal-progress .wct-flow-context-icon{
+  display:grid!important;place-items:center!important;width:36px!important;height:36px!important;
+  flex:0 0 36px!important;border-radius:10px!important;
+  background:#DDEBFC!important;color:#245E9F!important;font-size:12px!important;font-weight:900!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-context-main strong,
+#modal.wct-modal-progress .wct-flow-context-main strong{
+  color:#1C3554!important;font-size:12px!important;font-weight:900!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-context-main small,
+#modal.wct-modal-progress .wct-flow-context-main small{
+  color:#70839A!important;font-size:10px!important;line-height:1.5!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-context-stat,
+#modal.wct-modal-progress .wct-flow-context-stat{
+  color:#2864C7!important;font-size:20px!important;font-weight:950!important;
+}
+#modal:has(#wctProgressForm) .section-title,
+#modal.wct-modal-progress .section-title{
+  margin:17px 0 13px!important;padding:0 0 9px!important;
+  border-bottom:1px solid #E7EDF5!important;
+  background:transparent!important;color:#2864C7!important;
+  font-size:10px!important;font-weight:900!important;letter-spacing:.1em!important;
+  text-transform:uppercase!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .form-grid,
+#modal.wct-modal-progress #wctProgressForm .form-grid{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:start!important;gap:15px 16px!important;
+  background:#FFFFFF!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .field,
+#modal.wct-modal-progress #wctProgressForm .field{
+  min-width:0!important;margin:0!important;background:transparent!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .field label,
+#modal.wct-modal-progress #wctProgressForm .field label{
+  display:block!important;margin:0 0 7px!important;
+  color:#405873!important;font-size:11px!important;font-weight:850!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .field input:not([type=range]):not([type=checkbox]),
+#modal:has(#wctProgressForm) #wctProgressForm .field select,
+#modal:has(#wctProgressForm) #wctProgressForm .field textarea,
+#modal.wct-modal-progress #wctProgressForm .field input:not([type=range]):not([type=checkbox]),
+#modal.wct-modal-progress #wctProgressForm .field select,
+#modal.wct-modal-progress #wctProgressForm .field textarea{
+  display:block!important;width:100%!important;max-width:100%!important;min-height:44px!important;
+  box-sizing:border-box!important;padding:11px 13px!important;
+  border:1px solid #D7E1ED!important;border-radius:10px!important;
+  background:#FFFFFF!important;color:#1C3554!important;
+  font-family:inherit!important;font-size:12px!important;font-weight:500!important;line-height:1.55!important;
+  box-shadow:0 1px 2px rgba(25,49,79,.025)!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .field textarea,
+#modal.wct-modal-progress #wctProgressForm .field textarea{
+  min-height:94px!important;resize:vertical!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .field input:disabled,
+#modal.wct-modal-progress #wctProgressForm .field input:disabled{
+  background:#EFF4FA!important;color:#657990!important;opacity:1!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .field input::placeholder,
+#modal:has(#wctProgressForm) #wctProgressForm .field textarea::placeholder,
+#modal.wct-modal-progress #wctProgressForm .field input::placeholder,
+#modal.wct-modal-progress #wctProgressForm .field textarea::placeholder{
+  color:#93A3B6!important;opacity:1!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .wct-progress-range-wrap,
+#modal.wct-modal-progress #wctProgressForm .wct-progress-range-wrap{
+  display:grid!important;grid-template-columns:minmax(0,1fr) 68px!important;gap:13px!important;
+  align-items:center!important;padding:12px 14px!important;
+  border:1px solid #DCE6F2!important;border-radius:12px!important;
+  background:#F8FAFD!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .wct-progress-range-wrap input,
+#modal.wct-modal-progress #wctProgressForm .wct-progress-range-wrap input{
+  width:100%!important;min-height:28px!important;accent-color:#2864C7!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .wct-progress-range-value,
+#modal.wct-modal-progress #wctProgressForm .wct-progress-range-value{
+  display:grid!important;place-items:center!important;min-height:38px!important;
+  border-radius:9px!important;background:#EAF2FD!important;color:#245B9C!important;
+  font-size:15px!important;font-weight:900!important;
+}
+#modal:has(#wctProgressForm) #wctProgressForm .sub,
+#modal.wct-modal-progress #wctProgressForm .sub{
+  color:#8193A8!important;font-size:9px!important;line-height:1.5!important;
+}
+#modal:has(#wctProgressForm) .wct-progress-edit-warning,
+#modal.wct-modal-progress .wct-progress-edit-warning{
+  margin:0 19px 14px!important;padding:11px 13px!important;
+  border:1px solid #F0DCA9!important;border-radius:10px!important;
+  background:#FFFAED!important;color:#87611D!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-form-footer,
+#modal.wct-modal-progress .wct-flow-form-footer{
+  position:sticky!important;bottom:0!important;z-index:8!important;
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:9px!important;
+  margin:0!important;padding:12px 18px!important;
+  border-top:1px solid #E4EAF2!important;border-radius:0 0 13px 13px!important;
+  background:rgba(255,255,255,.97)!important;
+  box-shadow:0 -5px 16px rgba(25,49,79,.055)!important;backdrop-filter:blur(10px)!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-form-footer-note,
+#modal.wct-modal-progress .wct-flow-form-footer-note{margin-right:auto!important;color:#8595A8!important;font-size:9px!important}
+#modal:has(#wctProgressForm) .wct-flow-form-footer .btn,
+#modal.wct-modal-progress .wct-flow-form-footer .btn{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:42px!important;padding:9px 15px!important;border-radius:10px!important;font-size:11px!important;font-weight:850!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-form-footer .btn-primary,
+#modal.wct-modal-progress .wct-flow-form-footer .btn-primary{
+  background:#2864C7!important;border-color:#2864C7!important;color:#FFFFFF!important;
+  box-shadow:0 5px 13px rgba(40,100,199,.17)!important;
+}
+#modal:has(#wctProgressForm) .wct-flow-form-footer .btn:not(.btn-primary),
+#modal.wct-modal-progress .wct-flow-form-footer .btn:not(.btn-primary){
+  border:1px solid #D6E1ED!important;background:#FFFFFF!important;color:#38516F!important;
+}
+@media(max-width:760px){
+  #modal:has(#wctProgressForm) .modal-body.wct-flow-modal-body,
+  #modal.wct-modal-progress .modal-body.wct-flow-modal-body{padding:12px!important}
+  #modal:has(#wctProgressForm) .wct-flow-form-top,
+  #modal.wct-modal-progress .wct-flow-form-top{padding:14px!important}
+  #modal:has(#wctProgressForm) .wct-flow-form-body,
+  #modal.wct-modal-progress .wct-flow-form-body{padding:14px!important}
+  #modal:has(#wctProgressForm) #wctProgressForm .form-grid,
+  #modal.wct-modal-progress #wctProgressForm .form-grid{grid-template-columns:minmax(0,1fr)!important;gap:13px!important}
+  #modal:has(#wctProgressForm) #wctProgressForm .field.span-2,
+  #modal.wct-modal-progress #wctProgressForm .field.span-2{grid-column:1!important}
+  #modal:has(#wctProgressForm) .wct-flow-form-footer,
+  #modal.wct-modal-progress .wct-flow-form-footer{
+    justify-content:stretch!important;padding:10px 12px calc(10px + env(safe-area-inset-bottom))!important;
+    gap:8px!important;
+  }
+  #modal:has(#wctProgressForm) .wct-flow-form-footer .btn,
+  #modal.wct-modal-progress .wct-flow-form-footer .btn{flex:1!important;min-width:0!important;padding:9px 9px!important}
+  #modal:has(#wctProgressForm) .wct-flow-form-footer-note,
+  #modal.wct-modal-progress .wct-flow-form-footer-note{display:none!important}
+}
+
 /* PICAPA modal polish: local light surfaces over the app's navy workspace theme */
 #modal.wct-modal-progress,
 #modal.wct-modal-action,
@@ -280,11 +472,10 @@ module.exports = function applyPicapaModalPolish(html) {
   function classify(){
     var modal=document.getElementById('modal');
     if(!modal)return;
-    modal.classList.remove('wct-modal-progress','wct-modal-action');
-    var progress=modal.querySelector('form[onsubmit*="submitProgress"]');
+    var progress=modal.querySelector('#wctProgressForm')||modal.querySelector('form[onsubmit*="submitProgress"]');
     var action=modal.querySelector('form[onsubmit*="submitAction"]');
-    if(progress)modal.classList.add('wct-modal-progress');
-    else if(action)modal.classList.add('wct-modal-action');
+    modal.classList.toggle('wct-modal-progress',!!progress);
+    modal.classList.toggle('wct-modal-action',!progress&&!!action);
     if(modal.querySelector('.wct-case-detail'))modal.classList.add('wct-case-detail-modal');
   }
   function init(){
