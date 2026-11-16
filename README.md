@@ -44,11 +44,15 @@ Fungsi tersebut memvalidasi role dari `wct_users` dan menjalankan operasi terkai
 
 Fungsi ini diperlukan agar Admin dapat membuat akun Auth, mengubah profil, mengaktifkan/nonaktifkan pengguna, dan mengatur ulang password anggota.
 
-Deploy folder `supabase/functions/wct-admin-users` sebagai Edge Function bernama `wct-admin-users` pada project Supabase:
+Folder `supabase/functions/wct-admin-users` sudah disiapkan sebagai Edge Function bernama `wct-admin-users`. Dari root repository (Node.js 20+), jalankan:
 
 ```bash
-supabase functions deploy wct-admin-users --project-ref ktqgtutzgivxjwtdqcbw
+npx supabase@latest login
+npx supabase@latest link --project-ref ktqgtutzgivxjwtdqcbw
+npx supabase@latest functions deploy wct-admin-users --project-ref ktqgtutzgivxjwtdqcbw --use-api
 ```
+
+Opsi `--use-api` menghindari kebutuhan Docker untuk proses bundling. Konfigurasi lokal ada di `supabase/config.toml`, dan verifikasi JWT tetap aktif.
 
 Function memakai environment bawaan Supabase: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEYS`, dan `SUPABASE_SECRET_KEYS` (mengambil key bernama `default`). Ada fallback ke nama legacy selama masa transisi API key. Jangan pernah menyalin secret key ke file frontend, GitHub, atau Vercel public environment. Secret key hanya digunakan di Edge Function.
 
