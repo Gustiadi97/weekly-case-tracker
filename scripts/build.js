@@ -79,6 +79,7 @@ try {
   html = require('./supabase-only-patch')(html);
   html = require('./icon-system')(html);
   html = require('./workspace-modules')(html);
+  html = require('./modal-controls')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -107,6 +108,10 @@ try {
     ['Unified SVG icon system', 'id="wct-icon-system"'],
     ['Icon observer ready marker', 'window.WCTIconSystemReady=true;'],
     ['Tasks, Team, Calendar and Analytics modules', 'id="wct-workspace-modules"'],
+    ['Reliable X / Cancel / Close modal controls', 'id="wct-modal-controls"'],
+    ['Modal close delegated click controller', "closest('#modalBackdrop button')"],
+    ['Modal controls normalise cancel buttons to type button', "button.type='button'"],
+    ['Escape key closes open modal', "if(event.key!=='Escape')return;"],
     ['Kanban four workflow columns', "var cols=[['open','To Do'],['in_progress','In Progress'],['review','In Review'],['done','Done']]"],
     ['Reference dashboard KPI cards', 'wct-workspace-kpis'],
     ['No Time Tracker module', 'Project Progress'],
@@ -340,7 +345,29 @@ try {
     ['Admin settings forms', '[data-settings-form]', "form.matches(\'[data-settings-form]\')"],
     ['Account password form', '[data-account-password]', "form.matches(\'[data-account-password]\')"],
     ['Case option forms', '[data-wct-option-form]', "form.matches(\'[data-wct-option-form]\')"],
-    ['Progress slider input', '[data-wct-progress-slider]', "closest(\'[data-wct-progress-slider]\')"]
+    ['Progress slider input', '[data-wct-progress-slider]', "closest(\'[data-wct-progress-slider]\')"],
+
+    ['Workspace module navigation', '[data-wct-workspace-page]', "closest('[data-wct-workspace-page]')"],
+    ['Dashboard case open', '[data-wct-open-case]', "closest('[data-wct-open-case]')"],
+    ['Dashboard create case', '[data-wct-create-case]', "closest('[data-wct-create-case]')"],
+    ['Dashboard native case navigation', '[data-wct-open-native]', "closest('[data-wct-open-native]')"],
+    ['Dashboard team navigation', '[data-wct-go]', "closest('[data-wct-go]')"],
+    ['Task progress action', '[data-wct-progress-action]', "closest('[data-wct-progress-action]')"],
+    ['Task creation workflow', '[data-wct-new-action]', "closest('[data-wct-new-action]')"],
+    ['Task filter controls', '[data-wct-task-filter]', "closest('[data-wct-task-filter]')"],
+    ['Task PIC filter reset', '[data-wct-clear-assignee]', "closest('[data-wct-clear-assignee]')"],
+    ['Calendar date navigation', '[data-wct-calendar-move]', "closest('[data-wct-calendar-move]')"],
+    ['Calendar Today control', '[data-wct-calendar-today]', "closest('[data-wct-calendar-today]')"],
+    ['Calendar day selection', '[data-wct-calendar-date]', "closest('[data-wct-calendar-date]')"],
+    ['Calendar action open', '[data-wct-open-action]', "closest('[data-wct-open-action]')"],
+    ['Team workload navigation', '[data-wct-member-tasks]', "closest('[data-wct-member-tasks]')"],
+    ['Team profile action', '[data-wct-member-detail]', "closest('[data-wct-member-detail]')"],
+    ['Team invite action', '[data-wct-invite-member]', "closest('[data-wct-invite-member]')"],
+    ['Team message composer', '[data-wct-member-message]', "closest('[data-wct-member-message]')"],
+    ['Team message copy action', '[data-wct-copy-message]', "closest('[data-wct-copy-message]')"],
+    ['New Action type selector', '[data-wct-new-action-kind]', "closest('[data-wct-new-action-kind]')"],
+    ['Analytics CSV export', '[data-wct-analytics-export]', "closest('[data-wct-analytics-export]')"],
+    ['Analytics period controls', '[data-wct-analytics-range]', "closest('[data-wct-analytics-range]')"]
   ];
   const missingDelegatedContracts = delegatedContracts
     .filter(([label, marker, listener]) => html.includes(marker) && !html.includes(listener))
@@ -400,7 +427,14 @@ try {
   if (delayedSettingsNavigationCount !== 1) {
     throw new Error('Button contract audit failed: settings navigation has duplicate/missing delayed handlers (' + delayedSettingsNavigationCount + ').');
   }
-  console.log('Button contract audit passed: ' + inlineHandlerAttributes.length + ' inline event handlers; ' + globalHandlerNames.size + ' named functions; delegated button/form routes verified.');
+  const auditedButtonCount = [...html.matchAll(/<button\\b/gi)].length;
+  if (auditedButtonCount < 100) {
+    throw new Error('Button audit failed: expected at least 100 application buttons to be inspected; found ' + auditedButtonCount + '.');
+  }
+  if (!html.includes('id="wct-modal-controls"') || !html.includes('window.closeModal=closeModalSafely;')) {
+    throw new Error('Button audit failed: modal close/cancel controller is missing.');
+  }
+  console.log('Button audit passed: ' + auditedButtonCount + ' button elements scanned; ' + inlineHandlerAttributes.length + ' inline event handlers; ' + globalHandlerNames.size + ' named functions; all registered delegated routes verified.');
 
   const supabaseRuntimePath = path.join(__dirname, 'supabase-runtime.js');
   const supabaseRuntime = fs.readFileSync(supabaseRuntimePath, 'utf8');
