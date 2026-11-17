@@ -86,16 +86,14 @@ try {
   html = require('./meeting-edit')(html);
 
 
-  for (const term of ['function openCaseForm','function newCaseForm','function submitCase','function createCase','function saveCase','function editCaseForm']) {
-    const at = html.indexOf(term);
-    if (at >= 0) {
-      const snippet = html.slice(at, Math.min(html.length, at + 6500));
-      for (let offset = 0, part = 0; offset < snippet.length; offset += 1600, part++) {
-        console.log('CASE_FORM_DIAG ' + term + ' part ' + part + ': ' + snippet.slice(offset, offset + 1600));
-      }
-    } else console.log('CASE_FORM_DIAG_MISSING ' + term);
-  }
 
+  const caseFunctionNames = [...html.matchAll(/(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)\\s*\\(/g)].map(m=>m[1]).filter(name=>/case|form/i.test(name));
+  console.log('CASE_FUNCTION_NAMES ' + JSON.stringify(caseFunctionNames));
+  for (const term of ['Create New Case','Buat Case Baru','onsubmit="saveCase','onsubmit="submitCase','id="caseForm"','name="hub_code"']) {
+    const at=html.indexOf(term);
+    if(at>=0)console.log('CASE_FORM_MARKER '+term+' '+html.slice(Math.max(0,at-900),Math.min(html.length,at+6500)));
+    else console.log('CASE_FORM_MARKER_MISSING '+term);
+  }
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
     ['priority button markup', 'class="wct-priority-choice high"'],
