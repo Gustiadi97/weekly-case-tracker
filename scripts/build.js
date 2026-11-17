@@ -81,6 +81,7 @@ try {
   html = require('./workspace-modules')(html);
   html = require('./modal-controls')(html);
   html = require('./picapa-modal-polish')(html);
+  html = require('./appearance-mode')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -112,6 +113,10 @@ try {
     ['Reliable X / Cancel / Close modal controls', 'id="wct-modal-controls"'],
     ['PICAPA modal visual polish stylesheet', 'id="wct-picapa-modal-polish-style"'],
     ['PICAPA modal runtime classifier', 'id="wct-picapa-modal-polish"'],
+    ['Global appearance mode stylesheet', 'id="wct-appearance-mode-style"'],
+    ['Global appearance mode toggle runtime', 'id="wct-appearance-mode"'],
+    ['Appearance mode preference is persisted', 'wctAppearanceMode'],
+    ['Dark mode secondary brand colour is orange', '--secondary:#FEA500'],
     ['Update Progress modal styling', '#modal.wct-modal-progress .modal-body'],
     ['Preventive and Corrective Action modal styling', '#modal.wct-modal-action .modal-body'],
     ['Edit Action direct form layout', '#modal:has(form[onsubmit*="submitAction"])>form'],
