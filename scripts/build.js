@@ -14,6 +14,18 @@ try {
   if (parts.length === 0) throw new Error('Compressed app source parts were not found.');
   const encoded = parts.map((name) => fs.readFileSync(path.join(sourceDir, name), 'utf8')).join('').replace(/\s+/g, '');
   let html = zlib.gunzipSync(Buffer.from(encoded, 'base64')).toString('utf8');
+  const meetingDiagTerms = ['Catat Hasil Meeting','Riwayat Weekly Meeting','function saveMeeting','function renderMeeting','function openMeeting','wct_meetings','meeting_cases'];
+  for (const term of meetingDiagTerms) {
+    let from = 0, found = 0;
+    while ((from = html.indexOf(term, from)) >= 0 && found < 5) {
+      console.log('MEETING_DIAG ' + JSON.stringify({term, index:from, snippet:html.slice(Math.max(0,from-1100),Math.min(html.length,from+2800))}));
+      from += term.length;
+      found++;
+    }
+  }
+  const meetingFns = [...html.matchAll(/(?:async\\s+)?function\\s+[A-Za-z0-9_$]*[Mm]eeting[A-Za-z0-9_$]*\\s*\\([^)]*\\)\\s*\\{/g)].slice(0,20);
+  for (const m of meetingFns) console.log('MEETING_DIAG_FN ' + html.slice(Math.max(0,m.index-300),Math.min(html.length,m.index+2600)));
+
 
   // Fix the missing DOM helper used by all inline navigation and action handlers.
   const scriptMarker = '<script>\n// Firebase Web App config';
