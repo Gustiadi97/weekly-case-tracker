@@ -15,16 +15,13 @@ try {
   const encoded = parts.map((name) => fs.readFileSync(path.join(sourceDir, name), 'utf8')).join('').replace(/\s+/g, '');
   let html = zlib.gunzipSync(Buffer.from(encoded, 'base64')).toString('utf8');
 
+
   for (const fnName of ['renderMeeting','openMeetingForm','submitMeeting','viewMeeting']) {
-    let start = html.indexOf('async function ' + fnName);
-    if (start < 0) start = html.indexOf('function ' + fnName);
+    const start = html.indexOf('function ' + fnName);
     if (start >= 0) {
-      let stop = html.indexOf('\\nfunction ', start + 5);
-      const nextAsync = html.indexOf('\\nasync function ', start + 5);
-      if (stop < 0 || (nextAsync >= 0 && nextAsync < stop)) stop = nextAsync;
-      if (stop < 0) stop = Math.min(html.length, start + 15000);
-      console.log('MEETING_FUNCTION ' + fnName + ' ' + html.slice(start, stop));
-    } else console.log('MEETING_FUNCTION_MISSING ' + fnName);
+      const part = html.slice(start, Math.min(html.length, start + 7000)).replace(/\\n/g, '\\\\n');
+      console.log('MEETING_SNIPPET_' + fnName + ' ' + part);
+    } else console.log('MEETING_SNIPPET_MISSING_' + fnName);
   }
   // Fix the missing DOM helper used by all inline navigation and action handlers.
   const scriptMarker = '<script>\n// Firebase Web App config';
