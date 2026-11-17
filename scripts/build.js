@@ -23,9 +23,19 @@ try {
       found++;
     }
   }
-  const meetingFns = [...html.matchAll(/(?:async\\s+)?function\\s+[A-Za-z0-9_$]*[Mm]eeting[A-Za-z0-9_$]*\\s*\\([^)]*\\)\\s*\\{/g)].slice(0,20);
-  for (const m of meetingFns) console.log('MEETING_DIAG_FN ' + html.slice(Math.max(0,m.index-300),Math.min(html.length,m.index+2600)));
 
+  for (const fnName of ['renderMeeting','openMeetingForm','submitMeeting','viewMeeting']) {
+    const re = new RegExp('(?:async\\\\s+)?function\\\\s+' + fnName + '\\\\s*\\\\(');
+    const match = re.exec(html);
+    if (match) {
+      const start = match.index;
+      const next = html.slice(start + 1).search(/\\\\n(?:async\\\\s+)?function\\\\s+[A-Za-z_$]/);
+      const stop = next < 0 ? Math.min(html.length, start + 12000) : Math.min(html.length, start + 1 + next);
+      console.log('MEETING_FUNCTION ' + fnName + ' ' + html.slice(start, stop));
+    } else console.log('MEETING_FUNCTION_MISSING ' + fnName);
+  }
+  const dbMentions = [...html.matchAll(/fireDb\\\\.collection\\\\(['"]meetings['"]\\\\)[^;\\\\n]*/g)].slice(0,12);
+  for (const m of dbMentions) console.log('MEETING_DB_CALL ' + m[0]);
 
   // Fix the missing DOM helper used by all inline navigation and action handlers.
   const scriptMarker = '<script>\n// Firebase Web App config';
