@@ -137,8 +137,6 @@ try {
     ['Weekly Meeting draft persistence is user-scoped', 'wctWeeklyMeetingDraft:v1:'],
     ['Weekly Meeting form restores saved values', 'function restoreValues(form,values)'],
     ['Weekly Meeting HUB selection is included in new meeting saves', "hub_code:String(data.get('hub_code')||'')"],
-    ['Weekly Meeting HUB is encoded in existing notes payload', "hub_code:String(row.hub_code||'')"],
-    ['Weekly Meeting HUB is restored from notes payload', "out.hub_code=String(notes.hub_code||'')"],
     ['Case draft autosave runtime', 'id="wct-case-draft-runtime"'],
     ['Case draft status indicator', 'wct-case-draft-notice'],
     ['Case draft restores data after reopening', 'function restore(form,draft)'],
@@ -494,7 +492,9 @@ try {
     ['Structured Case save error details', 'function wctCaseErrorDetails(error)'],
     ['Inline Case form error feedback', 'function wctShowCaseFormError(form,error)'],
     ['Case save success separated from refresh failure', 'Case berhasil disimpan, tetapi daftar belum berhasil diperbarui.'],
-    ['Case save uses Supabase atomic RPC', "sb.rpc('wct_create_case',{p_case:row,p_actions:actions})"]
+    ['Case save uses Supabase atomic RPC', "sb.rpc('wct_create_case',{p_case:row,p_actions:actions})"],
+    ['Weekly Meeting HUB is encoded in existing notes payload', "hub_code:String(row.hub_code||'')"],
+    ['Weekly Meeting HUB is restored from notes payload', "out.hub_code=String(notes.hub_code||'')"]
   ];
   const missingSupabaseRuntime = requiredSupabaseRuntime.filter(([, marker]) => !supabaseRuntime.includes(marker)).map(([name]) => name);
   if (missingSupabaseRuntime.length) {
