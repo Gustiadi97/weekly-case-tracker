@@ -59,6 +59,8 @@ module.exports = function addMeetingEditRuntime(html) {
       '<div class="modal-foot"><button type="button" class="btn" data-wct-meeting-edit-cancel>Batal</button><button type="submit" class="btn btn-primary">Simpan Perubahan</button></div>'+
       '</form>';
     if(typeof openModal==='function')openModal(form,true);
+    var editForm=document.querySelector('#modal #wctMeetingEditForm');
+    if(editForm)editForm.dataset.wctMeetingId=String(meeting.id);
   }
 
   async function submitMeetingEdit(event,id){
