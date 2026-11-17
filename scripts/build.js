@@ -119,7 +119,7 @@ try {
     ['Preventive and Corrective Action modal styling', '#modal.wct-modal-action .modal-body'],
     ['Edit Action direct form selector', '#modal:has(form[onsubmit*="submitAction"])'],
     ['Edit Action light form surface', '#modal:has(form[onsubmit*="submitAction"]) form.modal-body'],
-    ['Edit Action responsive one-column form', '#modal:has(form[onsubmit*="submitAction"]) .form-grid{grid-template-columns:minmax(0,1fr)!important}'],
+    ['Edit Action responsive one-column form', 'grid-template-columns:minmax(0,1fr)!important;gap:13px!important'],
     ['Case Detail modal styling', '#modal.wct-case-detail-modal .modal-body.wct-case-detail'],
     ['Visible error feedback above modal backdrop', 'id="wct-modal-feedback-style"'],
     ['Inline Case form error styling', '.wct-form-error{'],
