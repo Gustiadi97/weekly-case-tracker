@@ -85,6 +85,17 @@ try {
   html = require('./appearance-mode')(html);
   html = require('./meeting-edit')(html);
 
+
+  for (const term of ['function openCaseForm','function newCaseForm','function submitCase','function createCase','function saveCase','function editCaseForm']) {
+    const at = html.indexOf(term);
+    if (at >= 0) {
+      const snippet = html.slice(at, Math.min(html.length, at + 6500));
+      for (let offset = 0, part = 0; offset < snippet.length; offset += 1600, part++) {
+        console.log('CASE_FORM_DIAG ' + term + ' part ' + part + ': ' + snippet.slice(offset, offset + 1600));
+      }
+    } else console.log('CASE_FORM_DIAG_MISSING ' + term);
+  }
+
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
     ['priority button markup', 'class="wct-priority-choice high"'],
