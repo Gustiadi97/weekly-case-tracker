@@ -330,6 +330,303 @@ module.exports = function applyAppearanceMode(html) {
   .wct-appearance-toggle{min-width:40px!important;width:40px!important;height:40px!important;padding:0!important;margin-left:7px!important}
   .wct-appearance-toggle .wct-appearance-label{display:none!important}
 }
+
+
+/* Strong contrast pass: components that still carried light-theme colors. */
+:root[data-wct-appearance="dark"] #pageContent .wct-page-head h1,
+:root[data-wct-appearance="dark"] #pageContent .page-head h1,
+:root[data-wct-appearance="dark"] #pageContent h1.page-title{
+  color:#F3F6FA!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-page-head p,
+:root[data-wct-appearance="dark"] #pageContent .page-head p{
+  color:#B7C4D1!important;
+}
+
+/* Dashboard KPI values and Project List table */
+:root[data-wct-appearance="dark"] #pageContent .wct-workspace-kpi:not(:first-child),
+:root[data-wct-appearance="dark"] #pageContent .wct-analytics-kpi{
+  background:#151F2B!important;border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-workspace-kpi-label,
+:root[data-wct-appearance="dark"] #pageContent .wct-analytics-kpi small{
+  color:#B5C2CF!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-workspace-kpi-value,
+:root[data-wct-appearance="dark"] #pageContent .wct-analytics-kpi strong{
+  color:#F4F7FA!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-workspace-kpi-note,
+:root[data-wct-appearance="dark"] #pageContent .wct-analytics-kpi span{
+  color:#A7B5C3!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-workspace-kpi:first-child .wct-workspace-kpi-label,
+:root[data-wct-appearance="dark"] #pageContent .wct-workspace-kpi:first-child .wct-workspace-kpi-value,
+:root[data-wct-appearance="dark"] #pageContent .wct-workspace-kpi:first-child .wct-workspace-kpi-note{
+  color:#FFFFFF!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-case-table th{
+  background:#1C2A39!important;color:#B8C5D2!important;border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-case-table td{
+  background:#151F2B!important;color:#DCE5EE!important;border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-case-table .case-main strong{
+  color:#F0F4F8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-case-table .case-main small{
+  color:#A8B6C4!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-progress-inline b{
+  color:#F3C36E!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-member-main strong{
+  color:#ECF2F7!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-member-main small,
+:root[data-wct-appearance="dark"] #pageContent .wct-member-load small{
+  color:#A5B3C1!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-member-load b{
+  color:#F3C36E!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-gauge:before{
+  background:#151F2B!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-gauge-center strong{
+  color:#F4F7FA!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-gauge-center small,
+:root[data-wct-appearance="dark"] #pageContent .wct-gauge-legend div{
+  color:#AEBBC8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-gauge-legend b{
+  color:#E7EDF3!important;
+}
+
+/* Case Monitoring: every table row and cell gets a dark surface with readable copy. */
+:root[data-wct-appearance="dark"] #pageContent table tbody tr,
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table tbody tr,
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table tbody tr:nth-child(even){
+  background:#151F2B!important;
+}
+:root[data-wct-appearance="dark"] #pageContent table tbody tr > td,
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table tbody tr > td,
+:root[data-wct-appearance="dark"] #pageContent .table tbody tr > td{
+  background:#151F2B!important;color:#DCE5EE!important;
+  border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table tbody tr:hover > td,
+:root[data-wct-appearance="dark"] #pageContent table tbody tr:hover > td{
+  background:#202D3B!important;color:#F0F4F8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table .case-title,
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table .case-main strong,
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table td strong{
+  color:#F0F4F8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table td small,
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table td .sub{
+  color:#AAB8C6!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-cases-table tbody tr td:before{
+  color:#AAB8C6!important;
+}
+
+/* Tasks: toolbar, filters, kanban columns and cards. */
+:root[data-wct-appearance="dark"] #pageContent .wct-kanban-toolbar,
+:root[data-wct-appearance="dark"] #pageContent .wct-filterbar{
+  background:#151F2B!important;border-color:#344556!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.18)!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-filter-chip{
+  background:#202B37!important;border-color:#3A4B5D!important;color:#C8D3DE!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-filter-chip.active{
+  background:#3A2C18!important;border-color:#A96E13!important;color:#FFD28A!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-kanban-col{
+  background:#121C27!important;border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-kanban-col.is-over{
+  background:#1A2A39!important;border-color:#FEA500!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-kanban-col-head strong{
+  color:#E7EDF3!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-kanban-count{
+  background:#263544!important;color:#E5ECF3!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-card{
+  background:#1A2734!important;border-color:#35485B!important;
+  box-shadow:0 4px 12px rgba(0,0,0,.2)!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-card:hover{
+  background:#202F3E!important;border-color:#A96E13!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-card h4{
+  color:#F0F4F8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-case,
+:root[data-wct-appearance="dark"] #pageContent .wct-task-card-footer small{
+  color:#AEBBC8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-card-footer{
+  border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-actions button{
+  background:#202D3A!important;border-color:#405267!important;color:#E1E9F0!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-actions button.primary{
+  background:#FEA500!important;border-color:#FEA500!important;color:#17202A!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-type{
+  background:#263A53!important;color:#B9D5FA!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-task-type.pa{
+  background:#342B46!important;color:#D9C7FA!important;
+}
+
+/* Calendar: readable month heading, dark date cells and agenda empty states. */
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-month strong,
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-top strong{
+  color:#F1F5F8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-month small,
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-weekday,
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-legend-note{
+  color:#A9B7C5!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-top{
+  border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-top button[data-wct-calendar-move]{
+  background:#202D3A!important;border-color:#3A4D60!important;color:#E7EDF3!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-top button[data-wct-calendar-today]{
+  background:#3A2C18!important;border-color:#A96E13!important;color:#FFD28A!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day,
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day.outside{
+  background:#172330!important;border-color:#344556!important;color:#DCE5EE!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day strong{
+  color:#E6EDF4!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day.outside strong{
+  color:#8798A9!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day:hover{
+  background:#223242!important;border-color:#8D671F!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day.today{
+  background:#202D3A!important;border-color:#B77A1A!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day.today strong{
+  background:#3A2C18!important;color:#FFD28A!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day.selected{
+  background:#3A2C18!important;border-color:#FEA500!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-day.selected strong{
+  background:#FEA500!important;color:#17202A!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-legend{
+  border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-agenda-section+.wct-calendar-agenda-section{
+  border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-agenda-section-head strong{
+  color:#E6EDF4!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-agenda-section-head span{
+  color:#A9B7C5!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-event{
+  background:#1A2734!important;border-color:#344556!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-event strong{
+  color:#EDF2F7!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-event small{
+  color:#A7B5C3!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-empty{
+  background:#1A2734!important;border-color:#344556!important;color:#DCE5EE!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-empty-copy strong{
+  color:#EDF2F7!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-empty-copy small{
+  color:#A7B5C3!important;
+}
+
+/* Weekly Meeting and other KPI cards: never leave dark blue numbers on navy. */
+:root[data-wct-appearance="dark"] #pageContent .kpi-card,
+:root[data-wct-appearance="dark"] #pageContent .stat-card,
+:root[data-wct-appearance="dark"] #pageContent .metric-card,
+:root[data-wct-appearance="dark"] #pageContent .meeting-kpi,
+:root[data-wct-appearance="dark"] #pageContent .weekly-kpi{
+  background:#151F2B!important;border-color:#344556!important;color:#DCE5EE!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .kpi-card strong,
+:root[data-wct-appearance="dark"] #pageContent .stat-card strong,
+:root[data-wct-appearance="dark"] #pageContent .metric-card strong,
+:root[data-wct-appearance="dark"] #pageContent .meeting-kpi strong,
+:root[data-wct-appearance="dark"] #pageContent .weekly-kpi strong,
+:root[data-wct-appearance="dark"] #pageContent [class*="kpi-value"],
+:root[data-wct-appearance="dark"] #pageContent [class*="metric-value"],
+:root[data-wct-appearance="dark"] #pageContent [class*="stat-value"]{
+  color:#F2F6FA!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .kpi-card small,
+:root[data-wct-appearance="dark"] #pageContent .stat-card small,
+:root[data-wct-appearance="dark"] #pageContent .metric-card small,
+:root[data-wct-appearance="dark"] #pageContent .meeting-kpi small,
+:root[data-wct-appearance="dark"] #pageContent .weekly-kpi small,
+:root[data-wct-appearance="dark"] #pageContent [class*="kpi-label"],
+:root[data-wct-appearance="dark"] #pageContent [class*="metric-label"]{
+  color:#B3C0CD!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .kpi-card p,
+:root[data-wct-appearance="dark"] #pageContent .stat-card p,
+:root[data-wct-appearance="dark"] #pageContent .metric-card p{
+  color:#A9B7C5!important;
+}
+
+/* Empty panels and meeting history placeholders */
+:root[data-wct-appearance="dark"] #pageContent .empty,
+:root[data-wct-appearance="dark"] #pageContent .empty-state,
+:root[data-wct-appearance="dark"] #pageContent .empty-box,
+:root[data-wct-appearance="dark"] #pageContent .history-empty,
+:root[data-wct-appearance="dark"] #pageContent .meeting-history-empty,
+:root[data-wct-appearance="dark"] #pageContent [class*="empty-state"],
+:root[data-wct-appearance="dark"] #pageContent [class*="empty-box"]{
+  background:#172330!important;border-color:#344556!important;color:#C2CDD8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .empty strong,
+:root[data-wct-appearance="dark"] #pageContent .empty-state strong,
+:root[data-wct-appearance="dark"] #pageContent [class*="empty-state"] strong{
+  color:#EAF0F5!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .empty small,
+:root[data-wct-appearance="dark"] #pageContent .empty-state small,
+:root[data-wct-appearance="dark"] #pageContent [class*="empty-state"] small{
+  color:#AAB8C6!important;
+}
+
+/* Shared small captions and labels that used muted navy in light mode */
+:root[data-wct-appearance="dark"] #pageContent .wct-chart-legend,
+:root[data-wct-appearance="dark"] #pageContent .wct-chart-label,
+:root[data-wct-appearance="dark"] #pageContent .wct-calendar-weekday,
+:root[data-wct-appearance="dark"] #pageContent .wct-contributor-rank{
+  color:#AEBBC8!important;fill:#AEBBC8!important;
+}
+:root[data-wct-appearance="dark"] #pageContent .wct-chart-gridline{
+  stroke:#354657!important;
+}
+
 `;
   const runtime = String.raw`
 (function(){
