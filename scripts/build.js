@@ -84,34 +84,11 @@ try {
   html = require('./picapa-modal-polish')(html);
   html = require('./appearance-mode')(html);
   html = require('./meeting-edit')(html);
+  html = require('./case-draft-autosave')(html);
 
 
 
 
-  const caseFunctionNames = [];
-  let functionOffset = 0;
-  while ((functionOffset = html.indexOf('function ', functionOffset)) >= 0) {
-    const nameStart = functionOffset + 9;
-    const nameEnd = html.indexOf('(', nameStart);
-    if (nameEnd < 0 || nameEnd - nameStart > 90) { functionOffset = nameStart; continue; }
-    const name = html.slice(nameStart, nameEnd).trim().replace(/^async /, '');
-    if (name && (name.toLowerCase().includes('case') || name.toLowerCase().includes('form'))) caseFunctionNames.push(name);
-    functionOffset = nameEnd + 1;
-  }
-  console.log('CASE_FUNCTION_NAMES ' + JSON.stringify([...new Set(caseFunctionNames)]));
-  for (const fnName of ['openCaseForm','submitCase']) {
-    let at=html.indexOf('function '+fnName);
-    if(at<0){console.log('CASE_HANDLER_MISSING '+fnName);continue;}
-    const snippet=html.slice(at,Math.min(html.length,at+6500));
-    for(let offset=0,part=0;offset<snippet.length;offset+=420,part++){
-      console.log('CASE_HANDLER '+fnName+' '+part+' '+snippet.slice(offset,offset+420));
-    }
-  }
-  for (const term of ['Create New Case','Buat Case Baru','onsubmit="saveCase','onsubmit="submitCase','id="caseForm"','name="hub_code"']) {
-    const at=html.indexOf(term);
-    if(at>=0)console.log('CASE_FORM_MARKER '+term+' '+html.slice(Math.max(0,at-900),Math.min(html.length,at+6500)));
-    else console.log('CASE_FORM_MARKER_MISSING '+term);
-  }
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
     ['priority button markup', 'class="wct-priority-choice high"'],
@@ -155,6 +132,11 @@ try {
     ['Weekly Meeting history has an edit action', 'data-wct-meeting-edit'],
     ['Weekly Meeting updates the existing record', "fireDb.collection('meetings').doc(id).update(updated)"],
     ['Weekly Meeting preserves original creator and creation time', 'created_at:meeting.created_at||new Date().toISOString()'],
+    ['Case draft autosave runtime', 'id="wct-case-draft-runtime"'],
+    ['Case draft status indicator', 'wct-case-draft-notice'],
+    ['Case draft restores data after reopening', 'function restore(form,draft)'],
+    ['Case draft is scoped to the signed-in user', 'wctCaseDraft:v1:'],
+    ['Case draft clears only after a new Case is detected', 'verifySaved(before,0)'],
     ['Update Progress modal styling', '#modal.wct-modal-progress .modal-body'],
     ['Preventive and Corrective Action modal styling', '#modal.wct-modal-action .modal-body'],
     ['Edit Action direct form layout', '#modal:has(form[onsubmit*="submitAction"])>form'],
