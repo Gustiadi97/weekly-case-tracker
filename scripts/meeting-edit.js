@@ -149,6 +149,7 @@ module.exports = function addMeetingEditRuntime(html) {
   window.WCTMeetingEditReady=true;
 })();
 `;
+  try { new Function(runtime); } catch (error) { throw new Error('Weekly Meeting edit runtime syntax check failed: ' + error.message); }
   const style = '.wct-meeting-edit-cases{display:grid;gap:4px;max-height:190px;overflow:auto;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--white)}.wct-meeting-edit-case{display:flex!important;align-items:flex-start!important;gap:9px!important;padding:8px!important;border-bottom:1px solid var(--line);border-radius:7px}.wct-meeting-edit-case:last-child{border-bottom:0}.wct-meeting-edit-case input{width:auto!important;min-width:16px;margin-top:2px;accent-color:var(--secondary)}.wct-meeting-edit-case span{display:grid;gap:3px;min-width:0;font-size:11px}.wct-meeting-edit-case b{display:inline;color:var(--ink)}.wct-meeting-edit-case small{color:var(--muted);font-size:9px}';
   return html.replace('</body>', '<style id="wct-meeting-edit-style">' + style + '</style><script id="wct-meeting-edit-runtime">' + runtime + '</script></body>');
 };
