@@ -99,6 +99,14 @@ try {
     functionOffset = nameEnd + 1;
   }
   console.log('CASE_FUNCTION_NAMES ' + JSON.stringify([...new Set(caseFunctionNames)]));
+  for (const fnName of ['openCaseForm','submitCase']) {
+    let at=html.indexOf('function '+fnName);
+    if(at<0){console.log('CASE_HANDLER_MISSING '+fnName);continue;}
+    const snippet=html.slice(at,Math.min(html.length,at+6500));
+    for(let offset=0,part=0;offset<snippet.length;offset+=420,part++){
+      console.log('CASE_HANDLER '+fnName+' '+part+' '+snippet.slice(offset,offset+420));
+    }
+  }
   for (const term of ['Create New Case','Buat Case Baru','onsubmit="saveCase','onsubmit="submitCase','id="caseForm"','name="hub_code"']) {
     const at=html.indexOf(term);
     if(at>=0)console.log('CASE_FORM_MARKER '+term+' '+html.slice(Math.max(0,at-900),Math.min(html.length,at+6500)));
