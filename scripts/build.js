@@ -84,6 +84,7 @@ try {
   html = require('./picapa-modal-polish')(html);
   html = require('./appearance-mode')(html);
   html = require('./meeting-edit')(html);
+  html = require('./weekly-meeting-enhancements')(html);
   html = require('./case-draft-autosave')(html);
 
 
@@ -132,6 +133,12 @@ try {
     ['Weekly Meeting history has an edit action', 'data-wct-meeting-edit'],
     ['Weekly Meeting updates the existing record', "fireDb.collection('meetings').doc(id).update(updated)"],
     ['Weekly Meeting preserves original creator and creation time', 'created_at:meeting.created_at||new Date().toISOString()'],
+    ['Weekly Meeting draft autosave runtime', 'id="wct-weekly-meeting-enhancements-runtime"'],
+    ['Weekly Meeting draft persistence is user-scoped', 'wctWeeklyMeetingDraft:v1:'],
+    ['Weekly Meeting form restores saved values', 'function restoreValues(form,values)'],
+    ['Weekly Meeting HUB selection is included in new meeting saves', "hub_code:String(data.get('hub_code')||'')"],
+    ['Weekly Meeting HUB is encoded in existing notes payload', "hub_code:String(row.hub_code||'')"],
+    ['Weekly Meeting HUB is restored from notes payload', "out.hub_code=String(notes.hub_code||'')"],
     ['Case draft autosave runtime', 'id="wct-case-draft-runtime"'],
     ['Case draft status indicator', 'wct-case-draft-notice'],
     ['Case draft restores data after reopening', 'function restore(form,draft)'],
