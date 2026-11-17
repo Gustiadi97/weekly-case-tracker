@@ -193,6 +193,116 @@ module.exports = function applyPicapaModalPolish(html) {
   #modal.wct-modal-progress .wct-flow-form-footer-note{display:none!important}
 }
 
+
+/* Edit Action: explicitly style its actual form markup and keep all controls tappable. */
+#modal:has(form[onsubmit*="submitAction"]){
+  background:#F4F7FB!important;color:#172B46!important;
+  border:1px solid #D7E1ED!important;box-shadow:0 26px 80px rgba(12,35,64,.24)!important;
+}
+#modal:has(form[onsubmit*="submitAction"])>.modal-head{
+  position:relative!important;z-index:12!important;display:flex!important;align-items:center!important;
+  justify-content:space-between!important;gap:12px!important;padding:18px 21px!important;
+  border-bottom:1px solid #E4EAF2!important;background:#FFFFFF!important;
+}
+#modal:has(form[onsubmit*="submitAction"])>.modal-head h2{
+  color:#173B68!important;font-size:18px!important;font-weight:900!important;letter-spacing:-.02em!important;
+}
+#modal:has(form[onsubmit*="submitAction"])>.modal-head .eyebrow{color:#2864C7!important}
+#modal:has(form[onsubmit*="submitAction"])>.modal-head .sub{color:#75869B!important;font-size:11px!important}
+#modal:has(form[onsubmit*="submitAction"])>.modal-head .close{
+  position:relative!important;z-index:30!important;pointer-events:auto!important;touch-action:manipulation!important;
+  display:grid!important;place-items:center!important;width:46px!important;min-width:46px!important;
+  height:46px!important;min-height:46px!important;flex:0 0 46px!important;
+  padding:0!important;border:1px solid #DCE6F2!important;border-radius:11px!important;
+  background:#F3F7FC!important;color:#355271!important;
+}
+#modal:has(form[onsubmit*="submitAction"])>form{
+  display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;
+  overflow:hidden!important;margin:0!important;background:#F4F7FB!important;
+}
+#modal:has(form[onsubmit*="submitAction"])>form>.modal-body{
+  flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:18px 20px 20px!important;background:#F4F7FB!important;color:#263A54!important;
+  -webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .wct-picapa-form-intro{
+  display:flex!important;align-items:center!important;gap:12px!important;margin:0 0 17px!important;
+  padding:13px 15px!important;border:1px solid #D9E6F5!important;border-radius:12px!important;
+  background:linear-gradient(110deg,#EFF5FD 0%,#FFFFFF 100%)!important;color:#526B87!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .wct-picapa-form-intro i{
+  display:grid!important;place-items:center!important;width:36px!important;height:36px!important;
+  flex:0 0 36px!important;border-radius:10px!important;background:#DDEBFC!important;
+  color:#245E9F!important;font-size:11px!important;font-style:normal!important;font-weight:900!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .wct-picapa-form-intro p{
+  margin:0!important;color:#526B87!important;font-size:11px!important;line-height:1.6!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .section-title{
+  color:#2864C7!important;border-bottom-color:#E2E9F2!important;
+  font-size:10px!important;font-weight:900!important;letter-spacing:.1em!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .form-grid{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:start!important;gap:15px 16px!important;padding:0!important;margin:0!important;
+  background:transparent!important;color:#263A54!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .field{
+  display:block!important;min-width:0!important;margin:0!important;padding:0!important;
+  background:transparent!important;color:#263A54!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .field.span-2{grid-column:1/-1!important}
+#modal:has(form[onsubmit*="submitAction"]) .field label{
+  display:block!important;margin:0 0 7px!important;color:#405873!important;
+  font-size:11px!important;font-weight:850!important;letter-spacing:.005em!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .field input,
+#modal:has(form[onsubmit*="submitAction"]) .field select,
+#modal:has(form[onsubmit*="submitAction"]) .field textarea{
+  display:block!important;width:100%!important;max-width:100%!important;min-height:44px!important;
+  box-sizing:border-box!important;padding:11px 13px!important;border:1px solid #D7E1ED!important;
+  border-radius:10px!important;background:#FFFFFF!important;color:#1C3554!important;
+  font-family:inherit!important;font-size:12px!important;font-weight:500!important;line-height:1.55!important;
+  box-shadow:0 1px 2px rgba(25,49,79,.025)!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .field textarea{min-height:105px!important;resize:vertical!important}
+#modal:has(form[onsubmit*="submitAction"]) .field input:focus,
+#modal:has(form[onsubmit*="submitAction"]) .field select:focus,
+#modal:has(form[onsubmit*="submitAction"]) .field textarea:focus{
+  outline:none!important;border-color:#6F9DD7!important;box-shadow:0 0 0 3px rgba(40,100,199,.12)!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .field input::placeholder,
+#modal:has(form[onsubmit*="submitAction"]) .field textarea::placeholder{color:#93A3B6!important;opacity:1!important}
+#modal:has(form[onsubmit*="submitAction"])>form>.modal-foot{
+  position:relative!important;z-index:12!important;display:flex!important;flex:0 0 auto!important;
+  align-items:center!important;justify-content:flex-end!important;gap:9px!important;
+  margin:0!important;padding:13px 18px!important;border-top:1px solid #E2E9F2!important;
+  background:#FFFFFF!important;box-shadow:0 -5px 16px rgba(25,49,79,.05)!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .modal-foot .btn{
+  position:relative!important;z-index:15!important;pointer-events:auto!important;touch-action:manipulation!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-width:94px!important;min-height:44px!important;padding:10px 15px!important;
+  border-radius:10px!important;font-size:11px!important;font-weight:850!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .modal-foot .btn-primary{
+  border:1px solid #2864C7!important;background:#2864C7!important;color:#FFFFFF!important;
+  box-shadow:0 5px 13px rgba(40,100,199,.17)!important;
+}
+#modal:has(form[onsubmit*="submitAction"]) .modal-foot .btn:not(.btn-primary){
+  border:1px solid #D6E1ED!important;background:#FFFFFF!important;color:#38516F!important;
+}
+@media(max-width:760px){
+  #modal:has(form[onsubmit*="submitAction"])>.modal-head{padding:13px 14px!important}
+  #modal:has(form[onsubmit*="submitAction"])>form>.modal-body{padding:14px!important}
+  #modal:has(form[onsubmit*="submitAction"]) .form-grid{grid-template-columns:minmax(0,1fr)!important;gap:13px!important}
+  #modal:has(form[onsubmit*="submitAction"]) .field.span-2{grid-column:1!important}
+  #modal:has(form[onsubmit*="submitAction"])>form>.modal-foot{
+    justify-content:stretch!important;padding:10px 12px calc(10px + env(safe-area-inset-bottom))!important;
+  }
+  #modal:has(form[onsubmit*="submitAction"]) .modal-foot .btn{flex:1 1 0!important;min-width:0!important}
+}
+
 /* PICAPA modal polish: local light surfaces over the app's navy workspace theme */
 #modal.wct-modal-progress,
 #modal.wct-modal-action,
