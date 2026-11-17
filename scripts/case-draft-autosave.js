@@ -113,7 +113,7 @@ module.exports = function addCaseDraftAutosave(html) {
     showNotice(form,draft.updatedAt);
   }
   function saveNow(form){
-    if(!form||!form.isConnected)return;
+    if(!form)return;
     var values=collect(form);
     var key=userKey();
     currentDraftKey=key;
@@ -198,6 +198,10 @@ module.exports = function addCaseDraftAutosave(html) {
     var form=modalForm();
     if(form&&form!==currentForm)attach(form);
     else if(form&&form.dataset.wctDraftAttached!=='1')attach(form);
+    else if(!form&&currentForm&&saveTimer){
+      clearTimeout(saveTimer);saveTimer=null;
+      saveNow(currentForm);
+    }
   }
   function start(){
     scan();
