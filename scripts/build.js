@@ -87,8 +87,18 @@ try {
 
 
 
-  const caseFunctionNames = [...html.matchAll(/(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)\\s*\\(/g)].map(m=>m[1]).filter(name=>/case|form/i.test(name));
-  console.log('CASE_FUNCTION_NAMES ' + JSON.stringify(caseFunctionNames));
+
+  const caseFunctionNames = [];
+  let functionOffset = 0;
+  while ((functionOffset = html.indexOf('function ', functionOffset)) >= 0) {
+    const nameStart = functionOffset + 9;
+    const nameEnd = html.indexOf('(', nameStart);
+    if (nameEnd < 0 || nameEnd - nameStart > 90) { functionOffset = nameStart; continue; }
+    const name = html.slice(nameStart, nameEnd).trim().replace(/^async /, '');
+    if (name && (name.toLowerCase().includes('case') || name.toLowerCase().includes('form'))) caseFunctionNames.push(name);
+    functionOffset = nameEnd + 1;
+  }
+  console.log('CASE_FUNCTION_NAMES ' + JSON.stringify([...new Set(caseFunctionNames)]));
   for (const term of ['Create New Case','Buat Case Baru','onsubmit="saveCase','onsubmit="submitCase','id="caseForm"','name="hub_code"']) {
     const at=html.indexOf(term);
     if(at>=0)console.log('CASE_FORM_MARKER '+term+' '+html.slice(Math.max(0,at-900),Math.min(html.length,at+6500)));
