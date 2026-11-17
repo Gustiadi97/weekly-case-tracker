@@ -17,6 +17,16 @@ module.exports = function addMeetingEditRuntime(html) {
     if(typeof toast==='function')toast('Hanya koordinator/admin yang dapat mengubah hasil meeting.');
     return false;
   }
+  function hubOptionsMarkup(selected){
+    var hubs=[];
+    (state.cases||[]).forEach(function(item){if(item.hub_code)hubs.push(String(item.hub_code).trim().toUpperCase());});
+    (state.profiles||[]).forEach(function(item){if(item.hub_code)hubs.push(String(item.hub_code).trim().toUpperCase());});
+    try{if(currentUser&&currentUser.hub_code)hubs.push(String(currentUser.hub_code).trim().toUpperCase());}catch(ignore){}
+    hubs=Array.from(new Set(hubs.filter(Boolean))).sort();
+    var value=String(selected||'');
+    if(value&&hubs.indexOf(value.toUpperCase())<0&&value!=='Lintas HUB')hubs.push(value.toUpperCase());
+    return '<option value="">Pilih HUB</option>'+hubs.map(function(hub){return '<option value="'+safe(hub)+'"'+(hub===value?' selected':'')+'>'+safe(hub)+'</option>';}).join('')+'<option value="Lintas HUB"'+(value==='Lintas HUB'?' selected':'')+'>Lintas HUB / Beberapa HUB</option>';
+  }
   function caseChoices(meeting){
     var selected=Array.isArray(meeting.case_ids)?meeting.case_ids.map(String):[];
     return (state.cases||[]).filter(function(item){
@@ -40,6 +50,7 @@ module.exports = function addMeetingEditRuntime(html) {
       '<div class="modal-body"><div class="form-grid">'+
       '<div class="field"><label>Tanggal meeting *</label><input type="date" name="meeting_date" value="'+safe(date)+'" required></div>'+
       '<div class="field"><label>Judul meeting *</label><input name="title" value="'+safe(meeting.title||'')+'" required maxlength="160"></div>'+
+      '<div class="field"><label>HUB *</label><select name="hub_code" required>'+hubOptionsMarkup(meeting.hub_code)+'</select></div>'+
       '<div class="field span-2"><label>Ringkasan pembahasan</label><textarea name="summary" placeholder="Topik utama yang dibahas...">'+safe(meeting.summary||'')+'</textarea></div>'+
       '<div class="field span-2"><label>Keputusan / arahan meeting</label><textarea name="decisions" placeholder="Keputusan, arahan, dan kesepakatan...">'+safe(meeting.decisions||'')+'</textarea></div>'+
       '<div class="field span-2"><label>Next steps</label><textarea name="next_steps" placeholder="Tindak lanjut sebelum meeting berikutnya...">'+safe(meeting.next_steps||'')+'</textarea></div>'+
@@ -63,6 +74,7 @@ module.exports = function addMeetingEditRuntime(html) {
       decisions:String(data.get('decisions')||''),
       next_steps:String(data.get('next_steps')||''),
       case_ids:data.getAll('case_ids').map(function(value){return String(value);}),
+      hub_code:String(data.get('hub_code')||''),
       created_by:meeting.created_by||currentUser.id,
       created_at:meeting.created_at||new Date().toISOString(),
       updated_by:currentUser.id,
@@ -75,6 +87,7 @@ module.exports = function addMeetingEditRuntime(html) {
     try{
       await fireDb.collection('meetings').doc(id).update(updated);
       Object.assign(meeting,updated);
+      if(window.WCTWeeklyMeetingDraft&&typeof window.WCTWeeklyMeetingDraft.clearMeeting==='function')window.WCTWeeklyMeetingDraft.clearMeeting(id);
       if(typeof closeModal==='function')closeModal();
       if(typeof renderMeeting==='function')renderMeeting();
       else if(typeof renderPage==='function')renderPage();
@@ -97,6 +110,7 @@ module.exports = function addMeetingEditRuntime(html) {
       '</div>';
     var content='<div class="modal-head"><div><div class="eyebrow">MEETING MINUTES</div><h2>'+safe(meeting.title||'Weekly Meeting')+'</h2></div><button type="button" class="close" onclick="closeModal()">×</button></div>'+
       '<div class="modal-body"><div class="pill">'+safe(typeof fmtDate==='function'?fmtDate(meeting.meeting_date):meeting.meeting_date||'')+'</div>'+
+      '<div class="pill">HUB: '+safe(meeting.hub_code||'Belum ditentukan')+'</div>'+
       '<div class="section-title">Ringkasan</div><p style="white-space:pre-wrap;font-size:12px">'+safe(meeting.summary||'—')+'</p>'+
       '<div class="section-title">Keputusan / Arahan</div><p style="white-space:pre-wrap;font-size:12px">'+safe(meeting.decisions||'—')+'</p>'+
       '<div class="section-title">Next Steps</div><p style="white-space:pre-wrap;font-size:12px">'+safe(meeting.next_steps||'—')+'</p>'+
@@ -150,6 +164,7 @@ module.exports = function addMeetingEditRuntime(html) {
 })();
 `;
   try { new Function(runtime); } catch (error) { throw new Error('Weekly Meeting edit runtime syntax check failed: ' + error.message); }
+  try { new Function(hubOptionsMarkup.toString()); } catch (error) { throw new Error('Weekly Meeting HUB options syntax check failed: ' + error.message); }
   const style = '.wct-meeting-edit-cases{display:grid;gap:4px;max-height:190px;overflow:auto;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--white)}.wct-meeting-edit-case{display:flex!important;align-items:flex-start!important;gap:9px!important;padding:8px!important;border-bottom:1px solid var(--line);border-radius:7px}.wct-meeting-edit-case:last-child{border-bottom:0}.wct-meeting-edit-case input{width:auto!important;min-width:16px;margin-top:2px;accent-color:var(--secondary)}.wct-meeting-edit-case span{display:grid;gap:3px;min-width:0;font-size:11px}.wct-meeting-edit-case b{display:inline;color:var(--ink)}.wct-meeting-edit-case small{color:var(--muted);font-size:9px}';
   return html.replace('</body>', '<style id="wct-meeting-edit-style">' + style + '</style><script id="wct-meeting-edit-runtime">' + runtime + '</script></body>');
 };
