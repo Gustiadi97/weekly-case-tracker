@@ -48,14 +48,15 @@ function cleanRow(table,row){
     if(allowed.includes(target)&&row[key]!==undefined)out[target]=row[key];
   });
   if(table==='wct_meetings'){
-    const hasLegacyMeetingFields=['summary','decisions','next_steps','case_ids'].some(key=>Object.prototype.hasOwnProperty.call(row||{},key));
+    const hasLegacyMeetingFields=['summary','decisions','next_steps','case_ids','hub_code'].some(key=>Object.prototype.hasOwnProperty.call(row||{},key));
     if(hasLegacyMeetingFields){
       out.notes=JSON.stringify({
         wct_meeting_payload:1,
         summary:String(row.summary||''),
         decisions:String(row.decisions||''),
         next_steps:String(row.next_steps||''),
-        case_ids:Array.isArray(row.case_ids)?row.case_ids.map(String):[]
+        case_ids:Array.isArray(row.case_ids)?row.case_ids.map(String):[],
+        hub_code:String(row.hub_code||'')
       });
     }
   }
@@ -76,11 +77,98 @@ function presentRow(table,row){
         out.decisions=String(notes.decisions||'');
         out.next_steps=String(notes.next_steps||'');
         out.case_ids=Array.isArray(notes.case_ids)?notes.case_ids:[];
+        out.hub_code=String(notes.hub_code||'');
       }else{
         out.summary=String(row.notes||'');
         out.decisions='';
         out.next_steps='';
         out.case_ids=[];
+        out.hub_code='';
+;
+if (window.wctSupabaseRuntimeReady) return;
+window.wctSupabaseRuntimeReady = true;
+
+if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+  console.error('Supabase JS SDK belum termuat.');
+  return;
+}
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
+});
+window.wctSupabase = sb;
+
+const TABLES = {
+  users:'wct_users', team_directory:'wct_team_directory', cases:'wct_cases',
+  actions:'wct_actions', progress_logs:'wct_progress_logs',
+  progress_log_edits:'wct_progress_log_edits', meetings:'wct_meetings',
+  meeting_cases:'wct_meeting_cases', counters:'wct_counters', app_settings:'wct_app_settings'
+};
+const PK = {
+  wct_users:'id', wct_team_directory:'user_id', wct_cases:'id', wct_actions:'id',
+  wct_progress_logs:'id', wct_progress_log_edits:'id', wct_meetings:'id',
+  wct_meeting_cases:'meeting_id', wct_counters:'counter_key', wct_app_settings:'setting_key'
+};
+const ALLOWED = {
+  wct_users:['id','login_id','employee_id','full_name','area_name','role','active','created_at','created_by','updated_at'],
+  wct_team_directory:['user_id','full_name','role','active','deleted','updated_at'],
+  wct_cases:['id','case_number','hub_code','category','division','title','problem_identification','occurred_on','target_date','reporter','priority','status','created_by','updated_by','closed_at','closed_by','created_at','updated_at'],
+  wct_actions:['id','case_id','action_type','title','description','assigned_to','due_date','status','progress','latest_progress_log_id','created_by','updated_by','created_at','updated_at'],
+  wct_progress_logs:['id','case_id','action_id','update_text','progress_before','progress_after','status_after','blocker','next_step','created_by','created_at','edited_by','edited_at','last_edit_audit_id'],
+  wct_progress_log_edits:['id','log_id','case_id','action_id','edited_by','created_at','before_data','after_data','latest_update'],
+  wct_meetings:['id','title','meeting_date','start_time','end_time','location','notes','status','created_by','created_at','updated_at'],
+  wct_meeting_cases:['meeting_id','case_id','discussion_notes','created_at'],
+  wct_counters:['counter_key','value','updated_at'],
+  wct_app_settings:['setting_key','setting_value','updated_by','updated_at']
+};
+
+function cleanRow(table,row){
+  const allowed=ALLOWED[table]||[],out={};
+  Object.keys(row||{}).forEach(key=>{
+    let target=key;
+    if(table==='wct_cases'&&key==='case_code')target='case_number';
+    if(table==='wct_team_directory'&&key==='id')target='user_id';
+    if(table==='wct_counters'&&key==='id')target='counter_key';
+    if(table==='wct_app_settings'&&key==='id')target='setting_key';
+    if(allowed.includes(target)&&row[key]!==undefined)out[target]=row[key];
+  });
+  if(table==='wct_meetings'){
+    const hasLegacyMeetingFields=['summary','decisions','next_steps','case_ids','hub_code'].some(key=>Object.prototype.hasOwnProperty.call(row||{},key));
+    if(hasLegacyMeetingFields){
+      out.notes=JSON.stringify({
+        wct_meeting_payload:1,
+        summary:String(row.summary||''),
+        decisions:String(row.decisions||''),
+        next_steps:String(row.next_steps||''),
+        case_ids:Array.isArray(row.case_ids)?row.case_ids.map(String):[],
+        hub_code:String(row.hub_code||'')
+      });
+    }
+  }
+  return out;
+}
+function presentRow(table,row){
+  if(!row)return null;
+  const out=Object.assign({},row);
+  if(table==='wct_cases')out.case_code=row.case_number||'';
+  if(table==='wct_team_directory')out.id=row.user_id;
+  if(table==='wct_counters')out.id=row.counter_key;
+  if(table==='wct_users')out.hub_code=row.area_name||'';
+  if(table==='wct_meetings'){
+    try{
+      const notes=typeof row.notes==='string'?JSON.parse(row.notes):null;
+      if(notes&&notes.wct_meeting_payload===1){
+        out.summary=String(notes.summary||'');
+        out.decisions=String(notes.decisions||'');
+        out.next_steps=String(notes.next_steps||'');
+        out.case_ids=Array.isArray(notes.case_ids)?notes.case_ids:[];
+        out.hub_code=String(notes.hub_code||'');
+      }else{
+        out.summary=String(row.notes||'');
+        out.decisions='';
+        out.next_steps='';
+      out.case_ids=[];
+      out.hub_code='';
       }
     }catch(ignore){
       out.summary=String(row.notes||'');
