@@ -16,13 +16,6 @@ try {
   let html = zlib.gunzipSync(Buffer.from(encoded, 'base64')).toString('utf8');
 
 
-  for (const fnName of ['renderMeeting','openMeetingForm','submitMeeting','viewMeeting']) {
-    const start = html.indexOf('function ' + fnName);
-    if (start >= 0) {
-      const part = html.slice(start, Math.min(html.length, start + 7000)).replace(/\\n/g, '\\\\n');
-      console.log('MEETING_SNIPPET_' + fnName + ' ' + part);
-    } else console.log('MEETING_SNIPPET_MISSING_' + fnName);
-  }
   // Fix the missing DOM helper used by all inline navigation and action handlers.
   const scriptMarker = '<script>\n// Firebase Web App config';
   if (!html.includes('const $ = (id) => document.getElementById(id);')) {
@@ -90,6 +83,7 @@ try {
   html = require('./modal-controls')(html);
   html = require('./picapa-modal-polish')(html);
   html = require('./appearance-mode')(html);
+  html = require('./meeting-edit')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -130,6 +124,10 @@ try {
     ['Dark mode empty states are covered', '.empty-state'],
     ['Appearance mode preference is persisted', 'wctAppearanceMode'],
     ['Dark mode secondary brand colour is orange', '--secondary:#FEA500'],
+    ['Weekly Meeting edit form runtime', 'id="wct-meeting-edit-runtime"'],
+    ['Weekly Meeting history has an edit action', 'data-wct-meeting-edit'],
+    ['Weekly Meeting updates the existing record', "fireDb.collection('meetings').doc(id).update(updated)"],
+    ['Weekly Meeting preserves original creator and creation time', 'created_at:meeting.created_at||new Date().toISOString()'],
     ['Update Progress modal styling', '#modal.wct-modal-progress .modal-body'],
     ['Preventive and Corrective Action modal styling', '#modal.wct-modal-action .modal-body'],
     ['Edit Action direct form layout', '#modal:has(form[onsubmit*="submitAction"])>form'],
