@@ -88,6 +88,7 @@ try {
   html = require('./case-draft-autosave')(html);
   html = require('./saving-state')(html);
   html = require('./weekly-meeting-delete')(html);
+  html = require('./action-crud-override')(html);
   html = require('./ui-consistency')(html);
 
 
