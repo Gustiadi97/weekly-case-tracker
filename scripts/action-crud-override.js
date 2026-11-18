@@ -72,7 +72,6 @@ module.exports = function addActionCrudOverride(html) {
   // Re-apply after DOMContentLoaded so this secured handler wins in final order.
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
   else install();
-  window.addEventListener('load',function(){install();},{once:true});
 })();
 `;
   try { new Function(runtime); } catch (error) { throw new Error('Action CRUD override syntax check failed: ' + error.message); }
