@@ -478,32 +478,39 @@ window.submitCase=async function(event){
 
 window.submitAction=async function(event,caseId,type,actionId){
   event.preventDefault();
-  if(!isCoordinator())return;
-  const parent=state.cases.find(item=>item.id===caseId);
+  if(!isCoordinator()){toast('Hanya Admin atau Koordinator yang dapat mengelola Action.');return;}
+  const parent=state.cases.find(item=>String(item.id)===String(caseId));
   if(!parent||parent.status==='closed'){toast('Case sudah masuk arsip.');return;}
-  const form=new FormData(event.target);
+  if(!['corrective','preventive'].includes(type)){toast('Jenis Action tidak valid.');return;}
+  const form=new FormData(event.currentTarget||event.target);
   const title=String(form.get('title')||'').trim();
   const assigned=String(form.get('assigned_to')||'')||null;
   const due=String(form.get('due_date')||'')||null;
   if(!title||!assigned||!due){toast('Nama Action, PIC, dan target penyelesaian wajib diisi.');return;}
-  const fields={
-    title,description:String(form.get('description')||'').trim(),
-    assigned_to:assigned,due_date:due,updated_by:currentUser.id,
-    updated_at:new Date().toISOString()
+  const payload={
+    action_type:type,title,
+    description:String(form.get('description')||'').trim(),
+    assigned_to:assigned,due_date:due
   };
+  const button=event.submitter||(event.currentTarget||event.target).querySelector('button[type="submit"]');
+  if(button&&button.disabled)return;
+  if(button){button.disabled=true;button.dataset.originalLabel=button.textContent;button.textContent=actionId?'Menyimpan perubahan...':'Menyimpan Action...';}
   try{
-    let result;
-    if(actionId){
-      result=await sb.from('wct_actions').update(fields).eq('id',actionId).eq('case_id',caseId).select('*').maybeSingle();
-    }else{
-      result=await sb.from('wct_actions').insert(Object.assign({
-        case_id:caseId,action_type:type,status:'open',progress:0,created_by:currentUser.id
-      },fields)).select('*').single();
-    }
+    const result=await sb.rpc('wct_save_action',{
+      p_action_id:actionId||null,
+      p_case_id:caseId,
+      p_action:payload
+    });
     if(result.error)throw result.error;
     if(!result.data)throw new Error('Action tidak ditemukan atau tidak memiliki izin.');
-    await refreshData();closeModal();window.openCaseDetail(caseId);toast('Action berhasil disimpan.');
-  }catch(error){toast('Gagal menyimpan Action: '+(error.message||error));}
+    await refreshData();
+    closeModal();
+    if(typeof window.openCaseDetail==='function')window.openCaseDetail(caseId);
+    toast(actionId?'Action berhasil diperbarui.':'Action berhasil ditambahkan.');
+  }catch(error){
+    if(button){button.disabled=false;button.textContent=button.dataset.originalLabel||(actionId?'Simpan Perubahan':'Simpan Action');}
+    toast('Gagal menyimpan Action: '+(error.message||error));
+  }
 };
 
 window.submitProgress=async function(event,actionId,logId){
