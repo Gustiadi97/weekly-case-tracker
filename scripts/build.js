@@ -165,7 +165,7 @@ try {
     ['Action deletion calls the secured Supabase RPC', "window.wctSupabase.rpc('wct_delete_action',{p_action_id:actionId})"],
     ['Action delete has accessible tooltip and label', 'aria-label'],
     ['Action deletion uses the in-app confirmation handler', 'window.wctConfirmDeleteAction(action.title)'],
-    ['Action deletion no longer calls the browser confirm popup', 'window.confirm('],
+['Action delete confirmation awaits the custom in-app dialog', 'await window.wctConfirmDeleteAction(action.title)']
     ['Action delete refreshes Case detail after success', "window.openCaseDetail(action.case_id)"],
     ['Action table supports compact horizontal scrolling on small screens', 'wct-action-table-scroll'],
     ['Action table controls are compact icon-only buttons', 'wct-action-icon-btn'],
@@ -301,6 +301,10 @@ try {
     ['Action buttons accessible in full page', 'wct-case-action-buttons'],
     ['Mobile Case workspace grid', '.wct-case-detail-page .wct-case-meta-grid']
   ];
+  const picapaWorkflowSource = fs.readFileSync(path.join(__dirname, 'picapa-workflow.js'), 'utf8');
+  if (picapaWorkflowSource.includes('window.confirm(')) {
+    throw new Error('UI regression check failed: Action deletion still uses the native browser confirmation popup.');
+  }
   const missingUiChecks = uiChecks.filter(([name, marker]) => !html.includes(marker)).map(([name]) => name);
   if (missingUiChecks.length) {
     throw new Error('UI regression check failed: ' + missingUiChecks.join(', '));
