@@ -898,17 +898,36 @@ module.exports = function applyPicapaModalPolish(html) {
   #modal.wct-case-detail-modal .wct-action-table-progress .wct-case-action-track span{background:linear-gradient(90deg,#2864C7,#79A5DD)!important}
   #modal.wct-case-detail-modal .wct-action-table-progress>small{display:block!important;line-height:1!important}
   #modal.wct-case-detail-modal .wct-action-table-progress .status{display:inline-flex!important;margin:0!important;padding:3px 6px!important;font-size:8px!important}
-  #modal.wct-case-detail-modal .wct-action-table-buttons{display:flex!important;align-items:center!important;gap:5px!important;min-width:155px!important}
-  #modal.wct-case-detail-modal .wct-action-table-buttons .btn{
-    display:inline-flex!important;align-items:center!important;justify-content:center!important;
-    min-height:30px!important;padding:6px 9px!important;border-radius:8px!important;
-    white-space:nowrap!important;font-size:9px!important;font-weight:850!important;
+  #modal.wct-case-detail-modal .wct-action-table-buttons{
+    display:flex!important;align-items:center!important;gap:6px!important;min-width:118px!important;
+  }
+  #modal.wct-case-detail-modal .wct-action-table-buttons .wct-action-icon-btn{
+    display:inline-flex!important;flex:0 0 31px!important;align-items:center!important;justify-content:center!important;
+    width:31px!important;min-width:31px!important;height:31px!important;min-height:31px!important;
+    padding:0!important;border-radius:8px!important;white-space:nowrap!important;
+    box-shadow:none!important;transition:transform .15s ease,background .15s ease,border-color .15s ease!important;
+  }
+  #modal.wct-case-detail-modal .wct-action-table-buttons .wct-action-icon-btn:hover{
+    transform:translateY(-1px)!important;
+  }
+  #modal.wct-case-detail-modal .wct-action-table-buttons .wct-action-icon-btn svg{
+    display:block!important;width:14px!important;height:14px!important;fill:none!important;
+    stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;
   }
   #modal.wct-case-detail-modal .wct-action-table-buttons .wct-action-row-edit{
     border:1px solid #D6E1ED!important;background:#FFFFFF!important;color:#38516F!important;
   }
   #modal.wct-case-detail-modal .wct-action-table-buttons .wct-action-row-update{
     border:1px solid #2864C7!important;background:#2864C7!important;color:#FFFFFF!important;
+  }
+  #modal.wct-case-detail-modal .wct-action-table-buttons .wct-action-row-delete{
+    border:1px solid #F0C7CA!important;background:#FFF5F5!important;color:#B13E49!important;
+  }
+  #modal.wct-case-detail-modal .wct-action-table-buttons .wct-action-row-delete:hover{
+    border-color:#D98289!important;background:#FDEBEC!important;color:#9D2E3A!important;
+  }
+  #modal.wct-case-detail-modal .wct-action-table-buttons .wct-action-icon-btn:disabled{
+    opacity:.55!important;cursor:wait!important;transform:none!important;
   }
   #modal.wct-case-detail-modal .wct-action-table-empty{
     padding:15px 12px!important;color:#8797AA!important;text-align:center!important;font-size:10px!important;
