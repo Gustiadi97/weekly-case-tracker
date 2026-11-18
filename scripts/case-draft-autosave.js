@@ -85,6 +85,15 @@ module.exports = function addCaseDraftAutosave(html) {
     currentDraftKey='';
     currentForm=null;
   }
+  function clearCurrentDraft(){
+    var form=currentForm||modalForm();
+    var key=currentDraftKey||userKey();
+    clearStoredDraft(key,form);
+  }
+  window.WCTCaseDraft={
+    clear:clearCurrentDraft,
+    clearForm:function(form){clearStoredDraft(userKey(),form||modalForm());}
+  };
   function restorePriority(form){
     var field=form.querySelector('[name="priority"]');
     if(!field)return;
