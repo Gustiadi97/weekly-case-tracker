@@ -161,7 +161,13 @@ try {
     ['Preventive Action table is rendered', "actionTable('preventive','Preventive Action','PA')"],
     ['Action table preserves Edit Action control', 'wct-action-row-edit'],
     ['Action table preserves Update Progress control', 'wct-action-row-update'],
+    ['Action table adds a delete icon for coordinators', 'wct-action-row-delete'],
+    ['Action delete has accessible tooltip and label', 'aria-label=\\\"Hapus Action\\\"'],
+    ['Action delete uses a confirmation and blocks duplicate clicks', 'window.confirm('],
+    ['Action delete refreshes Case detail after success', "window.openCaseDetail(action.case_id)"],
     ['Action table supports compact horizontal scrolling on small screens', 'wct-action-table-scroll'],
+    ['Action table controls are compact icon-only buttons', 'wct-action-icon-btn'],
+    ['Delete icon uses a dedicated danger style', 'wct-action-row-delete:hover'],
 
     ['Case Monitoring progress uses the average of related Actions', 'function wctCaseActionProgress(caseId)'],
     ['Case Monitoring progress displays the calculated Action average', 'wctCaseActionProgress(c.id)'],
@@ -517,9 +523,24 @@ try {
     ['New user form resets after confirmed database save', 'formElement.reset()'],
     ['Case draft is cleared immediately after confirmed database save', 'window.WCTCaseDraft.clear()'],
     ['Case save uses Supabase atomic RPC', "sb.rpc('wct_create_case',{p_case:row,p_actions:actions})"],
+    ['Action deletion is invoked via the secured Supabase RPC', "window.wctSupabase.rpc('wct_delete_action',{p_action_id:actionId})"],
     ['Weekly Meeting HUB is encoded in existing notes payload', "hub_code:String(row.hub_code||'')"],
     ['Weekly Meeting HUB is restored from notes payload', "out.hub_code=String(notes.hub_code||'')"]
   ];
+  const actionDeleteMigrationPath = path.join(root, 'supabase/migrations/20261119_wct_delete_action.sql');
+  const actionDeleteMigration = fs.readFileSync(actionDeleteMigrationPath, 'utf8');
+  const requiredActionDeleteSql = [
+    ['active Admin/Coordinator role check', "v_role not in ('admin','coordinator')"],
+    ['closed Case protection', "where id = v_action.case_id and status = 'closed'"],
+    ['progress audit cleanup', 'delete from public.wct_progress_log_edits'],
+    ['progress history cleanup', 'delete from public.wct_progress_logs'],
+    ['Action deletion', 'delete from public.wct_actions'],
+    ['authenticated RPC grant', 'to authenticated']
+  ];
+  const missingActionDeleteSql = requiredActionDeleteSql.filter(([, marker]) => !actionDeleteMigration.includes(marker)).map(([name]) => name);
+  if (missingActionDeleteSql.length) {
+    throw new Error('Action delete SQL migration contract check failed: ' + missingActionDeleteSql.join(', '));
+  }
   const missingSupabaseRuntime = requiredSupabaseRuntime.filter(([, marker]) => !supabaseRuntime.includes(marker)).map(([name]) => name);
   if (missingSupabaseRuntime.length) {
     throw new Error('Supabase runtime contract check failed: ' + missingSupabaseRuntime.join(', '));
