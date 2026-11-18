@@ -87,6 +87,8 @@ try {
   html = require('./weekly-meeting-enhancements')(html);
   html = require('./case-draft-autosave')(html);
   html = require('./saving-state')(html);
+  html = require('./weekly-meeting-delete')(html);
+  html = require('./ui-consistency')(html);
 
 
 
@@ -173,6 +175,19 @@ try {
     ['Action deletion confirmation is accessible as an alert dialog', 'aria-modal'],
     ['Action deletion confirmation has dedicated Cancel and Confirm buttons', 'wct-action-delete-confirm'],
     ['Action deletion confirmation supports dark appearance', '[data-wct-appearance'],
+    ['Weekly Meeting history delete runtime is included', 'id="wct-weekly-meeting-delete-runtime"'],
+    ['Weekly Meeting history has an in-app confirmation dialog', 'wct-weekly-delete-title'],
+    ['Weekly Meeting history delete invokes secured RPC', 'wct_delete_meeting'],
+    ['Weekly Meeting history has icon-only delete control', 'wct-meeting-delete-icon'],
+    ['Weekly Meeting detail has a delete action control', 'data-wct-meeting-delete'],
+    ['Weekly Meeting delete confirmation has Cancel and Confirm handlers', 'wctAcceptWeeklyMeetingDelete()'],
+    ['Final UI consistency stylesheet is loaded', 'id="wct-ui-consistency-style"'],
+    ['Final UI layer sets a softer charcoal dark canvas', '--wct-ui-canvas:#17212D'],
+    ['Dark mode Weekly Meeting checklist text remains readable', '#modal #wctMeetingEditForm .wct-meeting-edit-case b'],
+    ['Dark mode Case Detail sections use dark surfaces', '#modal.wct-case-detail-modal .wct-case-section'],
+    ['Dark mode Case Action tables use dark surfaces', '#modal.wct-case-detail-modal .wct-action-table-group'],
+    ['Light mode modal fields keep white surfaces', 'background:#FFFFFF!important;color:#20344B!important'],
+    ['Dark mode modal fields keep readable foreground contrast', 'background:#1B2937!important;color:#F0F4F8!important'],
 
     ['Case Monitoring progress uses the average of related Actions', 'function wctCaseActionProgress(caseId)'],
     ['Case Monitoring progress displays the calculated Action average', 'wctCaseActionProgress(c.id)'],
@@ -532,6 +547,7 @@ try {
     ['New user form resets after confirmed database save', 'formElement.reset()'],
     ['Case draft is cleared immediately after confirmed database save', 'window.WCTCaseDraft.clear()'],
     ['Case save uses Supabase atomic RPC', "sb.rpc('wct_create_case',{p_case:row,p_actions:actions})"],
+    ['Action create and edit use Admin/Coordinator RPC', 'wct_save_action'],
 
     ['Weekly Meeting HUB is encoded in existing notes payload', "hub_code:String(row.hub_code||'')"],
     ['Weekly Meeting HUB is restored from notes payload', "out.hub_code=String(notes.hub_code||'')"]
@@ -549,6 +565,26 @@ try {
   const missingActionDeleteSql = requiredActionDeleteSql.filter(([, marker]) => !actionDeleteMigration.includes(marker)).map(([name]) => name);
   if (missingActionDeleteSql.length) {
     throw new Error('Action delete SQL migration contract check failed: ' + missingActionDeleteSql.join(', '));
+  }
+  const adminCoordinatorCrudMigrationPath = path.join(root, 'supabase/migrations/20261120_wct_admin_coordinator_crud.sql');
+  const adminCoordinatorCrudMigration = fs.readFileSync(adminCoordinatorCrudMigrationPath, 'utf8');
+  const requiredAdminCoordinatorCrudSql = [
+    ['role-checked Action create/edit RPC', 'create or replace function public.wct_save_action('],
+    ['role-checked Action delete RPC', 'create or replace function public.wct_delete_action('],
+    ['role-checked Weekly Meeting delete RPC', 'create or replace function public.wct_delete_meeting('],
+    ['all management RPCs restricted to active Admin/Coordinator', "v_role not in ('admin','coordinator')"],
+    ['Weekly Meeting case-link cleanup', 'delete from public.wct_meeting_cases'],
+    ['Weekly Meeting history deletion', 'delete from public.wct_meetings'],
+    ['Action history cleanup', 'delete from public.wct_progress_logs'],
+    ['Action audit cleanup', 'delete from public.wct_progress_log_edits'],
+    ['authenticated CRUD RPC grants', 'grant execute on function public.wct_save_action(uuid,uuid,jsonb) to authenticated'],
+    ['direct Action table writes are revoked', 'revoke insert, update, delete on table public.wct_actions from anon, authenticated']
+  ];
+  const missingAdminCoordinatorCrudSql = requiredAdminCoordinatorCrudSql
+    .filter(([, marker]) => !adminCoordinatorCrudMigration.includes(marker))
+    .map(([name]) => name);
+  if (missingAdminCoordinatorCrudSql.length) {
+    throw new Error('Admin/Coordinator CRUD migration contract check failed: ' + missingAdminCoordinatorCrudSql.join(', '));
   }
   const missingSupabaseRuntime = requiredSupabaseRuntime.filter(([, marker]) => !supabaseRuntime.includes(marker)).map(([name]) => name);
   if (missingSupabaseRuntime.length) {
