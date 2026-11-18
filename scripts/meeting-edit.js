@@ -129,7 +129,7 @@ module.exports = function addMeetingEditRuntime(html) {
       if(!match)return;
       var button=document.createElement('button');
       button.type='button';button.className='btn btn-sm';
-      button.dataset.wctMeetingEdit=match[1];button.textContent='Edit';
+      button.dataset.wctStructuredEdit=match[1];button.textContent='Edit';
       detail.parentNode.insertBefore(button,detail);
     });
   }
