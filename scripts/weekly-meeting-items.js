@@ -22,7 +22,7 @@ module.exports = function addWeeklyMeetingItems(html) {
   function findCase(id){return (state.cases||[]).find(function(c){return String(c.id)===String(id);})||null;}
   function pointKey(i,item){return item.client_key||item.id||('new-'+i);}
   function projectFields(item,meeting,key){
-    var p=item.project||{},ca=p.ca||{},pa=p.pa||'',caseId=item.case_id||'';
+    var p=item.project||{},actions=Array.isArray(p.actions)?p.actions:[],ca=p.ca||actions.find(function(a){return a.action_type==='corrective';})||{},pa=p.pa||actions.find(function(a){return a.action_type==='preventive';})||{},caseId=item.case_id||'';
     if(caseId){var c=findCase(caseId);return '<section class="wct-meeting-project-created" data-wct-item-panel="new_case"><div><span class="wct-meeting-type-tag">CASE / PROJECT SUDAH DIBUAT</span><strong>'+safe(c?(c.case_code||'Case')+' · '+c.title:'Case terhubung')+'</strong><small>'+safe(c?((c.hub_code||'—')+' · '+(c.status||'open')):caseId)+'</small></div><button type="button" class="btn btn-sm" data-wct-open-case-id="'+safe(caseId)+'">Buka Case</button><p>Detail project selanjutnya dikelola melalui Case Monitoring.</p></section>';}
     var report=p.reporter||((currentUser&&(currentUser.full_name||currentUser.login_id))||'');
     return '<section class="wct-meeting-project-fields" data-wct-item-panel="new_case"><div class="wct-meeting-subhead"><strong>Data Case / Project baru</strong><span>Wajib dilengkapi agar tercatat di Case Monitoring</span></div><div class="form-grid">'+
@@ -61,7 +61,7 @@ module.exports = function addWeeklyMeetingItems(html) {
           var ca=val('[data-wct-ca-title]'),pa=val('[data-wct-pa-title]'),actions=[];
           if(ca)actions.push({action_type:'corrective',title:ca,description:'',assigned_to:val('[data-wct-ca-pic]')||null,due_date:val('[data-wct-ca-due]')||null});
           if(pa)actions.push({action_type:'preventive',title:pa,description:'',assigned_to:val('[data-wct-pa-pic]')||null,due_date:val('[data-wct-pa-due]')||null});
-          item.project={hub_code:val('[data-wct-project-hub]').toUpperCase(),category:val('[data-wct-project-category]'),division:val('[data-wct-project-division]'),occurred_on:val('[data-wct-project-occurred]'),target_date:val('[data-wct-project-target]')||null,reporter:val('[data-wct-project-reporter]'),priority:val('[data-wct-project-priority]')||'Medium',problem_identification:val('[data-wct-project-problem]'),actions:actions};
+          item.project={hub_code:val('[data-wct-project-hub]').toUpperCase(),category:val('[data-wct-project-category]'),division:val('[data-wct-project-division]'),occurred_on:val('[data-wct-project-occurred]'),target_date:val('[data-wct-project-target]')||null,reporter:val('[data-wct-project-reporter]'),priority:val('[data-wct-project-priority]')||'Medium',problem_identification:val('[data-wct-project-problem]'),actions:actions,ca:{title:ca,assigned_to:val('[data-wct-ca-pic]')||null,due_date:val('[data-wct-ca-due]')||null},pa:{title:pa,assigned_to:val('[data-wct-pa-pic]')||null,due_date:val('[data-wct-pa-due]')||null}};
         }
       }
       return item;
