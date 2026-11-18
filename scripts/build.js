@@ -86,6 +86,7 @@ try {
   html = require('./meeting-edit')(html);
   html = require('./weekly-meeting-enhancements')(html);
   html = require('./case-draft-autosave')(html);
+  html = require('./saving-state')(html);
 
 
 
@@ -138,6 +139,8 @@ try {
     ['Weekly Meeting form restores saved values', 'function restoreValues(form,values)'],
     ['Weekly Meeting HUB selection is included in new meeting saves', "hub_code:String(data.get('hub_code')||'')"],
     ['Case draft autosave runtime', 'id="wct-case-draft-runtime"'],
+    ['Animated database save feedback runtime', 'id="wct-saving-state-runtime"'],
+    ['Animated save spinner and progress indicator', 'wct-save-progress-track'],
     ['Case draft status indicator', 'wct-case-draft-notice'],
     ['Case draft restores data after reopening', 'function restore(form,draft)'],
     ['Case draft is scoped to the signed-in user', 'wctCaseDraft:v1:'],
