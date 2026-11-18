@@ -779,7 +779,7 @@ module.exports = function applyPicapaModalPolish(html) {
 }
 
 `;
-/* Case Detail modal: one column scroll container with naturally sized sections. */
+  const detailLayoutCss = String.raw`\n/* Case Detail modal: one column scroll container with naturally sized sections. */
 #modal.wct-case-detail-modal{
   display:flex!important;flex-direction:column!important;align-items:stretch!important;
   width:min(1080px,calc(100vw - 32px))!important;max-width:1080px!important;
@@ -833,8 +833,7 @@ module.exports = function applyPicapaModalPolish(html) {
     justify-self:start!important;
   }
   #modal.wct-case-detail-modal .wct-case-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-}
-\n  const runtime = String.raw`
+}\n`;  const runtime = String.raw`
 (function(){
   if(window.__WCT_PICAPA_MODAL_POLISH__)return;
   window.__WCT_PICAPA_MODAL_POLISH__=true;
@@ -859,5 +858,5 @@ module.exports = function applyPicapaModalPolish(html) {
   else init();
 })();
 `;
-  return html.replace('</body>', '<style id="wct-picapa-modal-polish-style">' + css + '</style><script id="wct-picapa-modal-polish">' + runtime + '</script></body>');
+  return html.replace('</body>', '<style id="wct-picapa-modal-polish-style">' + css + detailLayoutCss + '</style><script id="wct-picapa-modal-polish">' + runtime + '</script></body>');
 };
