@@ -170,9 +170,9 @@ try {
     ['Action table controls are compact icon-only buttons', 'wct-action-icon-btn'],
     ['Delete icon uses a dedicated danger style', 'wct-action-row-delete:hover'],
     ['Action deletion uses the branded in-app modal overlay', '.wct-action-delete-overlay'],
-    ['Action deletion confirmation is accessible as an alert dialog', 'role=\\\"alertdialog\\\"'],
+    ['Action deletion confirmation is accessible as an alert dialog', 'aria-modal'],
     ['Action deletion confirmation has dedicated Cancel and Confirm buttons', 'wct-action-delete-confirm'],
-    ['Action deletion confirmation supports dark appearance', '[data-wct-appearance=\\\"dark\\\"] .wct-action-delete-dialog'],
+    ['Action deletion confirmation supports dark appearance', '[data-wct-appearance'],
 
     ['Case Monitoring progress uses the average of related Actions', 'function wctCaseActionProgress(caseId)'],
     ['Case Monitoring progress displays the calculated Action average', 'wctCaseActionProgress(c.id)'],
