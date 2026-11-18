@@ -185,7 +185,6 @@ declare
   v_uid uuid := auth.uid();
   v_role text;
   v_meeting public.wct_meetings%rowtype;
-  v_deleted_links integer := 0;
 begin
   select role into v_role
   from public.wct_users
@@ -206,18 +205,14 @@ begin
       using errcode = 'P0002';
   end if;
 
-  -- Remove only the association rows. The related Case and Action records remain intact.
-  delete from public.wct_meeting_cases
-  where meeting_id = p_meeting_id;
-  get diagnostics v_deleted_links = row_count;
-
+  -- Case IDs are packed into the meeting notes payload. Removing the meeting
+  -- record therefore removes only this history; Case and Action rows remain intact.
   delete from public.wct_meetings
   where id = p_meeting_id;
 
   return jsonb_build_object(
     'ok', true,
-    'meeting_id', p_meeting_id,
-    'deleted_case_links', v_deleted_links
+    'meeting_id', p_meeting_id
   );
 end;
 $$;
