@@ -162,7 +162,8 @@ try {
     ['Action table preserves Edit Action control', 'wct-action-row-edit'],
     ['Action table preserves Update Progress control', 'wct-action-row-update'],
     ['Action table adds a delete icon for coordinators', 'wct-action-row-delete'],
-    ['Action delete has accessible tooltip and label', 'aria-label=\\\"Hapus Action\\\"'],
+    ['Action deletion calls the secured Supabase RPC', "window.wctSupabase.rpc('wct_delete_action',{p_action_id:actionId})"],
+    ['Action delete has accessible tooltip and label', 'aria-label'],
     ['Action delete uses a confirmation and blocks duplicate clicks', 'window.confirm('],
     ['Action delete refreshes Case detail after success', "window.openCaseDetail(action.case_id)"],
     ['Action table supports compact horizontal scrolling on small screens', 'wct-action-table-scroll'],
@@ -523,7 +524,7 @@ try {
     ['New user form resets after confirmed database save', 'formElement.reset()'],
     ['Case draft is cleared immediately after confirmed database save', 'window.WCTCaseDraft.clear()'],
     ['Case save uses Supabase atomic RPC', "sb.rpc('wct_create_case',{p_case:row,p_actions:actions})"],
-    ['Action deletion is invoked via the secured Supabase RPC', "window.wctSupabase.rpc('wct_delete_action',{p_action_id:actionId})"],
+
     ['Weekly Meeting HUB is encoded in existing notes payload', "hub_code:String(row.hub_code||'')"],
     ['Weekly Meeting HUB is restored from notes payload', "out.hub_code=String(notes.hub_code||'')"]
   ];
