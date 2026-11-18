@@ -111,11 +111,19 @@ module.exports = function addSavingState(html) {
     window[name]=wrapped;
   }
 
-  [
+  var handlerNames=[
     'submitUser','submitResetPassword','saveUserProfile',
     'submitCase','saveEditedCase','submitAction','submitProgress',
     'submitMeeting','submitMeetingEdit','saveMeetingEdit','changeOwnPassword'
-  ].forEach(wrap);
+  ];
+  function wrapAll(){handlerNames.forEach(wrap);}
+  wrapAll();
+  // Supabase runtime may be deferred by the browser. Recheck after page load
+  // so its async save functions also receive the same loading treatment.
+  window.addEventListener('load',function(){
+    wrapAll();
+    window.setTimeout(wrapAll,100);
+  },{once:true});
 
   window.WCTSavingState={
     isSaving:function(form){return !!(form&&form.dataset.wctSaveLocked==='1');}
