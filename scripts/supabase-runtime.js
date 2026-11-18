@@ -436,6 +436,9 @@ window.submitCase=async function(event){
     const result=await sb.rpc('wct_create_case',{p_case:row,p_actions:actions});
     if(result.error)throw result.error;
     persisted=true;
+    // The database has confirmed the save. Remove browser draft before any
+    // follow-up list refresh so it cannot be restored into the next Case form.
+    if(window.WCTCaseDraft&&typeof window.WCTCaseDraft.clear==='function')window.WCTCaseDraft.clear();
 
     let refreshError=null;
     try{
