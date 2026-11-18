@@ -107,7 +107,7 @@ module.exports = function addWeeklyMeetingDelete(html) {
       if(!detail)return;
       var match=(detail.getAttribute('onclick')||'').match(/viewMeeting\(['"]([^'"]+)['"]\)/);
       if(!match)return;
-      var edit=row.querySelector('[data-wct-meeting-edit]');
+      var edit=row.querySelector('[data-wct-structured-edit],[data-wct-meeting-edit]');
       var remove=row.querySelector('[data-wct-meeting-delete]');
       if(canManage()&&!remove)remove=addIconButton(match[1],null);
       var actions=row.querySelector(':scope > .wct-meeting-history-actions');
@@ -124,7 +124,7 @@ module.exports = function addWeeklyMeetingDelete(html) {
     var modal=document.getElementById('modal');
     if(!modal)return;
     var footer=modal.querySelector('.modal-foot');
-    if(!footer||footer.querySelector('[data-wct-meeting-delete]')||!footer.querySelector('[data-wct-meeting-edit]'))return;
+    if(!footer||footer.querySelector('[data-wct-meeting-delete]')||!footer.querySelector('[data-wct-structured-edit],[data-wct-meeting-edit]'))return;
     addIconButton(activeDetailMeetingId,footer);
   }
   function wrapRenderMeeting(){
