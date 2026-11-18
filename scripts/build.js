@@ -582,7 +582,6 @@ try {
     ['role-checked Action delete RPC', 'create or replace function public.wct_delete_action('],
     ['role-checked Weekly Meeting delete RPC', 'create or replace function public.wct_delete_meeting('],
     ['all management RPCs restricted to active Admin/Coordinator', "v_role not in ('admin','coordinator')"],
-    ['Weekly Meeting case-link cleanup', 'delete from public.wct_meeting_cases'],
     ['Weekly Meeting history deletion', 'delete from public.wct_meetings'],
     ['Action history cleanup', 'delete from public.wct_progress_logs'],
     ['Action audit cleanup', 'delete from public.wct_progress_log_edits'],
