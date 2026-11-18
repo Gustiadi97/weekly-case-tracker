@@ -147,7 +147,7 @@ try {
     ['Case draft has explicit post-save cleanup', 'window.WCTCaseDraft={'],
     ['Case draft cleanup cancels pending autosave timer', 'if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}'],
     ['Weekly Meeting draft cleanup cancels pending autosave timer', 'if(timer){clearTimeout(timer);timer=null;}'],
-    ['Deferred database save handlers are wrapped after page load', "window.addEventListener('load',function()"]
+    ['Deferred database save handlers are wrapped after page load', "window.addEventListener('load',function()"],
     ['Weekly Meeting edit save has a loading handler', 'submitMeetingEdit'],
     ['Case draft clears only after a new Case is detected', 'verifySaved(before,0)'],
     ['Update Progress modal styling', '#modal.wct-modal-progress .modal-body'],
