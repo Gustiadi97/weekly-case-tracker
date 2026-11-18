@@ -89,6 +89,8 @@ try {
   html = require('./saving-state')(html);
   html = require('./weekly-meeting-delete')(html);
   html = require('./weekly-meeting-items')(html);
+  html = require('./weekly-meeting-recap')(html);
+  html = require('./case-delete-runtime')(html);
   html = require('./action-crud-override')(html);
   html = require('./ui-consistency')(html);
 
@@ -179,6 +181,11 @@ try {
     ['Action deletion confirmation supports dark appearance', '[data-wct-appearance'],
     ['Weekly Meeting history delete runtime is included', 'id="wct-weekly-meeting-delete-runtime"'],
     ['Structured Weekly Meeting points runtime is included', 'id="wct-weekly-meeting-items-runtime"'],
+    ['Weekly Meeting recap runtime is included', 'id="wct-weekly-meeting-recap-runtime"'],
+    ['Weekly Meeting recap exports a real XLSX workbook', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+    ['Case deletion runtime is included', 'id="wct-case-delete-runtime"'],
+    ['Case Monitoring rows expose a delete action', 'data-wct-case-delete-id'],
+    ['Case deletion uses a role-checked RPC', 'wct_delete_case'],
     ['Weekly Meeting supports multiple discussion points', 'data-wct-add-meeting-point'],
     ['Weekly Meeting add-point control has a direct audited handler', 'onclick="return wctAddMeetingPoint(this)"'],
     ['Weekly Meeting point can become a Case or Project', 'new_case'],
