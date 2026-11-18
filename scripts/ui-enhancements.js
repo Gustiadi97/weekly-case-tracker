@@ -33,6 +33,16 @@ function profileSelect(name){
   const people=state.profiles.filter(p=>p.role!=='viewer'&&p.active!==false&&p.deleted!==true);
   return '<select name="'+name+'"><option value="">Pilih PIC</option>'+people.map(p=>'<option value="'+p.id+'">'+esc(p.full_name)+' · '+(roleLabel[p.role]||p.role)+'</option>').join('')+'</select>';
 }
+function wctCaseActionProgress(caseId){
+  const related=(state.actions||[]).filter(action=>String(action.case_id)===String(caseId));
+  if(!related.length)return 0;
+  const values=related.map(action=>{
+    if(String(action.status||'').toLowerCase()==='done')return 100;
+    const value=Number(action.progress);
+    return Math.max(0,Math.min(100,Number.isFinite(value)?value:0));
+  });
+  return Math.round(values.reduce((sum,value)=>sum+value,0)/values.length);
+}
 function renderCases(){
   const activeId=document.activeElement&&document.activeElement.id||'';
   const cursor=activeId==='caseSearch'&&document.activeElement.selectionStart!=null?document.activeElement.selectionStart:null;
@@ -46,7 +56,7 @@ function renderCases(){
   out+='<select class="filter" id="categoryFilter" onchange="renderCases()"><option value="">Semua Kategori</option>'+cats.map(x=>'<option value="'+esc(x)+'" '+(x===cat?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';
   out+='<select class="filter" id="divisionFilter" onchange="renderCases()"><option value="">Semua Divisi</option>'+divisions.map(x=>'<option value="'+esc(x)+'" '+(x===division?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select><button class="btn btn-sm filter-reset" type="button" onclick="resetCaseFilters()">Reset filter</button></div>';
   out+='<section class="card"><div class="card-head"><div><h3>Daftar Permasalahan</h3><p>'+arr.length+' case ditampilkan</p></div><span class="pill">Lintas HUB</span></div><div class="table-wrap"><table class="table wct-cases-table"><thead><tr><th>Case / Problem</th><th>HUB</th><th>Divisi</th><th>Kategori</th><th>Prioritas</th><th>Progress</th><th>Target</th><th>Status</th><th></th></tr></thead><tbody>';
-  out+=arr.map(c=>'<tr><td><div class="case-title">'+esc(c.case_code)+' · '+esc(c.title)+'</div><div class="sub">Kejadian: '+(c.occurred_on?fmtDate(c.occurred_on):'Belum dicatat')+' · Dicatat: '+fmtDate((c.created_at||'').slice(0,10))+'</div></td><td><b>'+esc(c.hub_code||'—')+'</b></td><td>'+esc(c.division||'—')+'</td><td>'+esc(c.category||'—')+'</td><td><span class="priority '+String(c.priority||'').toLowerCase()+'">'+esc(c.priority||'—')+'</span></td><td><div class="progress-wrap"><div class="progress-track"><span style="width:'+caseProgress(c.id)+'%"></span></div><b>'+caseProgress(c.id)+'%</b></div></td><td>'+fmtDate(c.target_date)+'</td><td>'+statusBadge(caseStatus(c))+'</td><td><div class="wct-row-actions"><button class="btn btn-sm" onclick="openCaseDetail(\''+c.id+'\')">Detail</button>'+(isCoordinator()?'<button type="button" class="btn btn-sm btn-primary" data-wct-case-edit-id="'+esc(c.id)+'" data-wct-return-detail="false">Edit</button>':'')+'</div></td></tr>').join('')||'<tr><td colspan="9"><div class="empty"><b>Belum ada case yang cocok.</b>Ubah filter atau buat case baru.</div></td></tr>';
+  out+=arr.map(c=>'<tr><td><div class="case-title">'+esc(c.case_code)+' · '+esc(c.title)+'</div><div class="sub">Kejadian: '+(c.occurred_on?fmtDate(c.occurred_on):'Belum dicatat')+' · Dicatat: '+fmtDate((c.created_at||'').slice(0,10))+'</div></td><td><b>'+esc(c.hub_code||'—')+'</b></td><td>'+esc(c.division||'—')+'</td><td>'+esc(c.category||'—')+'</td><td><span class="priority '+String(c.priority||'').toLowerCase()+'">'+esc(c.priority||'—')+'</span></td><td><div class="progress-wrap"><div class="progress-track"><span style="width:'+wctCaseActionProgress(c.id)+'%"></span></div><b>'+wctCaseActionProgress(c.id)+'%</b></div></td><td>'+fmtDate(c.target_date)+'</td><td>'+statusBadge(caseStatus(c))+'</td><td><div class="wct-row-actions"><button class="btn btn-sm" onclick="openCaseDetail(\''+c.id+'\')">Detail</button>'+(isCoordinator()?'<button type="button" class="btn btn-sm btn-primary" data-wct-case-edit-id="'+esc(c.id)+'" data-wct-return-detail="false">Edit</button>':'')+'</div></td></tr>').join('')||'<tr><td colspan="9"><div class="empty"><b>Belum ada case yang cocok.</b>Ubah filter atau buat case baru.</div></td></tr>';
   out+='</tbody></table></div></section>';
   $('pageContent').innerHTML=out;
   if(['caseSearch','hubFilter','statusFilter','categoryFilter','divisionFilter'].includes(activeId)){const el=$(activeId);if(el){el.focus();if(activeId==='caseSearch'&&cursor!==null)el.setSelectionRange(cursor,cursor);}}
