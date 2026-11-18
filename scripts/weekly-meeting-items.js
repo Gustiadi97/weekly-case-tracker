@@ -173,10 +173,20 @@ module.exports = function addWeeklyMeetingItems(html) {
   document.addEventListener('change',function(e){
     if(e.target.matches&&e.target.matches('[data-wct-item-kind]')){var c=e.target.closest('[data-wct-meeting-point]');if(c){if(c.dataset.lastKind!==e.target.value)c.dataset.caseId='';c.dataset.lastKind=e.target.value;updatePanel(c);syncDraft(c.closest('form'));}}
   });
-  if(window.submitMeeting){window.submitMeeting=save;window.submitMeeting.__wctStructuredItems=true;window.submitMeeting.__wctSupabaseUuidSave=true;}else{window.submitMeeting=save;window.submitMeeting.__wctStructuredItems=true;window.submitMeeting.__wctSupabaseUuidSave=true;}
-  window.openMeetingForm=openNew;window.openMeetingEditForm=openEdit;window.submitMeetingEdit=save;window.viewMeeting=view;
-  wrapRender();wrapRefresh();
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){wrapRender();wrapRefresh();},{once:true});
+  function installHandlers(){
+    // Run after older DOMContentLoaded handlers. The previous meeting-draft and UUID
+    // compatibility layers also wrap submitMeeting; this structured handler must win.
+    window.submitMeeting=save;
+    window.submitMeeting.__wctStructuredItems=true;
+    window.submitMeeting.__wctSupabaseUuidSave=true;
+    window.openMeetingForm=openNew;
+    window.openMeetingEditForm=openEdit;
+    window.submitMeetingEdit=save;
+    window.viewMeeting=view;
+    wrapRender();wrapRefresh();
+  }
+  installHandlers();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installHandlers,{once:true});
   window.WCTWeeklyMeetingItemsReady=true;
 })();
 `;
