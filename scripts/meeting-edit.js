@@ -147,7 +147,7 @@ module.exports = function addMeetingEditRuntime(html) {
 
   document.addEventListener('click',function(event){
     var edit=event.target.closest&&event.target.closest('[data-wct-meeting-edit]');
-    if(edit){event.preventDefault();openMeetingEditForm(edit.dataset.wctMeetingEdit);return;}
+    if(edit){event.preventDefault();if(typeof window.openMeetingEditForm==='function')window.openMeetingEditForm(edit.dataset.wctMeetingEdit);return;}
     var close=event.target.closest&&event.target.closest('[data-wct-meeting-edit-cancel],[data-wct-meeting-close]');
     if(close){event.preventDefault();if(typeof closeModal==='function')closeModal();return;}
     var openCase=event.target.closest&&event.target.closest('[data-wct-meeting-case]');
