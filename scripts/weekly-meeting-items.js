@@ -96,8 +96,8 @@ module.exports = function addWeeklyMeetingItems(html) {
   function meetingForm(meeting,items,isEdit){
     var date=String(meeting.meeting_date||todayISO()).slice(0,10),id=isEdit?String(meeting.id):'';
     var markup='<div class="modal-head"><div><div class="eyebrow">MEETING MINUTES</div><h2>'+(isEdit?'Edit Hasil Weekly Meeting':'Catat Hasil Weekly Meeting')+'</h2><p class="sub">Setiap poin bisa berupa pembahasan baru, Case lama, atau Case / Project baru.</p></div><button type="button" class="close" onclick="closeModal()">×</button></div>'+
-      '<form id="wctMeetingItemsForm" data-wct-meeting-items-form'+(id?' data-wct-meeting-id="'+safe(id)+'"':'')+' onsubmit="return submitMeeting(event)"><div class="modal-body"><div class="form-grid"><div class="field"><label>Tanggal meeting *</label><input type="date" name="meeting_date" value="'+safe(date)+'" required></div><div class="field"><label>Judul meeting *</label><input name="title" value="'+safe(meeting.title||'Weekly Operation Review')+'" required maxlength="160"></div><div class="field"><label>HUB meeting *</label><select name="hub_code" required>'+hubOptions(meeting.hub_code)+'</select></div></div>'+
-      '<div class="wct-meeting-points-intro"><div><strong>Poin Pembahasan</strong><p>Tambahkan satu poin untuk setiap Case, project, atau topik.</p></div><span data-wct-point-count>'+items.length+' poin</span></div><div class="wct-meeting-points" data-wct-meeting-points></div><button type="button" class="wct-meeting-add-point" data-wct-add-meeting-point><span>＋</span> Tambah Poin Pembahasan</button><input type="hidden" name="meeting_items_json" value=""><div class="wct-meeting-form-footnote">Case / Project baru akan masuk ke Case Monitoring. Case tersebut tetap tersimpan walaupun catatan meeting dihapus.</div></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-primary">'+(isEdit?'Simpan Perubahan':'Simpan Hasil Meeting')+'</button></div></form>';
+      '<form id="wctMeetingItemsForm" data-wct-meeting-items-form'+(id?' data-wct-meeting-id="'+safe(id)+'"':'')+' onsubmit="return submitMeeting(event,'+safe(id)+')"><div class="modal-body"><div class="form-grid"><div class="field"><label>Tanggal meeting *</label><input type="date" name="meeting_date" value="'+safe(date)+'" required></div><div class="field"><label>Judul meeting *</label><input name="title" value="'+safe(meeting.title||'Weekly Operation Review')+'" required maxlength="160"></div><div class="field"><label>HUB meeting *</label><select name="hub_code" required>'+hubOptions(meeting.hub_code)+'</select></div></div>'+
+      '<div class="wct-meeting-points-intro"><div><strong>Poin Pembahasan</strong><p>Tambahkan satu poin untuk setiap Case, project, atau topik.</p></div><span data-wct-point-count>'+items.length+' poin</span></div><div class="wct-meeting-points" data-wct-meeting-points></div><button type="button" class="wct-meeting-add-point" data-wct-add-meeting-point onclick="return wctAddMeetingPoint(this)"><span>＋</span> Tambah Poin Pembahasan</button><input type="hidden" name="meeting_items_json" value=""><div class="wct-meeting-form-footnote">Case / Project baru akan masuk ke Case Monitoring. Case tersebut tetap tersimpan walaupun catatan meeting dihapus.</div></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-primary">'+(isEdit?'Simpan Perubahan':'Simpan Hasil Meeting')+'</button></div></form>';
     openModal(markup,true);
     var form=document.querySelector('#modal #wctMeetingItemsForm');
     if(form){
@@ -146,13 +146,30 @@ module.exports = function addWeeklyMeetingItems(html) {
     return false;
   }
   async function openNew(){if(!canManage()){notify('Hanya Admin atau Koordinator yang dapat mencatat hasil meeting.');return;}meetingForm({meeting_date:todayISO(),title:'Weekly Operation Review',hub_code:currentUser&&currentUser.hub_code||''},[{kind:'discussion',title:''}],false);}
-  async function openEdit(id){if(!canManage())return;var m=findMeeting(id);if(!m){notify('Catatan meeting tidak ditemukan.');return;}try{var items=await getItems(m);meetingForm(m,items,true);}catch(e){console.error(e);notify('Gagal memuat poin meeting: '+(e.message||e));}}
+  var editLoadVersion=0;
+  async function openEdit(id){
+    if(!canManage())return;
+    var version=++editLoadVersion,meetingId=String(id||'');
+    var m=findMeeting(meetingId);
+    if(!m){notify('Catatan Weekly Meeting tidak ditemukan.');return;}
+    try{
+      var items=await getItems(m);
+      if(version!==editLoadVersion)return;
+      var current=findMeeting(meetingId);
+      if(!current){notify('Riwayat Weekly Meeting tidak lagi tersedia.');return;}
+      meetingForm(current,items,true);
+    }catch(error){
+      if(version!==editLoadVersion)return;
+      console.error('Open selected Weekly Meeting for edit failed:',error);
+      notify('Gagal memuat poin meeting: '+(error.message||error));
+    }
+  }
   async function view(id){
     var m=findMeeting(id);if(!m)return;
     try{
       var items=await getItems(m);
       var body='<div class="modal-head"><div><div class="eyebrow">MEETING MINUTES</div><h2>'+safe(m.title||'Weekly Meeting')+'</h2></div><button type="button" class="close" onclick="closeModal()">×</button></div><div class="modal-body"><div class="wct-meeting-detail-meta"><span class="pill">'+safe(fmtDate(m.meeting_date))+'</span><span class="pill">HUB: '+safe(m.hub_code||'—')+'</span></div><div class="wct-meeting-detail-points">'+items.map(function(x,i){var c=x.case_id?findCase(x.case_id):null;var type=x.kind==='new_case'?'Case / Project baru':x.kind==='existing_case'?'Case yang sudah ada':'Pembahasan';return '<article class="wct-meeting-detail-point"><div class="wct-meeting-detail-point-head"><span class="wct-meeting-point-number">POIN '+(i+1)+'</span><span class="wct-meeting-type-tag">'+safe(type)+'</span></div><h3>'+safe(x.title||'Tanpa judul')+'</h3>'+(c?'<div class="wct-meeting-linked-case"><strong>'+safe(c.case_code||'Case')+'</strong><span>'+safe(c.hub_code||'—')+' · '+safe(c.status||'open')+'</span><button type="button" class="btn btn-sm" data-wct-open-case-id="'+safe(c.id)+'">Buka Case / Project</button></div>':'')+
-      '<div class="wct-meeting-detail-field"><strong>Ringkasan</strong><p>'+safe(x.summary||'—')+'</p></div><div class="wct-meeting-detail-field"><strong>Keputusan / Arahan</strong><p>'+safe(x.decisions||'—')+'</p></div><div class="wct-meeting-detail-field"><strong>Next Step</strong><p>'+safe(x.next_step||'—')+'</p></div></article>';}).join('')+'</div></div><div class="modal-foot"><button type="button" class="btn" data-wct-meeting-close>Tutup</button>'+(canManage()?'<button type="button" class="btn btn-primary" data-wct-meeting-edit="'+safe(m.id)+'">Edit Meeting</button><button type="button" class="btn btn-danger wct-meeting-delete-icon" data-wct-meeting-delete="'+safe(m.id)+'" aria-label="Hapus riwayat meeting">Hapus</button>':'')+'</div>';
+      '<div class="wct-meeting-detail-field"><strong>Ringkasan</strong><p>'+safe(x.summary||'—')+'</p></div><div class="wct-meeting-detail-field"><strong>Keputusan / Arahan</strong><p>'+safe(x.decisions||'—')+'</p></div><div class="wct-meeting-detail-field"><strong>Next Step</strong><p>'+safe(x.next_step||'—')+'</p></div></article>';}).join('')+'</div></div><div class="modal-foot"><button type="button" class="btn" data-wct-meeting-close>Tutup</button>'+(canManage()?'<button type="button" class="btn btn-primary" data-wct-structured-edit="'+safe(m.id)+'">Edit Meeting</button><button type="button" class="btn btn-danger wct-meeting-delete-icon" data-wct-meeting-delete="'+safe(m.id)+'" aria-label="Hapus riwayat meeting">Hapus</button>':'')+'</div>';
       openModal(body,true);
     }catch(e){console.error(e);notify('Gagal membuka detail meeting: '+(e.message||e));}
   }
@@ -166,13 +183,20 @@ module.exports = function addWeeklyMeetingItems(html) {
   function wrapRender(){if(!window.renderMeeting||window.renderMeeting.__wctItemsWrapped)return;var old=window.renderMeeting;var fn=function(){var r=old.apply(this,arguments);refreshList();return r;};fn.__wctItemsWrapped=true;window.renderMeeting=fn;}
   function wrapRefresh(){if(!window.refreshData||window.refreshData.__wctItemsWrapped)return;var old=window.refreshData;var fn=async function(){var r=await old.apply(this,arguments);try{var q=await window.wctSupabase.from('wct_meeting_items').select('*').order('sort_order',{ascending:true});if(q.error)throw q.error;state.meetingItems=q.data||[];}catch(e){console.warn('Weekly Meeting items load failed:',e);state.meetingItems=[];}return r;};fn.__wctItemsWrapped=true;window.refreshData=fn;}
   document.addEventListener('click',function(e){
-    var add=e.target.closest&&e.target.closest('[data-wct-add-meeting-point]');if(add){e.preventDefault();var f=add.closest('form');addPoint(f,{kind:'discussion',title:''});return;}
+    var structuredEdit=e.target.closest&&e.target.closest('[data-wct-structured-edit]');
+    if(structuredEdit){e.preventDefault();openEdit(structuredEdit.dataset.wctStructuredEdit);return;}
     var del=e.target.closest&&e.target.closest('[data-wct-remove-meeting-point]');if(del){e.preventDefault();var c=del.closest('[data-wct-meeting-point]'),f2=del.closest('form');if(f2.querySelectorAll('[data-wct-meeting-point]').length<=1){notify('Minimal satu poin pembahasan harus tersedia.');return;}c.remove();renumber(f2);syncDraft(f2);return;}
     var open=e.target.closest&&e.target.closest('[data-wct-open-case-id]');if(open){e.preventDefault();var cid=open.dataset.wctOpenCaseId;closeModal();if(window.openCaseDetail)window.openCaseDetail(cid);}
   });
   document.addEventListener('change',function(e){
     if(e.target.matches&&e.target.matches('[data-wct-item-kind]')){var c=e.target.closest('[data-wct-meeting-point]');if(c){if(c.dataset.lastKind!==e.target.value&&e.target.value==='new_case'&&c.dataset.originalKind!=='new_case')c.dataset.caseId='';c.dataset.lastKind=e.target.value;updatePanel(c);syncDraft(c.closest('form'));}}
   });
+  window.wctAddMeetingPoint=function(button){
+    var form=button&&button.closest?button.closest('#wctMeetingItemsForm'):null;
+    if(!form){notify('Form poin meeting tidak ditemukan. Muat ulang form dan coba kembali.');return false;}
+    addPoint(form,{kind:'discussion',title:''});
+    return false;
+  };
   function installHandlers(){
     // Run after older DOMContentLoaded handlers. The previous meeting-draft and UUID
     // compatibility layers also wrap submitMeeting; this structured handler must win.
