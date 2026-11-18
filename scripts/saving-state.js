@@ -1,7 +1,7 @@
 module.exports = function addSavingState(html) {
   if (!html || !html.includes('</body>')) throw new Error('Could not find document body for saving-state runtime.');
 
-  const runtime = String.raw\`
+  const runtime = String.raw`
 (function(){
   'use strict';
   if(window.__WCT_SAVING_STATE_READY)return;
@@ -122,7 +122,7 @@ module.exports = function addSavingState(html) {
   };
   window.WCTSavingStateReady=true;
 })();
-\`;
+`;
 
   try { new Function(runtime); } catch (error) {
     throw new Error('Saving-state runtime syntax check failed: ' + error.message);
