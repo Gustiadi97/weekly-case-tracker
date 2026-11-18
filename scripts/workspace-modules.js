@@ -323,7 +323,7 @@ module.exports = function applyWorkspaceModules(html) {
   var personName=function(id){var p=person(id);return p?(p.full_name||p.login_id||'Anggota'):'Belum ditentukan';};
   var caseBy=function(id){return cases().find(function(c){return String(c.id)===String(id);})||null;};
   var actionsForCase=function(id){return actions().filter(function(a){return String(a.case_id)===String(id);});};
-  var pctAction=function(a){return Math.max(0,Math.min(100,Number(a&&a.progress)||0));};
+  var pctAction=function(a){if(String(a&&a.status||'').toLowerCase()==='done')return 100;var value=Number(a&&a.progress);return Math.max(0,Math.min(100,Number.isFinite(value)?value:0));};
   var pctCase=function(id){var aa=actionsForCase(id);return aa.length?Math.round(aa.reduce(function(n,a){return n+pctAction(a);},0)/aa.length):0;};
   var statusLabel=function(s){return ({open:'To Do',in_progress:'In Progress',review:'In Review',done:'Done',closed:'Closed',overdue:'Overdue'})[s]||String(s||'Pending');};
   var statusClass=function(s){return ['open','in_progress','review','done','closed','overdue'].indexOf(s)>=0?s:'open';};
