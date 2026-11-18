@@ -626,8 +626,10 @@ async function callAdminFunction(body){
   return result.data;
 }
 window.submitUser=async function(event){
-  event.preventDefault();if(!isAdmin())return;
-  const form=new FormData(event.target);
+  event.preventDefault();
+  const formElement=event.currentTarget||event.target;
+  if(!isAdmin())return;
+  const form=new FormData(formElement);
   try{
     await callAdminFunction({
       action:'create',loginId:normalizeLoginId(form.get('login_id')),
@@ -637,8 +639,28 @@ window.submitUser=async function(event){
       areaName:String(form.get('area_name')||'All Areas').trim(),
       password:String(form.get('password')||'')
     });
-    await refreshData();closeModal();renderUsers();toast('Akun Supabase Auth berhasil dibuat.');
-  }catch(error){toast('Gagal membuat akun: '+(error.message||error));}
+  }catch(error){
+    // The account was not confirmed as created. Keep the entered values so
+    // the Admin can correct the error without retyping the whole form.
+    toast('Gagal membuat akun: '+(error.message||error));
+    return;
+  }
+
+  // Clear the one-time credentials immediately after the database confirms
+  // creation. Closing the form is independent from refreshing the user list:
+  // a refresh failure must never leave a populated form that can be submitted
+  // a second time by mistake.
+  if(formElement&&typeof formElement.reset==='function')formElement.reset();
+  if(typeof closeModal==='function')closeModal();
+
+  try{
+    await refreshData();
+    renderUsers();
+    toast('Akun berhasil dibuat dan daftar pengguna telah diperbarui.');
+  }catch(error){
+    console.error('User created, but user list refresh failed:',error);
+    toast('Akun berhasil dibuat. Daftar pengguna belum berhasil diperbarui; muat ulang halaman untuk melihat akun baru.');
+  }
 };
 window.submitResetPassword=async function(event,userId){
   event.preventDefault();
