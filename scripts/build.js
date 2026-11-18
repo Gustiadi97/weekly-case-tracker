@@ -144,6 +144,8 @@ try {
     ['Case draft status indicator', 'wct-case-draft-notice'],
     ['Case draft restores data after reopening', 'function restore(form,draft)'],
     ['Case draft is scoped to the signed-in user', 'wctCaseDraft:v1:'],
+    ['Case draft has explicit post-save cleanup', 'window.WCTCaseDraft={'],
+    ['Weekly Meeting edit save has a loading handler', 'submitMeetingEdit'],
     ['Case draft clears only after a new Case is detected', 'verifySaved(before,0)'],
     ['Update Progress modal styling', '#modal.wct-modal-progress .modal-body'],
     ['Preventive and Corrective Action modal styling', '#modal.wct-modal-action .modal-body'],
@@ -495,6 +497,8 @@ try {
     ['Structured Case save error details', 'function wctCaseErrorDetails(error)'],
     ['Inline Case form error feedback', 'function wctShowCaseFormError(form,error)'],
     ['Case save success separated from refresh failure', 'Case berhasil disimpan, tetapi daftar belum berhasil diperbarui.'],
+    ['New user form resets after confirmed database save', 'formElement.reset()'],
+    ['Case draft is cleared immediately after confirmed database save', 'window.WCTCaseDraft.clear()'],
     ['Case save uses Supabase atomic RPC', "sb.rpc('wct_create_case',{p_case:row,p_actions:actions})"],
     ['Weekly Meeting HUB is encoded in existing notes payload', "hub_code:String(row.hub_code||'')"],
     ['Weekly Meeting HUB is restored from notes payload', "out.hub_code=String(notes.hub_code||'')"]
