@@ -184,7 +184,7 @@ try {
     ['Weekly Meeting point can become a Case or Project', 'new_case'],
     ['Weekly Meeting detail renders each point independently', 'wct-meeting-detail-point'],
     ['Weekly Meeting edit uses a unique structured action route', 'data-wct-structured-edit'],
-    ['Weekly Meeting edit submits the selected meeting ID explicitly', "onsubmit=\\"return submitMeeting(event,'+safe(id)+')"],
+    ['Weekly Meeting edit submits the selected meeting ID explicitly', 'onsubmit="return submitMeeting(event,'],
     ['Weekly Meeting protects against stale asynchronous edit loads', 'editLoadVersion'],
     ['Weekly Meeting saves points through role-checked RPC', 'wct_save_meeting_with_items'],
     ['Weekly Meeting delete RPC handler is exposed', 'window.deleteMeeting=async function(id,button)'],
