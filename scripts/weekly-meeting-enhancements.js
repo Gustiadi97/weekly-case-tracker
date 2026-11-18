@@ -133,12 +133,15 @@ module.exports = function addWeeklyMeetingEnhancements(html) {
     });
   }
   function clearByKey(key,form){
+    // Prevent a pending autosave or close-modal flush from restoring a draft
+    // after the database already confirmed that this meeting was saved.
+    if(timer){clearTimeout(timer);timer=null;}
     try{localStorage.removeItem(key);}catch(ignore){}
     if(form){
       var node=form.querySelector('.wct-weekly-meeting-draft-notice');
       if(node)node.remove();
     }
-    if(currentKey===key){currentKey='';currentForm=null;}
+    if(currentKey===key||currentForm===form){currentKey='';currentForm=null;}
   }
   function saveNow(form){
     if(!form)return;
