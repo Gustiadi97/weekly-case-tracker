@@ -96,7 +96,7 @@ module.exports = function addWeeklyMeetingItems(html) {
   function meetingForm(meeting,items,isEdit){
     var date=String(meeting.meeting_date||todayISO()).slice(0,10),id=isEdit?String(meeting.id):'';
     var markup='<div class="modal-head"><div><div class="eyebrow">MEETING MINUTES</div><h2>'+(isEdit?'Edit Hasil Weekly Meeting':'Catat Hasil Weekly Meeting')+'</h2><p class="sub">Setiap poin bisa berupa pembahasan baru, Case lama, atau Case / Project baru.</p></div><button type="button" class="close" onclick="closeModal()">×</button></div>'+
-      '<form id="wctMeetingItemsForm" data-wct-meeting-items-form'+(id?' data-wct-meeting-id="'+safe(id)+'"':'')+' onsubmit="return submitMeeting(event,'+safe(id)+')"><div class="modal-body"><div class="form-grid"><div class="field"><label>Tanggal meeting *</label><input type="date" name="meeting_date" value="'+safe(date)+'" required></div><div class="field"><label>Judul meeting *</label><input name="title" value="'+safe(meeting.title||'Weekly Operation Review')+'" required maxlength="160"></div><div class="field"><label>HUB meeting *</label><select name="hub_code" required>'+hubOptions(meeting.hub_code)+'</select></div></div>'+
+      '<form id="wctMeetingItemsForm" data-wct-meeting-items-form'+(id?' data-wct-meeting-id="'+safe(id)+'"':'')+' onsubmit="return wctSubmitMeeting(event)"><div class="modal-body"><div class="form-grid"><div class="field"><label>Tanggal meeting *</label><input type="date" name="meeting_date" value="'+safe(date)+'" required></div><div class="field"><label>Judul meeting *</label><input name="title" value="'+safe(meeting.title||'Weekly Operation Review')+'" required maxlength="160"></div><div class="field"><label>HUB meeting *</label><select name="hub_code" required>'+hubOptions(meeting.hub_code)+'</select></div></div>'+
       '<div class="wct-meeting-points-intro"><div><strong>Poin Pembahasan</strong><p>Tambahkan satu poin untuk setiap Case, project, atau topik.</p></div><span data-wct-point-count>'+items.length+' poin</span></div><div class="wct-meeting-points" data-wct-meeting-points></div><button type="button" class="wct-meeting-add-point" data-wct-add-meeting-point onclick="return wctAddMeetingPoint(this)"><span>＋</span> Tambah Poin Pembahasan</button><input type="hidden" name="meeting_items_json" value=""><div class="wct-meeting-form-footnote">Case / Project baru akan masuk ke Case Monitoring. Case tersebut tetap tersimpan walaupun catatan meeting dihapus.</div></div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Batal</button><button type="submit" class="btn btn-primary">'+(isEdit?'Simpan Perubahan':'Simpan Hasil Meeting')+'</button></div></form>';
     openModal(markup,true);
     var form=document.querySelector('#modal #wctMeetingItemsForm');
@@ -191,6 +191,11 @@ module.exports = function addWeeklyMeetingItems(html) {
   document.addEventListener('change',function(e){
     if(e.target.matches&&e.target.matches('[data-wct-item-kind]')){var c=e.target.closest('[data-wct-meeting-point]');if(c){if(c.dataset.lastKind!==e.target.value&&e.target.value==='new_case'&&c.dataset.originalKind!=='new_case')c.dataset.caseId='';c.dataset.lastKind=e.target.value;updatePanel(c);syncDraft(c.closest('form'));}}
   });
+  window.wctSubmitMeeting=function(event){
+    if(event&&typeof event.preventDefault==='function')event.preventDefault();
+    save(event);
+    return false;
+  };
   window.wctAddMeetingPoint=function(button){
     var form=button&&button.closest?button.closest('#wctMeetingItemsForm'):null;
     if(!form){notify('Form poin meeting tidak ditemukan. Muat ulang form dan coba kembali.');return false;}
