@@ -164,8 +164,7 @@ try {
     ['Action table adds a delete icon for coordinators', 'wct-action-row-delete'],
     ['Action deletion calls the secured Supabase RPC', "window.wctSupabase.rpc('wct_delete_action',{p_action_id:actionId})"],
     ['Action delete has accessible tooltip and label', 'aria-label'],
-    ['Action deletion uses the in-app confirmation handler', 'window.wctConfirmDeleteAction(action.title)'],
-['Action delete confirmation awaits the custom in-app dialog', 'await window.wctConfirmDeleteAction(action.title)']
+    ['Action delete confirmation awaits the custom in-app dialog', 'await window.wctConfirmDeleteAction(action.title)'],
     ['Action delete refreshes Case detail after success', "window.openCaseDetail(action.case_id)"],
     ['Action table supports compact horizontal scrolling on small screens', 'wct-action-table-scroll'],
     ['Action table controls are compact icon-only buttons', 'wct-action-icon-btn'],
