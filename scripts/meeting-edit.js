@@ -124,7 +124,7 @@ module.exports = function addMeetingEditRuntime(html) {
     if(!(typeof isCoordinator==='function'&&isCoordinator()))return;
     document.querySelectorAll('.meeting-box .meeting-row').forEach(function(row){
       var detail=row.querySelector('button[onclick^="viewMeeting("]');
-      if(!detail||row.querySelector('[data-wct-meeting-edit]'))return;
+      if(!detail||row.querySelector('[data-wct-structured-edit],[data-wct-meeting-edit]'))return;
       var match=(detail.getAttribute('onclick')||'').match(/viewMeeting\(['"]([^'"]+)['"]\)/);
       if(!match)return;
       var button=document.createElement('button');
