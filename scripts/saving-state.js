@@ -114,7 +114,7 @@ module.exports = function addSavingState(html) {
   [
     'submitUser','submitResetPassword','saveUserProfile',
     'submitCase','saveEditedCase','submitAction','submitProgress',
-    'submitMeeting','saveMeetingEdit','changeOwnPassword'
+    'submitMeeting','submitMeetingEdit','saveMeetingEdit','changeOwnPassword'
   ].forEach(wrap);
 
   window.WCTSavingState={
