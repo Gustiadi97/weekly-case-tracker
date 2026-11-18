@@ -77,6 +77,9 @@ module.exports = function addCaseDraftAutosave(html) {
     ensureNotice(form,'Draft tersimpan otomatis · terakhir '+stamp(time));
   }
   function clearStoredDraft(key,form){
+    // Cancel a pending debounce first; otherwise it could recreate the draft
+    // milliseconds after a confirmed database save removed it.
+    if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
     try{localStorage.removeItem(key||currentDraftKey||userKey());}catch(ignore){}
     if(form){
       var notice=form.querySelector('.wct-case-draft-notice');
