@@ -156,6 +156,13 @@ try {
     ['Edit Action readable input surface', '#modal:has(form[onsubmit*="submitAction"]) .field input'],
     ['Edit Action mobile one-column layout', '#modal:has(form[onsubmit*="submitAction"]) .form-grid{grid-template-columns:minmax(0,1fr)!important;gap:13px!important}'],
     ['Case Detail modal styling', '#modal.wct-case-detail-modal .modal-body.wct-case-detail'],
+    ['Case Monitoring progress uses the average of related Actions', 'function wctCaseActionProgress(caseId)'],
+    ['Case Monitoring progress displays the calculated Action average', 'wctCaseActionProgress(c.id)'],
+    ['Completed Actions count as 100 percent progress', "String(action.status||'').toLowerCase()==='done'"],
+    ['Case Detail progress uses the same related Action calculation', 'actionProgressValue(action)'],
+    ['Case Detail modal has a single vertical scroll body', 'overflow-x:hidden!important;overflow-y:auto!important;'],
+    ['Case Detail hero keeps its title and progress ring visible', 'min-height:160px!important;'],
+
     ['Visible error feedback above modal backdrop', 'id="wct-modal-feedback-style"'],
     ['Inline Case form error styling', '.wct-form-error{'],
     ['Modal close handles pointer, touch and click', "document.addEventListener('pointerup',activateCloseControl,true)"],
