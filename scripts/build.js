@@ -88,6 +88,7 @@ try {
   html = require('./case-draft-autosave')(html);
   html = require('./saving-state')(html);
   html = require('./weekly-meeting-delete')(html);
+  html = require('./weekly-meeting-items')(html);
   html = require('./action-crud-override')(html);
   html = require('./ui-consistency')(html);
 
@@ -177,6 +178,11 @@ try {
     ['Action deletion confirmation has dedicated Cancel and Confirm buttons', 'wct-action-delete-confirm'],
     ['Action deletion confirmation supports dark appearance', '[data-wct-appearance'],
     ['Weekly Meeting history delete runtime is included', 'id="wct-weekly-meeting-delete-runtime"'],
+    ['Structured Weekly Meeting points runtime is included', 'id="wct-weekly-meeting-items-runtime"'],
+    ['Weekly Meeting supports multiple discussion points', 'data-wct-add-meeting-point'],
+    ['Weekly Meeting point can become a Case or Project', 'new_case'],
+    ['Weekly Meeting detail renders each point independently', 'wct-meeting-detail-point'],
+    ['Weekly Meeting saves points through role-checked RPC', 'wct_save_meeting_with_items'],
     ['Weekly Meeting delete RPC handler is exposed', 'window.deleteMeeting=async function(id,button)'],
     ['Weekly Meeting delete popup uses app controls, not browser confirm', 'wctCancelWeeklyMeetingDelete()'],
     ['Action CRUD final override is included', 'id="wct-action-crud-runtime"'],
@@ -597,6 +603,21 @@ try {
   const missingSupabaseRuntime = requiredSupabaseRuntime.filter(([, marker]) => !supabaseRuntime.includes(marker)).map(([name]) => name);
   if (missingSupabaseRuntime.length) {
     throw new Error('Supabase runtime contract check failed: ' + missingSupabaseRuntime.join(', '));
+  }
+  const meetingItemsMigrationPath = path.join(root, 'supabase/migrations/20261119_wct_meeting_items.sql');
+  const meetingItemsMigration = fs.readFileSync(meetingItemsMigrationPath, 'utf8');
+  const requiredMeetingItemsSql = [
+    ['structured Weekly Meeting points table', 'create table if not exists public.wct_meeting_items'],
+    ['active-user read policy for meeting points', 'wct_meeting_items_read_active'],
+    ['role-checked transactional meeting and project save RPC', 'create or replace function public.wct_save_meeting_with_items'],
+    ['new Project Case creation through the standard Case workflow', 'public.wct_create_case(v_case_payload, v_actions)'],
+    ['authenticated users restricted to the secure save RPC', 'grant execute on function public.wct_save_meeting_with_items(uuid,jsonb,jsonb) to authenticated']
+  ];
+  const missingMeetingItemsSql = requiredMeetingItemsSql
+    .filter(([, marker]) => !meetingItemsMigration.includes(marker))
+    .map(([name]) => name);
+  if (missingMeetingItemsSql.length) {
+    throw new Error('Weekly Meeting items migration contract check failed: ' + missingMeetingItemsSql.join(', '));
   }
   const firebaseResidue = {
     firebaseScript: /<script[^>]+src=["'][^"']*firebase/i.test(html),
