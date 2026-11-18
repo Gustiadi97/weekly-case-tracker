@@ -156,6 +156,13 @@ try {
     ['Edit Action readable input surface', '#modal:has(form[onsubmit*="submitAction"]) .field input'],
     ['Edit Action mobile one-column layout', '#modal:has(form[onsubmit*="submitAction"]) .form-grid{grid-template-columns:minmax(0,1fr)!important;gap:13px!important}'],
     ['Case Detail modal styling', '#modal.wct-case-detail-modal .modal-body.wct-case-detail'],
+    ['Corrective and Preventive Action have separate table groups', 'wct-action-table-group'],
+    ['Corrective Action table is rendered', "actionTable('corrective','Corrective Action','CA')"],
+    ['Preventive Action table is rendered', "actionTable('preventive','Preventive Action','PA')"],
+    ['Action table preserves Edit Action control', 'wct-action-row-edit'],
+    ['Action table preserves Update Progress control', 'wct-action-row-update'],
+    ['Action table supports compact horizontal scrolling on small screens', 'wct-action-table-scroll'],
+
     ['Case Monitoring progress uses the average of related Actions', 'function wctCaseActionProgress(caseId)'],
     ['Case Monitoring progress displays the calculated Action average', 'wctCaseActionProgress(c.id)'],
     ['Completed Actions count as 100 percent progress', "String(action.status||'').toLowerCase()==='done'"],
