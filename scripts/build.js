@@ -114,6 +114,10 @@ try {
     ['Unified SVG icon system', 'id="wct-icon-system"'],
     ['Icon observer ready marker', 'window.WCTIconSystemReady=true;'],
     ['Tasks, Team, Calendar and Analytics modules', 'id="wct-workspace-modules"'],
+    ['Direct Tasks drag-and-drop status handler', 'async function moveTaskActionStatus(actionId,nextStatus)'],
+    ['Direct Tasks status update to Supabase', "db.from('wct_actions')"],
+    ['Tasks status drop refreshes board', "await window.refreshData()"],
+
     ['Reliable X / Cancel / Close modal controls', 'id="wct-modal-controls"'],
     ['PICAPA modal visual polish stylesheet', 'id="wct-picapa-modal-polish-style"'],
     ['PICAPA modal runtime classifier', 'id="wct-picapa-modal-polish"'],
