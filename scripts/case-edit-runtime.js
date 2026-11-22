@@ -52,7 +52,9 @@ module.exports = function addReliableCaseEditRuntime(html) {
       priority:String(values.get('priority')||'').trim(),
       status:String(values.get('status')||current.status||'open').trim(),
       updated_at:new Date().toISOString(),
-      updated_by:currentUser&&currentUser.id?currentUser.id:null
+      updated_by:currentUser&&currentUser.id?currentUser.id:null,
+      closed_at:String(values.get('status')||current.status||'open')==='closed'?(current.closed_at||new Date().toISOString()):current.closed_at||null,
+      closed_by:String(values.get('status')||current.status||'open')==='closed'?(current.closed_by||(currentUser&&currentUser.id)||null):current.closed_by||null
     };
 
     if(!changes.hub_codes.length||!changes.category||!changes.divisions.length||!changes.title||!changes.problem_identification){
@@ -67,21 +69,27 @@ module.exports = function addReliableCaseEditRuntime(html) {
     if(submit){submit.disabled=true;submit.dataset.originalLabel=submit.textContent;submit.textContent='Menyimpan perubahan...';}
 
     try{
-      if(mode!=='firebase'||!fireDb)throw new Error('Koneksi Firebase belum siap. Muat ulang halaman lalu coba kembali.');
-      await fireDb.collection('cases').doc(caseId).update(changes);
+      var client=window.wctSupabase;
+      if(!client)throw new Error('Koneksi database belum siap. Muat ulang halaman lalu coba kembali.');
+      var saved=await client.from('wct_cases').update(changes).eq('id',caseId);
+      if(saved.error)throw saved.error;
       Object.assign(current,changes);
 
-      // Edited Case state is already synchronized locally; avoid refetching every Firestore collection.
-      tell('Perubahan Case berhasil disimpan.');
+      var refreshWarning='';
+      try{
+        if(typeof refreshData==='function')await refreshData();
+      }catch(refreshError){
+        console.warn('Case updated but refresh failed:',refreshError);
+        refreshWarning=' Perubahan sudah tersimpan; daftar akan diperbarui saat halaman dimuat ulang.';
+      }
 
-      var flow=window.wctPicapaFlow||{};
-      if(flow.editReturnToDetail&&typeof window.openCaseDetail==='function'){
-        await window.openCaseDetail(caseId);
-      }else if(typeof window.wctReturnToCaseList==='function'){
-        window.wctReturnToCaseList();
+      closeModal();
+      if(typeof window.openCaseDetail==='function'){
+        window.openCaseDetail(caseId);
       }else if(typeof renderCases==='function'){
         renderCases();
       }
+      tell('Informasi Case berhasil diperbarui.'+refreshWarning);
       return true;
     }catch(error){
       console.error('Save Case edit failed:',error);
