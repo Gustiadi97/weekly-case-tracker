@@ -484,7 +484,7 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
     }else{
       var selectedText=selected?selected.update_text||'':'';
       var blocker=selected?selected.blocker||'':'',nextStep=selected?selected.next_step||'':'';
-      html+='<form class="wct-progress-compose" id="wctProgressDrawerForm" onsubmit="submitProgress(event,\\''+esc(actionId)+'\\',\\''+(selected?esc(selected.id):'')+'\\')">'+warning+'<textarea class="wct-progress-compose-message" name="update_text" maxlength="5000" required placeholder="Tulis pesan atau perkembangan terbaru…">'+esc(selectedText)+'</textarea><div class="wct-progress-compose-controls"><label class="status">Status<select name="status">'+statusOptions.map(function(option){return '<option value="'+option[0]+'" '+(status===option[0]?'selected':'')+'>'+option[1]+'</option>';}).join('')+'</select></label><label class="progress">Progress (%)<input type="number" name="progress_after" min="0" max="100" step="5" value="'+progress+'" required></label><small class="wct-progress-counter"><span id="wctProgressCharCount">'+selectedText.length+'</span>/5000</small><button type="submit" class="wct-progress-send" aria-label="Kirim update">➤</button></div><details class="wct-progress-extra"><summary>Kendala dan langkah berikutnya (opsional)</summary><div class="wct-progress-extra-grid"><label>Kendala / Blocker<textarea name="blocker">'+esc(blocker)+'</textarea></label><label>Next Step<textarea name="next_step">'+esc(nextStep)+'</textarea></label></div></details></form>';
+      html+='<form class="wct-progress-compose" id="wctProgressDrawerForm" data-wct-action-id=\"'+esc(actionId)+'\" data-wct-log-id=\"'+(selected?esc(selected.id):'')+'\">+warning+'<textarea class="wct-progress-compose-message" name="update_text" maxlength="5000" required placeholder="Tulis pesan atau perkembangan terbaru…">'+esc(selectedText)+'</textarea><div class="wct-progress-compose-controls"><label class="status">Status<select name="status">'+statusOptions.map(function(option){return '<option value="'+option[0]+'" '+(status===option[0]?'selected':'')+'>'+option[1]+'</option>';}).join('')+'</select></label><label class="progress">Progress (%)<input type="number" name="progress_after" min="0" max="100" step="5" value="'+progress+'" required></label><small class="wct-progress-counter"><span id="wctProgressCharCount">'+selectedText.length+'</span>/5000</small><button type="submit" class="wct-progress-send" aria-label="Kirim update">➤</button></div><details class="wct-progress-extra"><summary>Kendala dan langkah berikutnya (opsional)</summary><div class="wct-progress-extra-grid"><label>Kendala / Blocker<textarea name="blocker">'+esc(blocker)+'</textarea></label><label>Next Step<textarea name="next_step">'+esc(nextStep)+'</textarea></label></div></details></form>';
     }
     closeProgressDrawer();
     document.body.insertAdjacentHTML('beforeend',html);
@@ -508,6 +508,10 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
     };
     wrappedOpenUpdate.__wctProgressDrawerWrapped=true;window.openUpdateForm=wrappedOpenUpdate;
   }
+  document.addEventListener('submit',function(event){
+    var form=event.target;if(!form||form.id!=='wctProgressDrawerForm')return;
+    event.preventDefault();if(typeof window.submitProgress==='function')window.submitProgress(event,form.dataset.wctActionId,form.dataset.wctLogId||'');
+  },true);
   document.addEventListener('click',function(event){
     var close=event.target.closest&&event.target.closest('[data-wct-close-progress-drawer]');
     if(close){closeProgressDrawer();return;}
