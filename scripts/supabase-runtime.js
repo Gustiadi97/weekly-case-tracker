@@ -714,7 +714,8 @@ window.saveCaseOptions=async function(next){
   if(!isAdmin())return false;
   const value={
     categories:[...new Set((next.categories||[]).map(item=>String(item).trim()).filter(Boolean))],
-    divisions:[...new Set((next.divisions||[]).map(item=>String(item).trim()).filter(Boolean))]
+    divisions:[...new Set((next.divisions||[]).map(item=>String(item).trim()).filter(Boolean))],
+    hubs:[...new Set((next.hubs||[]).map(item=>String(item).trim().toUpperCase()).filter(Boolean))]
   };
   try{
     const result=await sb.from('wct_app_settings').upsert({
@@ -722,7 +723,7 @@ window.saveCaseOptions=async function(next){
       updated_by:currentUser.id,updated_at:new Date().toISOString()
     },{onConflict:'setting_key'});
     if(result.error)throw result.error;
-    state.caseOptions=value;toast('Pengaturan Kategori dan Divisi berhasil disimpan.');renderSettings();return true;
+    state.caseOptions=value;toast('Pengaturan HUB, Kategori, dan Divisi berhasil disimpan.');renderSettings();return true;
   }catch(error){toast('Gagal menyimpan pengaturan: '+(error.message||error));return false;}
 };
 
