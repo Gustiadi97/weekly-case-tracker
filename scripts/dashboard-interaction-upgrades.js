@@ -288,6 +288,11 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
 .wct-priority-seven-count{padding:6px 9px;border:1px solid #F0DFBB;border-radius:999px;background:#FFFAEF;color:#8F620D;font-size:9px;font-weight:850;white-space:nowrap}
 .wct-priority-seven-list{display:grid}
 
+
+.wct-case-create-next-step{display:flex;flex-direction:column;gap:5px;margin-top:19px;padding:13px 14px;border:1px solid #E9EDF2;border-radius:11px;background:#F8FAFC}
+.wct-case-create-step{color:#B87900;font-size:8px;font-weight:900;letter-spacing:.13em}
+.wct-case-create-next-step strong{color:#3A4658;font-size:10px}
+.wct-case-create-next-step p{margin:0;color:#86909F;font-size:9px;line-height:1.55}
 .wct-priority-seven-wrap{width:100%;overflow-x:auto;border-radius:0 0 14px 14px}
 .wct-priority-seven-table{min-width:1280px;margin:0;border-collapse:separate;border-spacing:0}
 .wct-priority-seven-table thead th{position:sticky;top:0;z-index:1;padding:11px 12px;background:#F8F9FB;color:#6E7888;font-size:9px;font-weight:900;letter-spacing:.035em;white-space:nowrap;border-bottom:1px solid #E8ECF1}
