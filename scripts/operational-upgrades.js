@@ -91,7 +91,7 @@ module.exports = function addOperationalUpgrades(html) {
   if(typeof originalEditCase==='function')window.editCaseForm=function(id,returnToDetail){var result=originalEditCase.apply(this,arguments);window.setTimeout(function(){var record=(stateData().cases||[]).find(function(item){return String(item.id)===String(id);});upgradeCaseForm($('wctCaseEditorForm'),record||{});},35);return result;};
 
   var notifications=[],notificationFilter='all',notificationChannel=null,notificationUserId=null,notificationLoading=false;
-  var bellMarkup='<button type="button" id="wctNotificationBell" class="wct-notification-bell" aria-label="Buka Notification Center" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="wctNotificationCount" class="wct-notification-count">0</span></button><div id="wctNotificationPopover" class="wct-notification-popover" hidden></div>';
+  var bellMarkup='<button type="button" id="wctNotificationBell" data-wct-notification-bell class="wct-notification-bell" aria-label="Buka Notification Center" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="wctNotificationCount" class="wct-notification-count">0</span></button><div id="wctNotificationPopover" class="wct-notification-popover" hidden></div>';
   function notificationIcon(kind){return ({case_created:'C',case_updated:'C',action_assigned:'A',action_updated:'A',progress_updated:'↗',meeting_created:'M',meeting_updated:'M'})[kind]||'•';}
   function relativeTime(value){
     if(!value)return 'Baru saja';var date=new Date(value),diff=Math.max(0,Date.now()-date.getTime()),minutes=Math.floor(diff/60000);
@@ -154,7 +154,7 @@ module.exports = function addOperationalUpgrades(html) {
   function addNotificationNav(){
     var nav=document.querySelector('.sidebar .nav');if(!nav||$('wctNotificationNav'))return;
     var dash=Array.from(nav.querySelectorAll('button')).find(function(item){return /dashboard/i.test(item.textContent||'');});
-    var button=document.createElement('button');button.type='button';button.id='wctNotificationNav';button.className='wct-notification-nav-item';
+    var button=document.createElement('button');button.type='button';button.id='wctNotificationNav';button.dataset.wctNotificationPage='true';button.className='wct-notification-nav-item';
     button.innerHTML='<span class="ico">♧</span><span>Notification Center</span><b id="wctNotificationNavCount" class="wct-notification-nav-count" hidden></b>';
     if(dash&&dash.parentNode===nav)dash.insertAdjacentElement('afterend',button);else nav.appendChild(button);
   }
