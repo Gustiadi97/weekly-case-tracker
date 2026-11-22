@@ -130,6 +130,8 @@ try {
     ['HUB and Division checkbox option panel', 'wct-multi-select-panel'],
     ['Category visible single-choice dropdown', "fieldFor(form,['[name=\"category\"]'])"],
     ['Three-column operational field row', 'wct-case-form-grid-operational'],
+    ['HUB, Category and Division share one operational row', 'wct-case-form-third'],
+    ['Operational fields clear inherited span-2 width', "field.classList.remove('span-2','wct-case-form-wide')"],
     ['Priority remains a button group', 'wct-priority-buttons'],
     ['Multi-select summary refresh handler', 'updateMultiSummary'],
     ['Case detail layout polish', 'id="wct-case-experience-polish"'],
