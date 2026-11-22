@@ -64,7 +64,7 @@ function resetCaseFilters(){['caseSearch','hubFilter','statusFilter','categoryFi
 function openCaseForm(){
   if(!isCoordinator()){toast('Hanya koordinator atau admin yang dapat membuat case.');return;}
   const opt=wctOptions(),cats=opt.categories,divisions=opt.divisions;
-  let out='<div class="modal-head"><div><div class="eyebrow">NEW CASE / PICAPA</div><h2>Catat Permasalahan Baru</h2></div><button class="close" onclick="closeModal()">×</button></div><form id="caseForm" onsubmit="submitCase(event)"><div class="modal-body"><div class="form-grid">';
+  let out='<div class="modal-head"><div><div class="eyebrow">NEW CASE / PICAPA · LANGKAH 1</div><h2>Catat Permasalahan Baru</h2><p class="sub">Isi informasi inti permasalahan terlebih dahulu. Rencana tindakan dibuat setelah Case tersimpan.</p></div><button class="close" onclick="closeModal()">×</button></div><form id="caseForm" onsubmit="submitCase(event)"><div class="modal-body"><div class="form-grid">';
   out+='<div class="field"><label>HUB *</label><input name="hub_code" required placeholder="Contoh: MKS / BPP / MND" autocapitalize="characters"></div>';
   out+='<div class="field"><label>Kategori *</label><select name="category" required><option value="">Pilih kategori</option>'+cats.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select></div>';
   out+='<div class="field"><label>Divisi *</label><select name="division" required><option value="">Pilih divisi</option>'+divisions.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('')+'</select></div>';
