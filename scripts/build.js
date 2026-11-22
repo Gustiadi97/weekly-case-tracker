@@ -82,6 +82,7 @@ try {
   html = require('./modal-controls')(html);
   html = require('./picapa-modal-polish')(html);
   html = require('./operational-upgrades')(html);
+  html = require('./dashboard-interaction-upgrades')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -114,6 +115,10 @@ try {
     ['PICAPA modal visual polish stylesheet', 'id="wct-picapa-modal-polish-style"'],
     ['PICAPA modal runtime classifier', 'id="wct-picapa-modal-polish"'],
     ['Operational upgrades module', 'id="wct-operational-upgrades"'],
+    ['Dashboard and interaction upgrade module', 'id="wct-dashboard-interaction-upgrades"'],
+    ['7-day Case and Action priorities', 'PRIORITAS 7 HARI KE DEPAN'],
+    ['HUB Workspace progress drawer', 'wctProgressDrawerBackdrop'],
+    ['Task-style Case form UI', 'wct-case-workspace-modal'],
     ['Notification Center inbox', 'id="wctNotificationBell"'],
     ['Productivity dashboard panel', 'wct-productivity-dashboard'],
     ['Multi-HUB and division picker runtime', 'data-wct-picker='],
