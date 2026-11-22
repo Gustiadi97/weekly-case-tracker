@@ -415,17 +415,8 @@ window.submitCase=async function(event){
     wctShowCaseFormError(formElement,new Error('Pilih minimal satu HUB dan satu Divisi, lalu lengkapi kategori, judul, tanggal kejadian, dan uraian masalah.'));
     return;
   }
+  // Case creation records the problem first. PICAPA Actions are added from the Case detail view.
   const actions=[];
-  [['corrective','ca'],['preventive','pa']].forEach(item=>{
-    const title=String(form.get(item[1]+'_title')||'').trim();
-    if(title)actions.push({
-      action_type:item[0],
-      title,
-      description:'',
-      assigned_to:String(form.get(item[1]+'_assigned')||'')||null,
-      due_date:String(form.get(item[1]+'_due')||'')||null
-    });
-  });
   const button=event.submitter||formElement.querySelector('button[type=submit]');
   if(button&&button.disabled)return;
   if(button){
@@ -438,6 +429,7 @@ window.submitCase=async function(event){
     const result=await sb.rpc('wct_create_case',{p_case:row,p_actions:actions});
     if(result.error)throw result.error;
     persisted=true;
+    const createdCaseId=result.data&&result.data.id?String(result.data.id):'';
 
     let refreshError=null;
     try{
@@ -448,17 +440,16 @@ window.submitCase=async function(event){
     }
 
     closeModal();
-    if(typeof window.wctWorkspaceRoute==='string'&&window.wctWorkspaceRoute){
-      if(typeof window.renderDashboard==='function'&&window.wctWorkspaceRoute==='dashboard')window.renderDashboard();
-      else if(typeof window.renderPage==='function')window.renderPage();
-    }else if(typeof window.renderPage==='function'){
-      window.renderPage();
-    }
-
-    if(refreshError){
-      toast('Case berhasil disimpan, tetapi daftar belum berhasil diperbarui. Muat ulang halaman untuk melihat Case.');
+    if(!refreshError&&createdCaseId&&typeof window.openCaseDetail==='function'){
+      toast('Case berhasil dicatat. Lanjutkan dengan menambahkan Action pada detail Case.');
+      window.openCaseDetail(createdCaseId);
     }else{
-      toast('Case berhasil dibuat.');
+      if(typeof window.renderPage==='function')window.renderPage();
+      if(refreshError){
+        toast('Case berhasil disimpan, tetapi daftar belum berhasil diperbarui. Muat ulang halaman untuk melihat Case.');
+      }else{
+        toast('Case berhasil dibuat. Buka Detail Case untuk menambahkan Action.');
+      }
     }
   }catch(error){
     console.error('Gagal membuat Case melalui Supabase:',error);
