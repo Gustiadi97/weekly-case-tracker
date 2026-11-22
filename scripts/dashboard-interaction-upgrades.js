@@ -57,7 +57,7 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
   display:block;width:100%;min-width:0;min-height:40px;box-sizing:border-box;
   padding:10px 12px;border:1px solid #DFE5ED;border-radius:9px;
   background:#FBFCFD!important;color:#263244!important;
-  font:500 11px/1.5 inherit;outline:none;box-shadow:none!important;
+  font-family:inherit;font-size:11px;font-weight:500;line-height:1.5;outline:none;box-shadow:none!important;
   transition:border-color .16s,background .16s,box-shadow .16s;
 }
 #modal.wct-case-workspace-modal .field textarea{min-height:92px;resize:vertical}
@@ -255,7 +255,7 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
 .wct-progress-compose-message{
   width:100%;min-height:58px;max-height:145px;resize:vertical;padding:10px 12px;
   border:1px solid #E0E5EB;border-radius:10px;background:#FBFCFD;color:#354154;
-  font:500 10px/1.5 inherit;outline:none;
+  font-family:inherit;font-size:10px;font-weight:500;line-height:1.5;outline:none;
 }
 .wct-progress-compose-message:focus{border-color:#E5AD43;box-shadow:0 0 0 3px rgba(229,173,67,.13)}
 .wct-progress-compose-controls{display:flex;align-items:flex-end;gap:8px}
@@ -348,6 +348,17 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
   if(typeof oldEditCase==='function'&&!oldEditCase.__wctWorkspaceCaseForm){
     var wrappedEditCase=function(){var result=oldEditCase.apply(this,arguments);window.setTimeout(decorateCaseModal,85);return result;};
     wrappedEditCase.__wctWorkspaceCaseForm=true;window.editCaseForm=wrappedEditCase;
+  }
+  function observeCaseModal(){
+    var modal=$('modal');if(!modal||modal.dataset.wctCaseModalObserver)return;
+    modal.dataset.wctCaseModalObserver='1';
+    var refresh=function(){
+      var isCase=!!modal.querySelector('#caseForm,#wctCaseEditorForm');
+      modal.classList.toggle('wct-case-workspace-modal',isCase);
+      var body=modal.querySelector('.modal-body');if(body)body.classList.toggle('wct-case-workspace-body',isCase);
+    };
+    new MutationObserver(refresh).observe(modal,{childList:true,subtree:true});
+    refresh();
   }
 
   function profileName(id){
@@ -499,10 +510,15 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
   }
   if(typeof oldOpenUpdate==='function'&&!oldOpenUpdate.__wctProgressDrawerWrapped){
     var wrappedOpenUpdate=function(actionId,logId){
-      var modal=$('modal'),before=modal?modal.innerHTML:'';
+      if((typeof currentUser!=='undefined'&&currentUser.role)==='viewer'){
+        openProgressDrawer(actionId,'');return;
+      }
+      var modal=$('modal');
+      if(typeof window.closeModal==='function')window.closeModal();
+      if(modal)modal.innerHTML='';
       oldOpenUpdate.apply(this,arguments);
       var after=modal?modal.innerHTML:'';
-      if(!modal||after===before||!after.includes('submitProgress'))return;
+      if(!modal||!after.includes('submitProgress'))return;
       if(typeof window.closeModal==='function')window.closeModal();
       openProgressDrawer(actionId,logId);
     };
@@ -533,6 +549,7 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
   function init(){
     var user=(typeof currentUser!=='undefined'&&currentUser)||null;
     if($('wctNotificationNav'))$('wctNotificationNav').remove();
+    observeCaseModal();
     installPriorityObserver();
   }
   window.wctDashboardPriorityRefresh=renderPrioritySeven;
