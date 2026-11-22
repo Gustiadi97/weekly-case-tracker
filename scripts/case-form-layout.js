@@ -97,6 +97,9 @@ module.exports = function applyCaseFormLayout(html) {
 #modal.wct-case-workspace-modal .wct-case-form-grid-operational{
   grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px 17px!important;
 }
+#modal.wct-case-workspace-modal .wct-case-form-grid-operational>.field.wct-case-form-third{
+  grid-column:auto!important;min-width:0!important;
+}
 #modal.wct-case-workspace-modal .wct-case-form-grid>.field,
 #modal.wct-case-workspace-modal .wct-case-form-grid>.field.span-2{
   display:flex!important;flex-direction:column!important;align-items:stretch!important;
@@ -374,6 +377,14 @@ module.exports = function applyCaseFormLayout(html) {
     if(priority)priority.dataset.wctCaseWide='true';
     if(problem)problem.dataset.wctCaseWide='true';
     if(title)title.dataset.wctCaseWide='true';
+
+    // The original markup marks these controls as span-2. Remove that inherited
+    // width so HUB, Category, and Division occupy exactly one grid column each.
+    [hubs,category,divisions].forEach(function(field){
+      if(!field)return;
+      field.classList.remove('span-2','wct-case-form-wide');
+      field.classList.add('wct-case-form-third');
+    });
 
     var fields=Array.from(sourceGrid.children).filter(function(node){return node.classList&&node.classList.contains('field');});
     var used=new Set();
