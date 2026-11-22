@@ -34,10 +34,16 @@ module.exports = function addReliableCaseEditRuntime(html) {
     var current=(state.cases||[]).find(function(item){return item.id===caseId;});
     if(!current){tell('Case tidak ditemukan. Muat ulang daftar Case lalu coba lagi.');return false;}
 
+    var hubCodes=Array.from(new Set(values.getAll('hub_codes').map(function(value){return String(value||'').trim().toUpperCase();}).filter(Boolean)));
+    var divisions=Array.from(new Set(values.getAll('divisions').map(function(value){return String(value||'').trim();}).filter(Boolean)));
+    if(!hubCodes.length){var legacyHub=String(values.get('hub_code')||'').trim().toUpperCase();if(legacyHub)hubCodes=[legacyHub];}
+    if(!divisions.length){var legacyDivision=String(values.get('division')||'').trim();if(legacyDivision)divisions=[legacyDivision];}
     var changes={
-      hub_code:String(values.get('hub_code')||'').trim().toUpperCase(),
+      hub_code:hubCodes[0]||'',
+      hub_codes:hubCodes,
       category:String(values.get('category')||'').trim(),
-      division:String(values.get('division')||'').trim(),
+      division:divisions[0]||'',
+      divisions:divisions,
       title:String(values.get('title')||'').trim(),
       problem_identification:String(values.get('problem_identification')||'').trim(),
       occurred_on:String(values.get('occurred_on')||'').trim()||null,
@@ -49,8 +55,8 @@ module.exports = function addReliableCaseEditRuntime(html) {
       updated_by:currentUser&&currentUser.id?currentUser.id:null
     };
 
-    if(!changes.hub_code||!changes.category||!changes.division||!changes.title||!changes.problem_identification){
-      tell('Lengkapi HUB, kategori, divisi, judul, dan uraian masalah.');return false;
+    if(!changes.hub_codes.length||!changes.category||!changes.divisions.length||!changes.title||!changes.problem_identification){
+      tell('Pilih minimal satu HUB dan satu Divisi, lalu lengkapi kategori, judul, dan uraian masalah.');return false;
     }
     if(['High','Medium','Low'].indexOf(changes.priority)<0){tell('Pilih prioritas Case.');return false;}
     if(['open','in_progress','review','closed'].indexOf(changes.status)<0){tell('Status Case tidak valid.');return false;}
