@@ -760,15 +760,73 @@ module.exports = function applyWorkspaceModules(html) {
     if(event.target.matches('[data-wct-pref]')){savePrefs(event.target.dataset.wctPref,event.target.checked);}
     if(event.target.matches('[data-wct-week-start]')){savePrefs('weekStart',event.target.value);if(window.wctWorkspaceRoute==='calendar')renderCalendar();}
   });
-  var draggedAction=null;
-  document.addEventListener('dragstart',function(event){var card=event.target.closest&&event.target.closest('[data-wct-drag-action]');if(!card)return;draggedAction=card.dataset.wctDragAction;event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',draggedAction);});
-  document.addEventListener('dragover',function(event){var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');if(col){event.preventDefault();col.classList.add('is-over');}});
-  document.addEventListener('dragleave',function(event){var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');if(col&&!col.contains(event.relatedTarget))col.classList.remove('is-over');});
+  var draggedAction=null,taskMovePending=false;
+  async function moveTaskActionStatus(actionId,nextStatus){
+    var allowed=['open','in_progress','review','done'];
+    if(allowed.indexOf(nextStatus)<0){toast('Status tujuan tidak valid.');return;}
+    if(me().role==='viewer'){toast('Akun Viewer hanya dapat membaca papan Tasks.');return;}
+    var action=actions().find(function(item){return String(item.id)===String(actionId);});
+    if(!action){toast('Action tidak ditemukan. Muat ulang papan Tasks.');return;}
+    var parent=caseBy(action.case_id);
+    if(!parent||parent.status==='closed'){toast('Case sudah diarsipkan. Action tidak dapat dipindahkan.');return;}
+    if(action.status===nextStatus){renderTasks();return;}
+    if(taskMovePending)return;
+    var db=window.wctSupabase;
+    if(!db||typeof db.from!=='function'){toast('Koneksi database belum tersedia.');return;}
+    taskMovePending=true;
+    var oldStatus=action.status,now=new Date().toISOString();
+    try{
+      var result=await db.from('wct_actions')
+        .update({status:nextStatus,updated_at:now,updated_by:me().id})
+        .eq('id',action.id)
+        .eq('case_id',action.case_id)
+        .select('*')
+        .maybeSingle();
+      if(result.error)throw result.error;
+      if(!result.data)throw new Error('Perubahan ditolak atau Action tidak ditemukan. Periksa hak akses akun.');
+      if(typeof window.refreshData==='function')await window.refreshData();
+      renderTasks();
+      toast('Action dipindahkan ke '+statusLabel(nextStatus)+'.');
+    }catch(error){
+      action.status=oldStatus;
+      renderTasks();
+      console.error('Move Action status failed:',error);
+      toast('Gagal memindahkan Action: '+(error&&error.message||error));
+    }finally{
+      taskMovePending=false;
+      draggedAction=null;
+    }
+  }
+  document.addEventListener('dragstart',function(event){
+    var card=event.target.closest&&event.target.closest('[data-wct-drag-action]');
+    if(!card||!event.dataTransfer)return;
+    draggedAction=card.dataset.wctDragAction;
+    event.dataTransfer.effectAllowed='move';
+    event.dataTransfer.setData('text/plain',draggedAction);
+    card.classList.add('is-dragging');
+  });
+  document.addEventListener('dragend',function(event){
+    var card=event.target.closest&&event.target.closest('[data-wct-drag-action]');
+    if(card)card.classList.remove('is-dragging');
+    document.querySelectorAll('.wct-kanban-col.is-over').forEach(function(col){col.classList.remove('is-over');});
+  });
+  document.addEventListener('dragover',function(event){
+    var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');
+    if(col){event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect='move';col.classList.add('is-over');}
+  });
+  document.addEventListener('dragleave',function(event){
+    var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');
+    if(col&&!col.contains(event.relatedTarget))col.classList.remove('is-over');
+  });
   document.addEventListener('drop',function(event){
-    var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');if(!col)return;event.preventDefault();col.classList.remove('is-over');
-    var id=event.dataTransfer.getData('text/plain')||draggedAction;if(!id||!window.openUpdateForm)return;
-    window.openUpdateForm(id);
-    window.setTimeout(function(){var modal=$('modal'),form=modal&&modal.querySelector('form');var status=form&&form.querySelector('[name="status"]');if(status)status.value=col.dataset.wctDropStatus;var update=form&&form.querySelector('[name="update_text"]');if(update){update.focus();update.placeholder='Tuliskan hasil pekerjaan sebelum status dipindahkan';}},80);
+    var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');
+    if(!col)return;
+    event.preventDefault();
+    col.classList.remove('is-over');
+    var id=(event.dataTransfer&&event.dataTransfer.getData('text/plain'))||draggedAction;
+    var nextStatus=col.dataset.wctDropStatus;
+    if(!id||!nextStatus)return;
+    void moveTaskActionStatus(id,nextStatus);
   });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
