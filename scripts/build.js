@@ -85,6 +85,7 @@ try {
   html = require('./dashboard-interaction-upgrades')(html);
   html = require('./case-layer-redesign')(html);
   html = require('./case-form-layout')(html);
+  html = require('./case-experience-polish')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -121,6 +122,9 @@ try {
     ['Case layers redesign module', 'id="wct-case-layer-redesign"'],
     ['Unified Create and Edit Case layout', 'id="wct-case-form-layout"'],
     ['Structured Case form sections', 'wct-case-form-section'],
+    ['Case detail layout polish', 'id="wct-case-experience-polish"'],
+    ['Action editor light theme', 'wct-action-form-modal'],
+    ['Case form priority in operational scope', "addSection(layout,1,'LINGKUP OPERASIONAL'"],
     ['Corrective and Preventive Action separate tables', 'wct-action-group-corrective'],
     ['Right-docked Case detail drawer', 'wct-case-side-drawer'],
     ['Case detail right-side transition', 'wctCaseDrawerIn'],
