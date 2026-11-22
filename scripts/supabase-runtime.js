@@ -27,7 +27,7 @@ const PK = {
 const ALLOWED = {
   wct_users:['id','login_id','employee_id','full_name','area_name','role','active','created_at','created_by','updated_at'],
   wct_team_directory:['user_id','full_name','role','active','deleted','updated_at'],
-  wct_cases:['id','case_number','hub_code','category','division','title','problem_identification','occurred_on','target_date','reporter','priority','status','created_by','updated_by','closed_at','closed_by','created_at','updated_at'],
+  wct_cases:['id','case_number','hub_code','hub_codes','category','division','divisions','title','problem_identification','occurred_on','target_date','reporter','priority','status','created_by','updated_by','closed_at','closed_by','created_at','updated_at'],
   wct_actions:['id','case_id','action_type','title','description','assigned_to','due_date','status','progress','latest_progress_log_id','created_by','updated_by','created_at','updated_at'],
   wct_progress_logs:['id','case_id','action_id','update_text','progress_before','progress_after','status_after','blocker','next_step','created_by','created_at','edited_by','edited_at','last_edit_audit_id'],
   wct_progress_log_edits:['id','log_id','case_id','action_id','edited_by','created_at','before_data','after_data','latest_update'],
@@ -282,9 +282,11 @@ async function loadRuntimeData(){
   const savedOptions=settings&&settings.setting_value?settings.setting_value:{};
   const defaultCategories=['Inbound','Outbound','Sorting','Productivity','Service Level','Facility & Safety','People / Manpower','Transportation','Reporting','Other'];
   const defaultDivisions=['Hub Operations','Gateway','Last Mile','Transport','Facility','Human Capital','GA','Other'];
+  const defaultHubs=['MKS','BPP','BJM','MND','PLK'];
   state.caseOptions={
     categories:Array.isArray(savedOptions.categories)&&savedOptions.categories.length?savedOptions.categories.slice():defaultCategories,
-    divisions:Array.isArray(savedOptions.divisions)&&savedOptions.divisions.length?savedOptions.divisions.slice():defaultDivisions
+    divisions:Array.isArray(savedOptions.divisions)&&savedOptions.divisions.length?savedOptions.divisions.slice():defaultDivisions,
+    hubs:Array.isArray(savedOptions.hubs)&&savedOptions.hubs.length?savedOptions.hubs.slice():defaultHubs
   };
   return state;
 }
@@ -393,10 +395,14 @@ window.submitCase=async function(event){
     return;
   }
   const form=new FormData(formElement);
+  const hubCodes=Array.from(new Set(form.getAll('hub_codes').map(value=>String(value||'').trim().toUpperCase()).filter(Boolean)));
+  const divisions=Array.from(new Set(form.getAll('divisions').map(value=>String(value||'').trim()).filter(Boolean)));
   const row={
-    hub_code:String(form.get('hub_code')||'').trim().toUpperCase(),
+    hub_code:hubCodes[0]||'',
+    hub_codes:hubCodes,
     category:String(form.get('category')||'').trim(),
-    division:String(form.get('division')||'').trim(),
+    division:divisions[0]||'',
+    divisions:divisions,
     title:String(form.get('title')||'').trim(),
     priority:String(form.get('priority')||'Medium'),
     problem_identification:String(form.get('problem_identification')||'').trim(),
@@ -405,8 +411,8 @@ window.submitCase=async function(event){
     occurred_on:String(form.get('occurred_on')||'')||null,
     target_date:String(form.get('target_date')||'')||null
   };
-  if(!row.hub_code||!row.category||!row.division||!row.title||!row.problem_identification||!row.occurred_on){
-    wctShowCaseFormError(formElement,new Error('Lengkapi HUB, kategori, divisi, judul, tanggal kejadian, dan uraian masalah.'));
+  if(!row.hub_codes.length||!row.category||!row.divisions.length||!row.title||!row.problem_identification||!row.occurred_on){
+    wctShowCaseFormError(formElement,new Error('Pilih minimal satu HUB dan satu Divisi, lalu lengkapi kategori, judul, tanggal kejadian, dan uraian masalah.'));
     return;
   }
   const actions=[];
