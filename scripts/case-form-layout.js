@@ -119,7 +119,11 @@ module.exports = function applyCaseFormLayout(html) {
   transition:border-color .16s,box-shadow .16s,background .16s!important;
 }
 #modal.wct-case-workspace-modal .wct-case-form-grid .field textarea{
-  min-height:142px!important;resize:vertical!important;line-height:1.65!important;
+  min-height:158px!important;resize:vertical!important;line-height:1.7!important;
+}
+#modal.wct-case-workspace-modal .wct-case-form-grid .field:has([name="title"]) input[name="title"]{
+  min-height:56px!important;padding:14px 16px!important;font-size:14px!important;font-weight:750!important;letter-spacing:-.01em!important;
+  background:#FFFFFF!important;border-color:#CBD7E4!important;
 }
 #modal.wct-case-workspace-modal .wct-case-form-grid .field input:focus,
 #modal.wct-case-workspace-modal .wct-case-form-grid .field select:focus,
@@ -130,15 +134,15 @@ module.exports = function applyCaseFormLayout(html) {
 #modal.wct-case-workspace-modal .wct-case-form-grid .field input::placeholder,
 #modal.wct-case-workspace-modal .wct-case-form-grid .field textarea::placeholder{color:#A0AAB8!important;opacity:1!important}
 #modal.wct-case-workspace-modal .wct-case-form-grid .wct-multi-picker{
-  display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:8px!important;
-  width:100%!important;margin:1px 0 0!important;
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:stretch!important;gap:8px!important;width:100%!important;margin:1px 0 0!important;
 }
 #modal.wct-case-workspace-modal .wct-case-form-grid .wct-choice-chip{
-  display:inline-flex!important;align-items:center!important;gap:8px!important;
-  min-height:39px!important;padding:8px 13px!important;border:1px solid #DDE5ED!important;
-  border-radius:10px!important;background:#fff!important;color:#4D5D72!important;
-  font-size:11px!important;font-weight:850!important;cursor:pointer!important;
-  transition:border-color .16s,background .16s,color .16s!important;
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;
+  width:100%!important;min-height:43px!important;box-sizing:border-box!important;padding:10px 13px!important;
+  border:1px solid #DDE5ED!important;border-radius:10px!important;background:#FBFCFE!important;
+  color:#4D5D72!important;font-size:11px!important;font-weight:850!important;cursor:pointer!important;
+  transition:border-color .16s,background .16s,color .16s,box-shadow .16s!important;
 }
 #modal.wct-case-workspace-modal .wct-case-form-grid .wct-choice-chip input{
   width:15px!important;height:15px!important;min-height:15px!important;margin:0!important;
@@ -146,7 +150,7 @@ module.exports = function applyCaseFormLayout(html) {
 }
 #modal.wct-case-workspace-modal .wct-case-form-grid .wct-choice-chip:has(input:checked){
   border-color:#E0A12C!important;background:#FFF8E9!important;color:#805500!important;
-  box-shadow:0 0 0 2px rgba(224,161,44,.09)!important;
+  box-shadow:inset 3px 0 0 #E0A12C,0 0 0 2px rgba(224,161,44,.07)!important;
 }
 #modal.wct-case-workspace-modal .wct-picker-hint{
   display:block!important;margin:0!important;color:#8895A6!important;font-size:10px!important;line-height:1.5!important;
@@ -217,6 +221,7 @@ module.exports = function applyCaseFormLayout(html) {
   #modal.wct-case-workspace-modal .wct-case-form-section{padding-bottom:18px!important}
   #modal.wct-case-workspace-modal .wct-case-form-section-head{margin-bottom:13px!important}
   #modal.wct-case-workspace-modal .wct-case-form-grid{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+  #modal.wct-case-workspace-modal .wct-case-form-grid .wct-multi-picker{grid-template-columns:minmax(0,1fr)!important;gap:7px!important}
   #modal.wct-case-workspace-modal .wct-case-form-grid>.field,
   #modal.wct-case-workspace-modal .wct-case-form-grid>.field.span-2{grid-column:1!important}
   #modal.wct-case-workspace-modal .wct-case-form-grid .field input:not([type=checkbox]):not([type=range]),
@@ -312,6 +317,7 @@ module.exports = function applyCaseFormLayout(html) {
     if(divisions)divisions.dataset.wctCaseWide='true';
     if(priority)priority.dataset.wctCaseWide='true';
     if(problem)problem.dataset.wctCaseWide='true';
+    if(title)title.dataset.wctCaseWide='true';
 
     var fields=Array.from(sourceGrid.children).filter(function(node){return node.classList&&node.classList.contains('field');});
     var used=new Set();
@@ -319,8 +325,8 @@ module.exports = function applyCaseFormLayout(html) {
     layout.className='wct-case-form-layout';
     sourceGrid.parentNode.insertBefore(layout,sourceGrid);
 
-    addSection(layout,1,'LINGKUP OPERASIONAL','Tentukan HUB dan divisi terdampak, lalu lengkapi klasifikasi serta judul Case.',[hubs,divisions,category,title],used);
-    addSection(layout,2,'IDENTIFIKASI & PRIORITAS','Pilih tingkat urgensi dan jelaskan kondisi masalah secara spesifik.',[priority,problem],used);
+    addSection(layout,1,'LINGKUP OPERASIONAL','Tentukan HUB, divisi yang terlibat, dan tingkat prioritas permasalahan.',[hubs,divisions,priority],used);
+    addSection(layout,2,'IDENTIFIKASI & PRIORITAS','Lengkapi kategori, judul Case, dan uraian masalah secara jelas.',[category,title,problem],used);
     addSection(layout,3,'KRONOLOGI & PELAPORAN','Catat tanggal kejadian, target awal penyelesaian, dan pihak yang melaporkan.',[occurred,target,reporter,status],used);
 
     var leftovers=fields.filter(function(field){return !used.has(field);});
