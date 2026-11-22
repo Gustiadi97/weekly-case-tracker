@@ -81,6 +81,7 @@ try {
   html = require('./workspace-modules')(html);
   html = require('./modal-controls')(html);
   html = require('./picapa-modal-polish')(html);
+  html = require('./operational-upgrades')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -112,6 +113,10 @@ try {
     ['Reliable X / Cancel / Close modal controls', 'id="wct-modal-controls"'],
     ['PICAPA modal visual polish stylesheet', 'id="wct-picapa-modal-polish-style"'],
     ['PICAPA modal runtime classifier', 'id="wct-picapa-modal-polish"'],
+    ['Operational upgrades module', 'id="wct-operational-upgrades"'],
+    ['Notification Center inbox', 'id="wctNotificationBell"'],
+    ['Productivity dashboard panel', 'id="wct-productivity-dashboard"'],
+    ['Multi-HUB and division picker runtime', 'data-wct-picker="hub_codes"'],
     ['Update Progress modal styling', '#modal.wct-modal-progress .modal-body'],
     ['Preventive and Corrective Action modal styling', '#modal.wct-modal-action .modal-body'],
     ['Case Detail modal styling', '#modal.wct-case-detail-modal .modal-body.wct-case-detail'],
