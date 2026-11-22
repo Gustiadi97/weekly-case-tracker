@@ -94,6 +94,9 @@ module.exports = function applyCaseFormLayout(html) {
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
   align-items:start!important;gap:18px 22px!important;width:100%!important;max-width:none!important;
 }
+#modal.wct-case-workspace-modal .wct-case-form-grid-operational{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:16px 17px!important;
+}
 #modal.wct-case-workspace-modal .wct-case-form-grid>.field,
 #modal.wct-case-workspace-modal .wct-case-form-grid>.field.span-2{
   display:flex!important;flex-direction:column!important;align-items:stretch!important;
@@ -181,33 +184,16 @@ module.exports = function applyCaseFormLayout(html) {
 }
 #modal.wct-case-workspace-modal .wct-picker-hint{margin-top:6px!important}
 
-/* Category remains a single-choice button group, not a multi-select dropdown. */
-#modal.wct-case-workspace-modal .wct-category-native{
-  position:absolute!important;width:1px!important;height:1px!important;min-height:1px!important;
-  padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;
-  white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important;
-}
-#modal.wct-case-workspace-modal .wct-category-buttons{
-  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;width:100%!important;
-}
-#modal.wct-case-workspace-modal .wct-category-choice{
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  min-width:0!important;min-height:40px!important;padding:9px 10px!important;box-sizing:border-box!important;
-  border:1px solid #DDE5ED!important;border-radius:10px!important;background:#FFFFFF!important;
-  color:#596A7F!important;font-size:10px!important;font-weight:850!important;line-height:1.35!important;
-  text-align:center!important;cursor:pointer!important;transition:all .15s!important;
-}
-#modal.wct-case-workspace-modal .wct-category-choice:hover{border-color:#E5BD72!important;background:#FFFCF5!important}
-#modal.wct-case-workspace-modal .wct-category-choice.is-selected{
-  border-color:#E0A12C!important;background:#FFF5DF!important;color:#895B0A!important;
-  box-shadow:inset 0 0 0 1px rgba(224,161,44,.10)!important;
-}
+/* Category remains a visible native single-choice dropdown. */
 #modal.wct-case-workspace-modal .wct-case-form-grid .field:has([name="title"]) input[name="title"]{
   min-height:58px!important;padding:14px 16px!important;font-size:14px!important;font-weight:750!important;
 }
+@media(max-width:900px) and (min-width:761px){
+  #modal.wct-case-workspace-modal .wct-case-form-grid-operational{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
 @media(max-width:760px){
   #modal.wct-case-workspace-modal .wct-multi-select-panel{grid-template-columns:minmax(0,1fr)!important;max-height:220px!important}
-  #modal.wct-case-workspace-modal .wct-category-buttons{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #modal.wct-case-workspace-modal .wct-case-form-grid-operational{grid-template-columns:minmax(0,1fr)!important}
 }
 #modal.wct-case-workspace-modal .wct-case-form-grid .wct-choice-chip{
   display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;
@@ -357,7 +343,7 @@ module.exports = function applyCaseFormLayout(html) {
     head.appendChild(number);
     head.appendChild(copy);
     var grid=document.createElement('div');
-    grid.className='wct-case-form-grid';
+    grid.className='wct-case-form-grid'+(index===1?' wct-case-form-grid-operational':'');
     present.forEach(function(field){
       used.add(field);
       field.classList.add('wct-case-form-field');
@@ -388,7 +374,6 @@ module.exports = function applyCaseFormLayout(html) {
     if(priority)priority.dataset.wctCaseWide='true';
     if(problem)problem.dataset.wctCaseWide='true';
     if(title)title.dataset.wctCaseWide='true';
-    if(category)category.dataset.wctCaseWide='true';
 
     var fields=Array.from(sourceGrid.children).filter(function(node){return node.classList&&node.classList.contains('field');});
     var used=new Set();
@@ -396,8 +381,8 @@ module.exports = function applyCaseFormLayout(html) {
     layout.className='wct-case-form-layout';
     sourceGrid.parentNode.insertBefore(layout,sourceGrid);
 
-    addSection(layout,1,'LINGKUP OPERASIONAL','Pilih satu atau beberapa HUB dan divisi yang terlibat, lalu tentukan prioritas.',[hubs,divisions,priority],used);
-    addSection(layout,2,'IDENTIFIKASI & PRIORITAS','Pilih kategori permasalahan, berikan judul yang jelas, lalu uraikan detail masalah.',[category,title,problem],used);
+    addSection(layout,1,'LINGKUP OPERASIONAL','Pilih HUB dan Divisi melalui dropdown multi-pilih, tentukan Kategori, lalu pilih Prioritas.',[hubs,category,divisions,priority],used);
+    addSection(layout,2,'IDENTIFIKASI PERMASALAHAN','Berikan judul yang jelas dan uraikan detail permasalahan secara lengkap.',[title,problem],used);
     addSection(layout,3,'KRONOLOGI & PELAPORAN','Catat tanggal kejadian, target awal penyelesaian, dan pihak yang melaporkan.',[occurred,target,reporter,status],used);
 
     var leftovers=fields.filter(function(field){return !used.has(field);});
@@ -446,29 +431,6 @@ module.exports = function applyCaseFormLayout(html) {
       updateMultiSummary(picker);
     });
   }
-  function decorateCategory(form){
-    var select=form.querySelector('select[name="category"]');
-    if(!select)return;
-    var field=select.closest('.field');
-    if(!field||field.dataset.wctCategoryButtons==='1')return;
-    field.dataset.wctCategoryButtons='1';
-    var wrap=document.createElement('div');
-    wrap.className='wct-category-buttons';
-    Array.from(select.options).forEach(function(option){
-      if(!option.value)return;
-      var button=document.createElement('button');
-      button.type='button';
-      button.className='wct-category-choice';
-      button.textContent=option.textContent.trim();
-      button.dataset.value=option.value;
-      button.setAttribute('aria-pressed',select.value===option.value?'true':'false');
-      if(select.value===option.value)button.classList.add('is-selected');
-      wrap.appendChild(button);
-    });
-    select.classList.add('wct-category-native');
-    select.removeAttribute('required');
-    select.insertAdjacentElement('afterend',wrap);
-  }
   function closeMultiSelects(except){
     modal.querySelectorAll('.wct-multi-select.is-open').forEach(function(picker){
       if(except&&picker===except)return;
@@ -489,21 +451,6 @@ module.exports = function applyCaseFormLayout(html) {
       var panel=picker.querySelector('.wct-multi-select-panel');
       if(panel)panel.hidden=!opening;
       trigger.setAttribute('aria-expanded',opening?'true':'false');
-      return;
-    }
-    var category=event.target.closest&&event.target.closest('.wct-category-choice');
-    if(category){
-      var form=category.closest('form'),select=form&&form.querySelector('select[name="category"]');
-      if(select){
-        select.value=category.dataset.value||'';
-        select.dispatchEvent(new Event('change',{bubbles:true}));
-        var field=category.closest('.field');
-        field.querySelectorAll('.wct-category-choice').forEach(function(button){
-          var active=button===category;
-          button.classList.toggle('is-selected',active);
-          button.setAttribute('aria-pressed',active?'true':'false');
-        });
-      }
       return;
     }
     if(!event.target.closest('.wct-multi-select'))closeMultiSelects();
@@ -534,7 +481,6 @@ module.exports = function applyCaseFormLayout(html) {
     if(body)body.classList.add('wct-case-form-body');
     structureForm(active);
     decorateMultiSelects(active);
-    decorateCategory(active);
     active.querySelectorAll('.wct-multi-select').forEach(updateMultiSummary);
   }
   var scheduled=false;
