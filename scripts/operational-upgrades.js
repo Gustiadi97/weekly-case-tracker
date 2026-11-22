@@ -168,10 +168,10 @@ module.exports = function addOperationalUpgrades(html) {
     notificationChannel=client.channel('wct-notifications-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'wct_notifications',filter:'user_id=eq.'+user.id},function(){void loadNotifications();}).subscribe();
   }
   function startNotifications(){
-    var user=current();if(!user.id||!db())return;addNotificationNav();ensureBell();startRealtime();void loadNotifications();
+    var user=current();if(!user.id||!db())return;var oldNav=$('wctNotificationNav');if(oldNav)oldNav.remove();ensureBell();startRealtime();void loadNotifications();
   }
   function installNotificationUi(){
-    addNotificationNav();ensureBell();var originalShow=window.showApp;
+    var oldNav=$('wctNotificationNav');if(oldNav)oldNav.remove();ensureBell();var originalShow=window.showApp;
     if(typeof originalShow==='function'&&!originalShow.__wctNotificationsWrapped){
       var wrapped=function(){var result=originalShow.apply(this,arguments);startNotifications();return result;};wrapped.__wctNotificationsWrapped=true;window.showApp=wrapped;
     }
@@ -245,9 +245,9 @@ module.exports = function addOperationalUpgrades(html) {
   },true);
   document.addEventListener('keydown',function(event){if(event.key==='Escape'){var pop=$('wctNotificationPopover'),bell=$('wctNotificationBell');if(pop)pop.hidden=true;if(bell){bell.classList.remove('is-open');bell.setAttribute('aria-expanded','false');}}var row=event.target.closest&&event.target.closest('[data-wct-notification-open]');if(row&&(event.key==='Enter'||event.key===' ')){event.preventDefault();void openNotification(row.dataset.wctNotificationOpen);}});
   function init(){
-    installNotificationUi();observeDashboard();if(current().id)startNotifications();
+    installNotificationUi();if(current().id)startNotifications();
   }
-  window.wctOperationalRefresh=function(){startNotifications();ensureProductivity();};
+  window.wctOperationalRefresh=function(){startNotifications();};
   init();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
 })();
