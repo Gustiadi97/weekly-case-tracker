@@ -189,14 +189,16 @@ module.exports = function addOperationalUpgrades(html) {
     var ids=filtered.map(function(record){return String(record.id);});
     return {cases:filtered,actions:actions.filter(function(action){return ids.indexOf(String(action.case_id))>=0;}),logs:logs.filter(function(log){return ids.indexOf(String(log.case_id))>=0;})};
   }
-  function filterMarkup(label,key,options,selected){
+  function filterMarkup(label,key,options,selected,isOpen){
     var count=selected.length,summary=label+(count?' · '+count+' dipilih':' · Semua');
-    var html='<details class="wct-prod-filter"><summary>'+esc(summary)+' ▾</summary><div class="wct-prod-filter-menu"><label class="wct-prod-filter-option"><input type="checkbox" data-wct-prod-filter="'+key+'" data-value="__all__" '+(!count?'checked':'')+'>Semua '+label+'</label>';
+    var html='<details class="wct-prod-filter" '+(isOpen?'open':'')+'><summary>'+esc(summary)+' ▾</summary><div class="wct-prod-filter-menu"><label class="wct-prod-filter-option"><input type="checkbox" data-wct-prod-filter="'+key+'" data-value="__all__" '+(!count?'checked':'')+'>Semua '+label+'</label>';
     html+=options.map(function(value){return '<label class="wct-prod-filter-option"><input type="checkbox" data-wct-prod-filter="'+key+'" data-value="'+esc(value)+'" '+(selected.indexOf(value)>=0?'checked':'')+'> '+esc(value)+'</label>';}).join('');
     return html+'</div></details>';
   }
   function renderProductivity(){
-    var host=$('wct-productivity-dashboard');if(!host)return;var opts=optionData(),data=productivityRecords(),actions=data.actions,logs=data.logs;
+    var host=$('wct-productivity-dashboard');if(!host)return;
+    var openMenu=host.querySelector('.wct-prod-filter[open]'),openKey=openMenu&&openMenu.querySelector('[data-wct-prod-filter]')?openMenu.querySelector('[data-wct-prod-filter]').dataset.wctProdFilter:'';
+    var opts=optionData(),data=productivityRecords(),actions=data.actions,logs=data.logs;
     var today=new Date();today.setHours(0,0,0,0);var iso=function(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');},todayKey=iso(today);
     var done=actions.filter(function(a){return a.status==='done'||Number(a.progress)>=100;});
     var running=actions.filter(function(a){return a.status==='in_progress'||a.status==='review';});
@@ -209,7 +211,7 @@ module.exports = function addOperationalUpgrades(html) {
     var chart=daily.map(function(item){var height=Math.max(3,Math.round(item.count/max*90));return '<div class="wct-prod-day"><div class="wct-prod-bar-track"><div class="wct-prod-bar" style="height:'+height+'%"></div></div><div><b>'+item.count+'</b><small>'+item.label+'</small></div></div>';}).join('');
     var people=(stateData().profiles||[]).filter(function(person){return person.active!==false&&person.deleted!==true;}).map(function(person){var mine=actions.filter(function(action){return String(action.assigned_to)===String(person.id);}),completed=mine.filter(function(action){return action.status==='done'||Number(action.progress)>=100;}).length;return {name:person.full_name||person.login_id||'PIC',count:mine.length,completed:completed};}).filter(function(person){return person.count>0;}).sort(function(a,b){return b.completed-a.completed||b.count-a.count;}).slice(0,5);
     var top=people.length?people.map(function(person,index){return '<div class="wct-prod-person"><span class="wct-prod-rank">'+(index+1)+'</span><div><strong>'+esc(person.name)+'</strong><small>'+person.count+' Action · '+person.completed+' selesai</small></div><em>'+Math.round(person.count?person.completed/person.count*100:0)+'%</em></div>';}).join(''):'<div class="wct-prod-empty">Belum ada penugasan PIC.</div>';
-    host.innerHTML='<div class="wct-productivity-head"><div><div class="wct-productivity-kicker">PRODUCTIVITY OVERVIEW</div><h3>Dashboard Produktivitas</h3><p>Monitoring beban tindakan, penyelesaian, dan aktivitas PICAPA.</p></div><div class="wct-productivity-filters">'+filterMarkup('HUB','hubs',opts.hubs,productivityFilter.hubs)+filterMarkup('Divisi','divisions',opts.divisions,productivityFilter.divisions)+'</div></div><div class="wct-productivity-body"><div class="wct-prod-kpis">'+kpiHtml+'</div><div class="wct-prod-grid"><section class="wct-prod-panel"><div class="wct-prod-panel-head"><b>Aktivitas Progress Update</b><small>7 hari terakhir · '+logs.length+' update</small></div><div class="wct-prod-bars">'+chart+'</div></section><section class="wct-prod-panel"><div class="wct-prod-panel-head"><b>Top PIC · Completion Rate</b><small>'+people.length+' PIC aktif</small></div><div class="wct-prod-top-pic">'+top+'</div></section></div></div>';
+    host.innerHTML='<div class="wct-productivity-head"><div><div class="wct-productivity-kicker">PRODUCTIVITY OVERVIEW</div><h3>Dashboard Produktivitas</h3><p>Monitoring beban tindakan, penyelesaian, dan aktivitas PICAPA.</p></div><div class="wct-productivity-filters">'+filterMarkup('HUB','hubs',opts.hubs,productivityFilter.hubs,openKey==='hubs')+filterMarkup('Divisi','divisions',opts.divisions,productivityFilter.divisions,openKey==='divisions')+'</div></div><div class="wct-productivity-body"><div class="wct-prod-kpis">'+kpiHtml+'</div><div class="wct-prod-grid"><section class="wct-prod-panel"><div class="wct-prod-panel-head"><b>Aktivitas Progress Update</b><small>7 hari terakhir · '+logs.length+' update</small></div><div class="wct-prod-bars">'+chart+'</div></section><section class="wct-prod-panel"><div class="wct-prod-panel-head"><b>Top PIC · Completion Rate</b><small>'+people.length+' PIC aktif</small></div><div class="wct-prod-top-pic">'+top+'</div></section></div></div>';
   }
   function ensureProductivity(){
     var root=$('pageContent');if(!root)return;var kpis=root.querySelector('.wct-workspace-kpis');if(!kpis)return;
@@ -217,7 +219,7 @@ module.exports = function addOperationalUpgrades(html) {
   }
   function observeDashboard(){
     var root=$('pageContent');if(!root||root.dataset.wctProductivityObserver)return;root.dataset.wctProductivityObserver='1';
-    var observer=new MutationObserver(function(){ensureProductivity();});observer.observe(root,{childList:true,subtree:true});ensureProductivity();
+    var observer=new MutationObserver(function(){ensureProductivity();});observer.observe(root,{childList:true});ensureProductivity();
   }
 
   document.addEventListener('change',function(event){
