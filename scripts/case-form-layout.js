@@ -137,6 +137,78 @@ module.exports = function applyCaseFormLayout(html) {
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
   align-items:stretch!important;gap:8px!important;width:100%!important;margin:1px 0 0!important;
 }
+/* Dropdown multi-select for HUB and Division. Checkbox values remain native form controls. */
+#modal.wct-case-workspace-modal .wct-case-form-grid .wct-multi-select{
+  position:relative!important;display:block!important;width:100%!important;margin:0!important;
+}
+#modal.wct-case-workspace-modal .wct-multi-select-trigger{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;
+  width:100%!important;min-height:48px!important;box-sizing:border-box!important;padding:11px 14px!important;
+  border:1px solid #D9E2EC!important;border-radius:11px!important;background:#FFFFFF!important;
+  color:#455970!important;font-family:inherit!important;font-size:12px!important;font-weight:750!important;
+  text-align:left!important;cursor:pointer!important;box-shadow:0 1px 2px rgba(22,42,66,.025)!important;
+}
+#modal.wct-case-workspace-modal .wct-multi-select-trigger:hover,
+#modal.wct-case-workspace-modal .wct-multi-select.is-open .wct-multi-select-trigger{
+  border-color:#DFA12C!important;background:#FFFEFB!important;box-shadow:0 0 0 3px rgba(223,161,44,.10)!important;
+}
+#modal.wct-case-workspace-modal .wct-multi-select-trigger-label{
+  display:block!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  white-space:nowrap!important;color:#51647A!important;
+}
+#modal.wct-case-workspace-modal .wct-multi-select-trigger-label.is-placeholder{color:#96A2B1!important;font-weight:600!important}
+#modal.wct-case-workspace-modal .wct-multi-select-chevron{
+  flex:0 0 auto!important;color:#8290A1!important;font-size:13px!important;transition:transform .16s!important;
+}
+#modal.wct-case-workspace-modal .wct-multi-select.is-open .wct-multi-select-chevron{transform:rotate(180deg)!important}
+#modal.wct-case-workspace-modal .wct-multi-select-panel{
+  position:absolute!important;top:calc(100% + 7px)!important;left:0!important;right:0!important;z-index:60!important;
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;
+  max-height:245px!important;overflow:auto!important;overscroll-behavior:contain!important;
+  box-sizing:border-box!important;padding:11px!important;border:1px solid #DFE6EE!important;
+  border-radius:12px!important;background:#FFFFFF!important;box-shadow:0 16px 34px rgba(28,45,65,.16)!important;
+}
+#modal.wct-case-workspace-modal .wct-multi-select-panel[hidden]{display:none!important}
+#modal.wct-case-workspace-modal .wct-multi-select-panel .wct-choice-chip{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;
+  min-width:0!important;width:100%!important;min-height:40px!important;box-sizing:border-box!important;
+  padding:9px 11px!important;border:1px solid #E1E7EE!important;border-radius:9px!important;
+  background:#FBFCFE!important;color:#53647A!important;font-size:10px!important;font-weight:800!important;
+}
+#modal.wct-case-workspace-modal .wct-multi-select-panel .wct-choice-chip:has(input:checked){
+  border-color:#E0A12C!important;background:#FFF7E6!important;color:#805500!important;
+  box-shadow:inset 3px 0 0 #E0A12C!important;
+}
+#modal.wct-case-workspace-modal .wct-picker-hint{margin-top:6px!important}
+
+/* Category remains a single-choice button group, not a multi-select dropdown. */
+#modal.wct-case-workspace-modal .wct-category-native{
+  position:absolute!important;width:1px!important;height:1px!important;min-height:1px!important;
+  padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important;
+}
+#modal.wct-case-workspace-modal .wct-category-buttons{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;width:100%!important;
+}
+#modal.wct-case-workspace-modal .wct-category-choice{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  min-width:0!important;min-height:40px!important;padding:9px 10px!important;box-sizing:border-box!important;
+  border:1px solid #DDE5ED!important;border-radius:10px!important;background:#FFFFFF!important;
+  color:#596A7F!important;font-size:10px!important;font-weight:850!important;line-height:1.35!important;
+  text-align:center!important;cursor:pointer!important;transition:all .15s!important;
+}
+#modal.wct-case-workspace-modal .wct-category-choice:hover{border-color:#E5BD72!important;background:#FFFCF5!important}
+#modal.wct-case-workspace-modal .wct-category-choice.is-selected{
+  border-color:#E0A12C!important;background:#FFF5DF!important;color:#895B0A!important;
+  box-shadow:inset 0 0 0 1px rgba(224,161,44,.10)!important;
+}
+#modal.wct-case-workspace-modal .wct-case-form-grid .field:has([name="title"]) input[name="title"]{
+  min-height:58px!important;padding:14px 16px!important;font-size:14px!important;font-weight:750!important;
+}
+@media(max-width:760px){
+  #modal.wct-case-workspace-modal .wct-multi-select-panel{grid-template-columns:minmax(0,1fr)!important;max-height:220px!important}
+  #modal.wct-case-workspace-modal .wct-category-buttons{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
 #modal.wct-case-workspace-modal .wct-case-form-grid .wct-choice-chip{
   display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;
   width:100%!important;min-height:43px!important;box-sizing:border-box!important;padding:10px 13px!important;
@@ -313,11 +385,10 @@ module.exports = function applyCaseFormLayout(html) {
     var reporter=fieldFor(form,['[name="reporter"]']);
     var status=fieldFor(form,['[name="status"]']);
 
-    if(hubs)hubs.dataset.wctCaseWide='true';
-    if(divisions)divisions.dataset.wctCaseWide='true';
     if(priority)priority.dataset.wctCaseWide='true';
     if(problem)problem.dataset.wctCaseWide='true';
     if(title)title.dataset.wctCaseWide='true';
+    if(category)category.dataset.wctCaseWide='true';
 
     var fields=Array.from(sourceGrid.children).filter(function(node){return node.classList&&node.classList.contains('field');});
     var used=new Set();
@@ -325,8 +396,8 @@ module.exports = function applyCaseFormLayout(html) {
     layout.className='wct-case-form-layout';
     sourceGrid.parentNode.insertBefore(layout,sourceGrid);
 
-    addSection(layout,1,'LINGKUP OPERASIONAL','Tentukan HUB, divisi yang terlibat, dan tingkat prioritas permasalahan.',[hubs,divisions,priority],used);
-    addSection(layout,2,'IDENTIFIKASI & PRIORITAS','Lengkapi kategori, judul Case, dan uraian masalah secara jelas.',[category,title,problem],used);
+    addSection(layout,1,'LINGKUP OPERASIONAL','Pilih satu atau beberapa HUB dan divisi yang terlibat, lalu tentukan prioritas.',[hubs,divisions,priority],used);
+    addSection(layout,2,'IDENTIFIKASI & PRIORITAS','Pilih kategori permasalahan, berikan judul yang jelas, lalu uraikan detail masalah.',[category,title,problem],used);
     addSection(layout,3,'KRONOLOGI & PELAPORAN','Catat tanggal kejadian, target awal penyelesaian, dan pihak yang melaporkan.',[occurred,target,reporter,status],used);
 
     var leftovers=fields.filter(function(field){return !used.has(field);});
@@ -337,10 +408,122 @@ module.exports = function applyCaseFormLayout(html) {
     if(oldSection)oldSection.remove();
     form.dataset.wctCaseLayoutApplied='1';
   }
+  function updateMultiSummary(select){
+    if(!select)return;
+    var field=select.closest('.field'),picker=field&&field.querySelector('.wct-multi-select');
+    var label=picker&&picker.querySelector('.wct-multi-select-trigger-label');
+    if(!label)return;
+    var selected=Array.from(select.querySelectorAll('input[type="checkbox"]:checked')).map(function(input){return input.value;});
+    var noun=select.getAttribute('data-wct-picker')==='hub_codes'?'HUB':'Divisi';
+    if(!selected.length){
+      label.textContent='Pilih '+(noun==='HUB'?'HUB':'Divisi');
+      label.classList.add('is-placeholder');
+    }else{
+      label.textContent=selected.length<=2?selected.join(', '):selected.slice(0,2).join(', ')+' +'+(selected.length-2)+' lainnya';
+      label.classList.remove('is-placeholder');
+    }
+  }
+  function decorateMultiSelects(form){
+    form.querySelectorAll('.wct-multi-picker').forEach(function(picker){
+      if(picker.dataset.wctDropdownReady==='1')return;
+      picker.dataset.wctDropdownReady='1';
+      picker.classList.add('wct-multi-select');
+      var field=picker.closest('.field'),fieldLabel=field&&field.querySelector(':scope > label');
+      var noun=picker.getAttribute('data-wct-picker')==='hub_codes'?'HUB':'Divisi';
+      var trigger=document.createElement('button');
+      trigger.type='button';
+      trigger.className='wct-multi-select-trigger';
+      trigger.setAttribute('aria-expanded','false');
+      trigger.innerHTML='<span class="wct-multi-select-trigger-label is-placeholder">Pilih '+noun+'</span><span class="wct-multi-select-chevron" aria-hidden="true">⌄</span>';
+      var panel=document.createElement('div');
+      panel.className='wct-multi-select-panel';
+      panel.hidden=true;
+      while(picker.firstChild)panel.appendChild(picker.firstChild);
+      picker.appendChild(trigger);
+      picker.appendChild(panel);
+      var inputName=picker.getAttribute('data-wct-picker');
+      updateMultiSummary(picker);
+    });
+  }
+  function decorateCategory(form){
+    var select=form.querySelector('select[name="category"]');
+    if(!select)return;
+    var field=select.closest('.field');
+    if(!field||field.dataset.wctCategoryButtons==='1')return;
+    field.dataset.wctCategoryButtons='1';
+    var wrap=document.createElement('div');
+    wrap.className='wct-category-buttons';
+    Array.from(select.options).forEach(function(option){
+      if(!option.value)return;
+      var button=document.createElement('button');
+      button.type='button';
+      button.className='wct-category-choice';
+      button.textContent=option.textContent.trim();
+      button.dataset.value=option.value;
+      button.setAttribute('aria-pressed',select.value===option.value?'true':'false');
+      if(select.value===option.value)button.classList.add('is-selected');
+      wrap.appendChild(button);
+    });
+    select.classList.add('wct-category-native');
+    select.removeAttribute('required');
+    select.insertAdjacentElement('afterend',wrap);
+  }
+  function closeMultiSelects(except){
+    modal.querySelectorAll('.wct-multi-select.is-open').forEach(function(picker){
+      if(except&&picker===except)return;
+      picker.classList.remove('is-open');
+      var panel=picker.querySelector('.wct-multi-select-panel');
+      var trigger=picker.querySelector('.wct-multi-select-trigger');
+      if(panel)panel.hidden=true;
+      if(trigger)trigger.setAttribute('aria-expanded','false');
+    });
+  }
+  modal.addEventListener('click',function(event){
+    var trigger=event.target.closest&&event.target.closest('.wct-multi-select-trigger');
+    if(trigger){
+      var picker=trigger.closest('.wct-multi-select');
+      var opening=!picker.classList.contains('is-open');
+      closeMultiSelects(picker);
+      picker.classList.toggle('is-open',opening);
+      var panel=picker.querySelector('.wct-multi-select-panel');
+      if(panel)panel.hidden=!opening;
+      trigger.setAttribute('aria-expanded',opening?'true':'false');
+      return;
+    }
+    var category=event.target.closest&&event.target.closest('.wct-category-choice');
+    if(category){
+      var form=category.closest('form'),select=form&&form.querySelector('select[name="category"]');
+      if(select){
+        select.value=category.dataset.value||'';
+        select.dispatchEvent(new Event('change',{bubbles:true}));
+        var field=category.closest('.field');
+        field.querySelectorAll('.wct-category-choice').forEach(function(button){
+          var active=button===category;
+          button.classList.toggle('is-selected',active);
+          button.setAttribute('aria-pressed',active?'true':'false');
+        });
+      }
+      return;
+    }
+    if(!event.target.closest('.wct-multi-select'))closeMultiSelects();
+  });
+  modal.addEventListener('change',function(event){
+    var input=event.target;
+    if(input.matches&&input.matches('.wct-multi-select-panel input[type="checkbox"]')){
+      updateMultiSummary(input.closest('.wct-multi-select'));
+    }
+  });
+  modal.addEventListener('keydown',function(event){
+    if(event.key==='Escape')closeMultiSelects();
+  });
+  document.addEventListener('click',function(event){
+    if(!modal.contains(event.target))closeMultiSelects();
+  });
   function normalize(){
     var active=modal.querySelector('#caseForm,#wctCaseEditorForm');
     if(!active){
       modal.classList.remove('wct-case-workspace-modal','wct-case-edit-drawer');
+      closeMultiSelects();
       return;
     }
     modal.classList.add('wct-case-workspace-modal');
@@ -349,6 +532,9 @@ module.exports = function applyCaseFormLayout(html) {
     var body=active.querySelector('.modal-body');
     if(body)body.classList.add('wct-case-form-body');
     structureForm(active);
+    decorateMultiSelects(active);
+    decorateCategory(active);
+    active.querySelectorAll('.wct-multi-select').forEach(updateMultiSummary);
   }
   var scheduled=false;
   function schedule(){
