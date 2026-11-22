@@ -427,6 +427,7 @@ module.exports = function applyCaseFormLayout(html) {
     form.querySelectorAll('.wct-multi-picker').forEach(function(picker){
       if(picker.dataset.wctDropdownReady==='1')return;
       picker.dataset.wctDropdownReady='1';
+      picker.classList.remove('wct-multi-picker');
       picker.classList.add('wct-multi-select');
       var field=picker.closest('.field'),fieldLabel=field&&field.querySelector(':scope > label');
       var noun=picker.getAttribute('data-wct-picker')==='hub_codes'?'HUB':'Divisi';
