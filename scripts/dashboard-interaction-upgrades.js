@@ -539,11 +539,17 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
       return '<article class="wct-progress-message '+(mine?'mine':'')+'">'+(mine?'':'<span class="wct-progress-avatar">'+esc(String(who).split(/\\s+/).slice(0,2).map(function(part){return part[0]||'';}).join('').toUpperCase())+'</span>')+'<div class="wct-progress-message-content"><div class="wct-progress-message-meta"><b>'+(mine?'Kamu':esc(who))+'</b><time>'+timeLabel(log.created_at)+'</time></div>'+bubble+'</div>'+(mine?'<span class="wct-progress-avatar">'+esc(String(who).split(/\\s+/).slice(0,2).map(function(part){return part[0]||'';}).join('').toUpperCase())+'</span>':'')+'</article>';
     }).join('');
   }
-  function closeProgressDrawer(){
+  var progressOriginCaseId='';
+  function closeProgressDrawer(silent){
     var drawer=$('wctProgressDrawerBackdrop');if(drawer)drawer.remove();
     document.body.classList.remove('wct-progress-drawer-open');
+    var returnCaseId=progressOriginCaseId;progressOriginCaseId='';
+    if(!silent&&returnCaseId&&typeof window.openCaseDetail==='function'){
+      window.openCaseDetail(returnCaseId);
+    }
   }
-  window.wctCloseProgressDrawer=closeProgressDrawer;
+  window.wctCloseProgressDrawer=function(){closeProgressDrawer(false);};
+  window.wctRefreshProgressDrawer=function(actionId){openProgressDrawer(actionId,'');};
   function openProgressDrawer(actionId,logId){
     var actions=(typeof state!=='undefined'&&state.actions)||[];
     var cases=(typeof state!=='undefined'&&state.cases)||[];
@@ -568,7 +574,8 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
       var blocker=selected?selected.blocker||'':'',nextStep=selected?selected.next_step||'':'';
       html+='<form class=\"wct-progress-compose\" id=\"wctProgressDrawerForm\" data-wct-action-id=\"'+esc(actionId)+'\" data-wct-log-id=\"'+(selected?esc(selected.id):'')+'\">'+warning+'<textarea class="wct-progress-compose-message" name="update_text" maxlength="5000" required placeholder="Tulis pesan atau perkembangan terbaru…">'+esc(selectedText)+'</textarea><div class="wct-progress-compose-controls"><label class="status">Status<select name="status">'+statusOptions.map(function(option){return '<option value="'+option[0]+'" '+(status===option[0]?'selected':'')+'>'+option[1]+'</option>';}).join('')+'</select></label><label class="progress">Progress (%)<input type="number" name="progress_after" min="0" max="100" step="5" value="'+progress+'" required></label><small class="wct-progress-counter"><span id="wctProgressCharCount">'+selectedText.length+'</span>/5000</small><button type="submit" class="wct-progress-send" aria-label="Kirim update">➤</button></div><details class="wct-progress-extra"><summary>Kendala dan langkah berikutnya (opsional)</summary><div class="wct-progress-extra-grid"><label>Kendala / Blocker<textarea name="blocker">'+esc(blocker)+'</textarea></label><label>Next Step<textarea name="next_step">'+esc(nextStep)+'</textarea></label></div></details></form>';
     }
-    closeProgressDrawer();
+    closeProgressDrawer(true);
+    progressOriginCaseId=String(parent.id);
     document.body.insertAdjacentHTML('beforeend',html);
     document.body.classList.add('wct-progress-drawer-open');
     var thread=$('wctProgressThread');if(thread)thread.scrollTop=thread.scrollHeight;
