@@ -287,6 +287,25 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
 .wct-priority-seven-kicker{color:#B87900;font-size:8px;font-weight:900;letter-spacing:.14em}
 .wct-priority-seven-count{padding:6px 9px;border:1px solid #F0DFBB;border-radius:999px;background:#FFFAEF;color:#8F620D;font-size:9px;font-weight:850;white-space:nowrap}
 .wct-priority-seven-list{display:grid}
+
+.wct-priority-seven-wrap{width:100%;overflow-x:auto;border-radius:0 0 14px 14px}
+.wct-priority-seven-table{min-width:1280px;margin:0;border-collapse:separate;border-spacing:0}
+.wct-priority-seven-table thead th{position:sticky;top:0;z-index:1;padding:11px 12px;background:#F8F9FB;color:#6E7888;font-size:9px;font-weight:900;letter-spacing:.035em;white-space:nowrap;border-bottom:1px solid #E8ECF1}
+.wct-priority-seven-table tbody td{padding:12px;border-bottom:1px solid #EEF0F4;color:#4B5667;font-size:9px;vertical-align:middle}
+.wct-priority-seven-table tbody tr:last-child td{border-bottom:0}
+.wct-priority-seven-table tbody tr:hover td{background:#FFFCF5}
+.wct-priority-kind{display:inline-flex;padding:5px 7px;border-radius:7px;background:#EEF2F7;color:#596779;font-size:8px;font-weight:900;white-space:nowrap}
+.wct-priority-kind.corrective{background:#FCEBEC;color:#A7464B}
+.wct-priority-kind.preventive{background:#EDF5EF;color:#3B7A5A}
+.wct-priority-kind.case{background:#FFF2D9;color:#93620C}
+.wct-priority-table-progress{display:flex;align-items:center;gap:7px;min-width:88px}
+.wct-priority-table-progress>div{width:55px;height:6px;border-radius:99px;background:#EDF0F4;overflow:hidden}
+.wct-priority-table-progress>div span{display:block;height:100%;border-radius:inherit;background:#D99A2C}
+.wct-priority-table-progress b{color:#5E6A7C;font-size:9px}
+.wct-priority-row-actions{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.wct-priority-row-actions .btn{min-height:27px;padding:5px 8px;font-size:8px}
+.wct-priority-seven-empty{padding:25px 16px;text-align:center;color:#8D97A5;font-size:10px}
+@media(max-width:700px){.wct-priority-seven-table{min-width:1280px}.wct-priority-seven-head{padding:14px}}
 .wct-priority-seven-row{
   display:grid;grid-template-columns:82px minmax(0,1fr) 90px 76px auto;align-items:center;gap:12px;
   padding:11px 16px;border-bottom:1px solid #F0F2F5;
@@ -395,17 +414,28 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
     var actions=(typeof state!=='undefined'&&state.actions)||[];
     var today=new Date();today.setHours(0,0,0,0);
     var rows=[];
+    function hubLabel(record){
+      return (Array.isArray(record.hub_codes)&&record.hub_codes.length?record.hub_codes:[record.hub_code]).filter(Boolean).join(', ')||'—';
+    }
+    function divisionLabel(record){
+      return (Array.isArray(record.divisions)&&record.divisions.length?record.divisions:[record.division]).filter(Boolean).join(', ')||'—';
+    }
+    function avgCaseProgress(caseId){
+      var related=actions.filter(function(action){return String(action.case_id)===String(caseId);});
+      return related.length?Math.round(related.reduce(function(sum,action){return sum+Math.max(0,Math.min(100,Number(action.progress)||0));},0)/related.length):0;
+    }
     cases.forEach(function(item){
       if(item.status==='closed'||!item.target_date)return;
       var gap=dayGap(item.target_date,today);
       if(gap===null||gap<0||gap>7)return;
-      var related=actions.filter(function(action){return String(action.case_id)===String(item.id);});
-      var total=related.length?Math.round(related.reduce(function(sum,action){return sum+(Number(action.progress)||0);},0)/related.length):0;
       rows.push({
-        id:item.id,kind:'Case',title:item.title||item.case_code||'Case',
-        subtitle:(item.case_code||'CASE')+' · '+caseCodes(item),
+        id:'case-'+item.id,kind:'Case',title:item.title||item.case_code||'Case',
+        caseCode:item.case_code||item.case_number||'CASE',
+        caseTitle:item.title||'—',hub:hubLabel(item),division:divisionLabel(item),
+        category:item.category||'—',pic:item.reporter||profileName(item.created_by),
         date:item.target_date,gap:gap,priority:item.priority||'Medium',
-        status:item.status||'open',progress:total,caseId:item.id
+        status:item.status||'open',progress:avgCaseProgress(item.id),
+        caseId:item.id,actionId:''
       });
     });
     actions.forEach(function(action){
@@ -415,37 +445,78 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
       var gap=dayGap(action.due_date,today);
       if(gap===null||gap<0||gap>7)return;
       rows.push({
-        id:action.id,kind:action.action_type==='preventive'?'Preventive':'Corrective',
+        id:'action-'+action.id,
+        kind:action.action_type==='preventive'?'Preventive Action':'Corrective Action',
         title:action.title||'Action',
-        subtitle:(parent.case_code||'CASE')+' · '+caseCodes(parent)+' · PIC '+profileName(action.assigned_to),
+        caseCode:parent.case_code||parent.case_number||'CASE',
+        caseTitle:parent.title||'—',
+        hub:hubLabel(parent),division:divisionLabel(parent),category:parent.category||'—',
+        pic:profileName(action.assigned_to),
         date:action.due_date,gap:gap,priority:parent.priority||'Medium',
-        status:action.status||'open',progress:Number(action.progress)||0,caseId:parent.id
+        status:action.status||'open',progress:Math.max(0,Math.min(100,Number(action.progress)||0)),
+        caseId:parent.id,actionId:action.id
       });
     });
     return rows.sort(function(a,b){
-      return a.gap-b.gap||priorityRank(a.priority)-priorityRank(b.priority)||String(a.title).localeCompare(String(b.title));
+      return a.gap-b.gap||priorityRank(a.priority)-priorityRank(b.priority)||
+        (a.kind==='Case'?-1:1)||String(a.title).localeCompare(String(b.title));
     });
+  }
+  function progressInline(value){
+    var pct=Math.max(0,Math.min(100,Number(value)||0));
+    return '<div class="wct-priority-table-progress"><div><span style="width:'+pct+'%"></span></div><b>'+pct+'%</b></div>';
   }
   function renderPrioritySeven(){
     var root=$('pageContent'),kpis=root&&root.querySelector('.wct-workspace-kpis');
-    if(!kpis)return;
-    var existing=$('wctPrioritySevenDays');if(existing)existing.remove();
+    if(!root||!kpis)return;
+    var panel=$('wctPrioritySevenDays');
+    if(!panel){
+      panel=document.createElement('section');
+      panel.id='wctPrioritySevenDays';
+      panel.className='wct-priority-seven-day';
+    }
+    if(panel.parentElement!==root||root.lastElementChild!==panel)root.appendChild(panel);
     var rows=buildPriorityRows();
-    var labels=['Hari ini','Besok'];
-    var html='<section id="wctPrioritySevenDays" class="wct-priority-seven-day"><header class="wct-priority-seven-head"><div><div class="wct-priority-seven-kicker">UPCOMING DEADLINES</div><h3>PRIORITAS 7 HARI KE DEPAN</h3><p>Case dan Action aktif dengan target penyelesaian dari hari ini sampai tujuh hari berikutnya.</p></div><span class="wct-priority-seven-count">'+rows.length+' Prioritas</span></header><div class="wct-priority-seven-list">';
-    if(!rows.length)html+='<div class="wct-priority-seven-empty">Tidak ada Case atau Action yang memiliki deadline dalam 7 hari ke depan.</div>';
-    else rows.forEach(function(item){
-      var dayLabel=item.gap===0?labels[0]:item.gap===1?labels[1]:item.gap+' hari lagi';
-      html+='<div class="wct-priority-seven-row"><div class="wct-priority-seven-date">'+fmtShortDate(item.date)+'<small>'+dayLabel+'</small></div><div class="wct-priority-seven-main"><strong>'+esc(item.title)+'</strong><small>'+esc(item.kind)+' · '+esc(item.subtitle)+'</small></div><span class="wct-priority-seven-tag '+priorityClass(item.priority)+'">'+esc(item.priority)+'</span><span class="wct-priority-seven-progress">'+item.progress+'%</span><button type="button" class="wct-priority-seven-open" data-wct-priority-open="'+esc(item.caseId)+'">Buka Case</button></div>';
-    });
-    html+='</div></section>';
-    kpis.insertAdjacentHTML('afterend',html);
+    var html='<header class="wct-priority-seven-head"><div><div class="wct-priority-seven-kicker">UPCOMING DEADLINES</div><h3>PRIORITAS 7 HARI KE DEPAN</h3><p>Daftar Case dan tindakan PICAPA yang memiliki target penyelesaian dalam tujuh hari mendatang.</p></div><span class="wct-priority-seven-count">'+rows.length+' Prioritas</span></header>';
+    html+='<div class="table-wrap wct-priority-seven-wrap"><table class="table wct-priority-seven-table"><thead><tr><th>Jenis</th><th>Case / Permasalahan</th><th>HUB</th><th>Divisi</th><th>Kategori</th><th>PIC</th><th>Prioritas</th><th>Progress</th><th>Target</th><th>Status</th><th>Aksi</th></tr></thead><tbody>';
+    if(!rows.length){
+      html+='<tr><td colspan="11"><div class="wct-priority-seven-empty">Tidak ada Case atau Action aktif dengan target penyelesaian dalam tujuh hari ke depan.</div></td></tr>';
+    }else{
+      rows.forEach(function(item){
+        var dayLabel=item.gap===0?'Hari ini':item.gap===1?'Besok':item.gap+' hari lagi';
+        var kindClass=item.kind==='Case'?'case':item.kind==='Preventive Action'?'preventive':'corrective';
+        var titleSub=item.kind==='Case'
+          ?item.caseCode+' · Target penyelesaian Case'
+          :item.caseCode+' · '+item.caseTitle;
+        var actionsHtml='<button type="button" class="btn btn-sm" data-wct-priority-open="'+esc(item.caseId)+'">Detail</button>';
+        if(item.actionId&&typeof currentUser!=='undefined'&&currentUser.role!=='viewer'){
+          actionsHtml+='<button type="button" class="btn btn-sm btn-primary" data-wct-priority-update-action="'+esc(item.actionId)+'">Update</button>';
+        }
+        html+='<tr>'+
+          '<td><span class="wct-priority-kind '+kindClass+'">'+esc(item.kind)+'</span></td>'+
+          '<td><div class="case-title">'+esc(item.title)+'</div><div class="sub">'+esc(titleSub)+'</div></td>'+
+          '<td><b>'+esc(item.hub)+'</b></td>'+
+          '<td>'+esc(item.division)+'</td>'+
+          '<td>'+esc(item.category)+'</td>'+
+          '<td>'+esc(item.pic||'—')+'</td>'+
+          '<td><span class="priority '+priorityClass(item.priority)+'">'+esc(item.priority)+'</span></td>'+
+          '<td>'+progressInline(item.progress)+'</td>'+
+          '<td><b>'+esc(fmtShortDate(item.date))+'</b><div class="sub">'+dayLabel+'</div></td>'+
+          '<td><span class="status '+(item.status==='done'?'s-closed':item.status==='review'?'s-review':item.status==='in_progress'?'s-progress':'s-open')+'">'+esc(progressStatusLabel(item.status))+'</span></td>'+
+          '<td><div class="wct-priority-row-actions">'+actionsHtml+'</div></td>'+
+        '</tr>';
+      });
+    }
+    html+='</tbody></table></div>';
+    panel.innerHTML=html;
   }
   function installPriorityObserver(){
     var root=$('pageContent');if(!root||root.dataset.wctPriorityObserver)return;
     root.dataset.wctPriorityObserver='1';
     var observer=new MutationObserver(function(){
-      if(root.querySelector('.wct-workspace-kpis')&&!$('wctPrioritySevenDays'))renderPrioritySeven();
+      if(!root.querySelector('.wct-workspace-kpis'))return;
+      var panel=$('wctPrioritySevenDays');
+      if(!panel||panel.parentElement!==root||root.lastElementChild!==panel)renderPrioritySeven();
     });
     observer.observe(root,{childList:true});
     renderPrioritySeven();
@@ -529,6 +600,8 @@ module.exports = function addDashboardAndInteractionUpgrades(html) {
     event.preventDefault();if(typeof window.submitProgress==='function')window.submitProgress(event,form.dataset.wctActionId,form.dataset.wctLogId||'');
   },true);
   document.addEventListener('click',function(event){
+    var quickUpdate=event.target.closest&&event.target.closest('[data-wct-priority-update-action]');
+    if(quickUpdate){if(typeof window.openUpdateForm==='function')window.openUpdateForm(quickUpdate.dataset.wctPriorityUpdateAction);return;}
     var close=event.target.closest&&event.target.closest('[data-wct-close-progress-drawer]');
     if(close){closeProgressDrawer();return;}
     var backdrop=$('wctProgressDrawerBackdrop');
