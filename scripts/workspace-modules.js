@@ -776,7 +776,7 @@ module.exports = function applyWorkspaceModules(html) {
       return;
     }
     var openAction=event.target.closest&&event.target.closest('[data-wct-open-action]');
-    if(openAction){if(window.openUpdateForm)window.openUpdateForm(openAction.dataset.wctOpenAction);return;}
+    if(openAction){if(window.openActionProgressForm)window.openActionProgressForm(openAction.dataset.wctOpenAction);return;}
   },true);
 
   document.addEventListener('input',function(event){
