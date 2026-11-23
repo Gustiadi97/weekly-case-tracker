@@ -28,7 +28,7 @@ const ALLOWED = {
   wct_users:['id','login_id','employee_id','full_name','area_name','role','active','created_at','created_by','updated_at'],
   wct_team_directory:['user_id','full_name','role','active','deleted','updated_at'],
   wct_cases:['id','case_number','hub_code','hub_codes','category','division','divisions','title','problem_identification','occurred_on','target_date','reporter','priority','status','created_by','updated_by','closed_at','closed_by','created_at','updated_at'],
-  wct_actions:['id','case_id','action_type','title','description','assigned_to','due_date','status','progress','latest_progress_log_id','created_by','updated_by','created_at','updated_at'],
+  wct_actions:['id','case_id','action_type','title','description','assigned_to','due_date','status','progress','completed_at','latest_progress_log_id','created_by','updated_by','created_at','updated_at'],
   wct_progress_logs:['id','case_id','action_id','update_text','progress_before','progress_after','status_after','blocker','next_step','created_by','created_at','edited_by','edited_at','last_edit_audit_id'],
   wct_progress_log_edits:['id','log_id','case_id','action_id','edited_by','created_at','before_data','after_data','latest_update'],
   wct_meetings:['id','title','meeting_date','start_time','end_time','location','notes','status','created_by','created_at','updated_at'],
