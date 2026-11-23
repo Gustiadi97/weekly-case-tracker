@@ -422,7 +422,7 @@ function wctApplySingleModalScroll(){
  set(form,{'display':'flex','flex-direction':'column','flex':'1 1 auto','height':'auto','max-height':'none','min-height':'0','overflow':'hidden'});
  set(body,{'display':'block','flex':'1 1 auto','height':'auto','max-height':'none','min-height':'0','overflow-x':'hidden','overflow-y':'auto','-webkit-overflow-scrolling':'touch','overscroll-behavior-y':'contain','touch-action':'pan-y','padding-bottom':'24px'});
  set(foot,{'flex':'0 0 auto','position':'sticky','bottom':'0','z-index':'6','background':'#fff','padding-bottom':'max(12px, env(safe-area-inset-bottom))'});
- set(overlay,{'position':'fixed','inset':'0','height':'100dvh','max-height':'100dvh','box-sizing':'border-box','display':'flex','align-items':'flex-start','justify-content':'center','overflow':'hidden','touch-action':'pan-y','padding':'max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom))'});
+ set(overlay,{'position':'fixed','inset':'0','height':'100dvh','max-height':'100dvh','box-sizing':'border-box','align-items':'flex-start','justify-content':'center','overflow':'hidden','touch-action':'pan-y','padding':'max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom))'});
 }
 const wctOriginalOpenModalReviewed=openModal;
 openModal=function(){
