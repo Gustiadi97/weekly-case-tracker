@@ -32,9 +32,9 @@ module.exports = function applyCaseUpdateChat(html) {
     form.dataset.caseId=caseId;
     form.innerHTML=
       '<input type="hidden" name="update_id" value="">'+
-      '<div class="wct-chat-compose-main"><textarea name="update_text" required maxlength="5000" rows="2" placeholder="Tulis pesan untuk grup Case ini..."></textarea><button type="submit" class="wct-chat-send" data-wct-chat-control aria-label="Kirim Update" title="Kirim Update">➤</button></div>'+
+      '<div class="wct-chat-compose-main"><textarea name="update_text" required maxlength="5000" rows="2" placeholder="Tulis pesan untuk grup Case ini..."></textarea><button type="submit" class="wct-chat-send" data-wct-chat-control aria-label="Kirim Update" title="Kirim Update"><span class="wct-chat-send-icon" aria-hidden="true">➤</span><span class="wct-chat-send-text">Kirim</span></button></div>'+
       '<details class="wct-chat-extra-fields"><summary>Tambahkan kendala / langkah berikutnya (opsional)</summary><div class="wct-chat-extra-grid"><label>Kendala<textarea name="blocker" maxlength="2000" rows="2" placeholder="Kendala yang dihadapi..."></textarea></label><label>Langkah berikutnya<textarea name="next_step" maxlength="2000" rows="2" placeholder="Tindak lanjut berikutnya..."></textarea></label></div></details>'+
-      '<div class="wct-chat-compose-footer"><button type="button" class="wct-chat-cancel-edit" data-wct-chat-control hidden>Batal edit</button><small>Update ini terlihat oleh anggota yang memiliki akses ke Case.</small><button type="submit" class="wct-chat-send-label" data-wct-chat-control>Kirim Update</button></div>';
+      '<div class="wct-chat-compose-footer"><button type="button" class="wct-chat-cancel-edit" data-wct-chat-control hidden>Batal edit</button><small>Update ini terlihat oleh anggota yang memiliki akses ke Case.</small></div>';
     form.addEventListener('submit',function(event){void window.submitCaseUpdate(event,caseId);});
     form.querySelector('.wct-chat-cancel-edit').addEventListener('click',function(){window.cancelCaseUpdateEdit(caseId);});
     return form;
@@ -120,8 +120,8 @@ module.exports = function applyCaseUpdateChat(html) {
     form.elements.next_step.value=existing?existing.next_step||'':'';
     var cancel=form.querySelector('.wct-chat-cancel-edit');
     if(cancel)cancel.hidden=!existing;
-    var send=form.querySelector('.wct-chat-send-label');
-    if(send)send.textContent=existing?'Simpan Perubahan':'Kirim Update';
+    var send=form.querySelector('.wct-chat-send-text');
+    if(send)send.textContent=existing?'Simpan':'Kirim';
     var textarea=form.elements.update_text;
     if(textarea){form.scrollIntoView({behavior:'smooth',block:'center'});textarea.focus();}
   };
@@ -131,7 +131,7 @@ module.exports = function applyCaseUpdateChat(html) {
     if(!form||String(form.dataset.caseId)!==String(caseId))return;
     form.reset();form.elements.update_id.value='';
     var cancel=form.querySelector('.wct-chat-cancel-edit');if(cancel)cancel.hidden=true;
-    var send=form.querySelector('.wct-chat-send-label');if(send)send.textContent='Kirim Update';
+    var send=form.querySelector('.wct-chat-send-text');if(send)send.textContent='Kirim';
   };
 
   window.submitCaseUpdate=async function(event,caseId){
@@ -152,8 +152,8 @@ module.exports = function applyCaseUpdateChat(html) {
     }
     var db=window.wctSupabase;
     if(!db){if(window.toast)window.toast('Koneksi database belum siap.');return;}
-    var button=form.querySelector('button[type="submit"]'),oldLabel=button?button.textContent:'Kirim Update';
-    if(button){button.disabled=true;button.textContent=existing?'Menyimpan...':'Mengirim...';}
+    var button=form.querySelector('button[type="submit"]'),sendText=button&&button.querySelector('.wct-chat-send-text');
+    if(button){button.disabled=true;if(sendText)sendText.textContent=existing?'Menyimpan...':'Mengirim...';}
     var now=new Date().toISOString();
     try{
       var payload={case_id:caseId,update_text:text,blocker:String(data.get('blocker')||'').trim(),next_step:String(data.get('next_step')||'').trim()};
@@ -172,7 +172,7 @@ module.exports = function applyCaseUpdateChat(html) {
     }catch(error){
       console.error('Case chat update failed:',error);
       if(window.toast)window.toast('Gagal mengirim Update Case: '+(error.message||error));
-      if(button){button.disabled=false;button.textContent=oldLabel;}
+      if(button){button.disabled=false;if(sendText)sendText.textContent=existing?'Simpan':'Kirim';}
     }
   };
 
@@ -234,16 +234,16 @@ module.exports = function applyCaseUpdateChat(html) {
 .wct-chat-empty small{font-size:9px!important}
 .wct-chat-composer{display:grid!important;gap:8px!important;padding:11px!important;border-top:1px solid #D9DECF!important;background:#F8F8F2!important}
 .wct-chat-compose-main{display:flex!important;align-items:flex-end!important;gap:9px!important}
-.wct-chat-compose-main textarea{flex:1!important;min-width:0!important;min-height:44px!important;max-height:130px!important;resize:vertical!important;padding:11px 13px!important;border:1px solid #DDE2D6!important;border-radius:20px!important;background:#FFFFFF!important;color:#354039!important;font-size:12px!important;line-height:1.45!important;box-shadow:none!important}
-.wct-chat-send{display:grid!important;place-items:center!important;flex:0 0 42px!important;width:42px!important;height:42px!important;border:0!important;border-radius:50%!important;background:#F28C18!important;color:#FFFFFF!important;font-size:20px!important;font-weight:900!important;cursor:pointer!important;box-shadow:0 3px 8px rgba(183,110,20,.2)!important;transform:rotate(-15deg)!important}
+.wct-chat-compose-main textarea{flex:1!important;min-width:0!important;min-height:50px!important;max-height:150px!important;resize:vertical!important;padding:11px 13px!important;border:1px solid #DDE2D6!important;border-radius:14px!important;background:#FFFFFF!important;color:#354039!important;font-size:12px!important;line-height:1.45!important;box-shadow:none!important}
+.wct-chat-send{display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;flex:0 0 auto!important;min-width:86px!important;height:44px!important;padding:0 13px!important;border:0!important;border-radius:12px!important;background:#F28C18!important;color:#FFFFFF!important;font-size:11px!important;font-weight:850!important;cursor:pointer!important;box-shadow:0 3px 8px rgba(183,110,20,.18)!important;transform:none!important;white-space:nowrap!important}.wct-chat-send-icon{font-size:15px!important;line-height:1!important;transform:rotate(-12deg)!important}.wct-chat-send:disabled{opacity:.65!important;cursor:wait!important;box-shadow:none!important}
 .wct-chat-extra-fields{padding:0 2px!important;color:#687462!important}
-.wct-chat-extra-fields summary{width:fit-content!important;color:#788473!important;font-size:9px!important;font-weight:800!important;cursor:pointer!important}
+.wct-chat-extra-fields summary{display:inline-flex!important;align-items:center!important;width:fit-content!important;padding:5px 9px!important;border:1px solid #EADCC8!important;border-radius:999px!important;background:#FFF9F1!important;color:#8A6841!important;font-size:9px!important;font-weight:800!important;cursor:pointer!important;outline:none!important;list-style:none!important}.wct-chat-extra-fields summary::-webkit-details-marker{display:none!important}.wct-chat-extra-fields summary:focus,.wct-chat-extra-fields summary:focus-visible{outline:none!important;box-shadow:0 0 0 2px rgba(242,140,24,.16)!important}.wct-chat-extra-fields summary:hover{background:#FFF1DF!important;border-color:#E8C79E!important}
 .wct-chat-extra-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-top:8px!important}
 .wct-chat-extra-grid label{display:grid!important;gap:4px!important;color:#7B8576!important;font-size:9px!important;font-weight:800!important}
 .wct-chat-extra-grid textarea{width:100%!important;min-height:55px!important;padding:8px!important;border:1px solid #DDE2D6!important;border-radius:8px!important;background:#FFFFFF!important;color:#39443B!important;font-size:10px!important;resize:vertical!important}
-.wct-chat-compose-footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important}
+.wct-chat-compose-footer{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;min-height:22px!important}
 .wct-chat-compose-footer small{color:#899184!important;font-size:8px!important}
-.wct-chat-send-label{border:0!important;border-radius:8px!important;padding:7px 11px!important;background:#F28C18!important;color:#FFFFFF!important;font-size:9px!important;font-weight:850!important;cursor:pointer!important}
+
 .wct-chat-cancel-edit{border:0!important;background:transparent!important;color:#9B6034!important;font-size:9px!important;font-weight:800!important}
 .wct-chat-cancel-edit[hidden]{display:none!important}
 .wct-case-update-form-note,.wct-action-progress-quick-note{margin:0 0 15px!important;padding:11px 13px!important;border:1px solid #F0D9C0!important;border-radius:10px!important;background:#FFF8F0!important;color:#74501F!important;font-size:11px!important;line-height:1.6!important}
@@ -263,7 +263,7 @@ module.exports = function applyCaseUpdateChat(html) {
  .wct-chat-bubble>p{font-size:10px!important}
  .wct-chat-extra-grid{grid-template-columns:minmax(0,1fr)!important}
  .wct-chat-composer{padding:9px!important}
- .wct-chat-compose-main textarea{font-size:16px!important}
+ .wct-chat-compose-main textarea{font-size:16px!important;min-height:48px!important}.wct-chat-send{min-width:72px!important;height:42px!important;padding:0 10px!important;font-size:10px!important}
  .wct-chat-compose-footer small{max-width:50%!important}
  .wct-action-progress-quick-control{grid-template-columns:minmax(0,1fr) 54px!important;gap:9px!important}
 }
