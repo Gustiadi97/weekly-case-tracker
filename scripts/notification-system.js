@@ -63,7 +63,7 @@ body.wct-system-dialog-open{overflow:hidden!important}
   function ensureIsland(){
     var host=document.getElementById('wctDynamicIslandHost');if(host)return host;
     host=document.createElement('div');host.id='wctDynamicIslandHost';host.className='wct-dynamic-island-host';
-    host.innerHTML='<div id="wctDynamicIsland" class="wct-dynamic-island is-expanded" data-kind="info" role="status" aria-live="polite" aria-atomic="true"><span class="wct-di-icon" id="wctDynamicIslandIcon">i</span><span class="wct-di-copy"><span class="wct-di-title" id="wctDynamicIslandTitle">Informasi</span><span class="wct-di-message" id="wctDynamicIslandMessage"></span></span><button type="button" class="wct-di-close" id="wctDynamicIslandClose" aria-label="Tutup notifikasi">×</button><span class="wct-di-progress"></span></div>';
+    host.innerHTML='<div id="wctDynamicIsland" class="wct-dynamic-island is-expanded" data-kind="info" role="status" aria-live="polite" aria-atomic="true"><span class="wct-di-icon" id="wctDynamicIslandIcon">i</span><span class="wct-di-copy"><span class="wct-di-title" id="wctDynamicIslandTitle">Informasi</span><span class="wct-di-message" id="wctDynamicIslandMessage"></span></span><button type="button" data-wct-system-control class="wct-di-close" id="wctDynamicIslandClose" aria-label="Tutup notifikasi">×</button><span class="wct-di-progress"></span></div>';
     document.body.appendChild(host);
     var pill=host.querySelector('#wctDynamicIsland');
     pill.addEventListener('click',function(event){if(event.target&&event.target.closest('#wctDynamicIslandClose'))return;pill.classList.toggle('is-expanded');});
@@ -93,7 +93,7 @@ body.wct-system-dialog-open{overflow:hidden!important}
       var title=options.title||(danger?'Konfirmasi Penghapusan':'Konfirmasi Tindakan');
       var confirmText=options.confirmText||(danger?'Ya, Hapus Permanen':'Ya, Lanjutkan'),cancelText=options.cancelText||'Batal';
       var shade=document.createElement('div');shade.className='wct-system-dialog-backdrop';
-      shade.innerHTML='<section class="wct-system-dialog '+(danger?'is-danger':'')+'" role="alertdialog" aria-modal="true" aria-labelledby="wctDialogTitle'+seq+'" aria-describedby="wctDialogMessage'+seq+'"><div class="wct-system-dialog-icon" aria-hidden="true">'+(danger?'!':'?')+'</div><h2 id="wctDialogTitle'+seq+'"></h2><p id="wctDialogMessage'+seq+'"></p><div class="wct-system-dialog-actions"><button type="button" class="wct-dialog-cancel"></button><button type="button" class="wct-dialog-confirm"></button></div></section>';
+      shade.innerHTML='<section class="wct-system-dialog '+(danger?'is-danger':'')+'" role="alertdialog" aria-modal="true" aria-labelledby="wctDialogTitle'+seq+'" aria-describedby="wctDialogMessage'+seq+'"><div class="wct-system-dialog-icon" aria-hidden="true">'+(danger?'!':'?')+'</div><h2 id="wctDialogTitle'+seq+'"></h2><p id="wctDialogMessage'+seq+'"></p><div class="wct-system-dialog-actions"><button type="button" data-wct-system-control class="wct-dialog-cancel"></button><button type="button" data-wct-system-control class="wct-dialog-confirm"></button></div></section>';
       var cancel=shade.querySelector('.wct-dialog-cancel'),yes=shade.querySelector('.wct-dialog-confirm');
       shade.querySelector('h2').textContent=title;shade.querySelector('p').textContent=text;cancel.textContent=cancelText;yes.textContent=confirmText;
       function finish(value){
