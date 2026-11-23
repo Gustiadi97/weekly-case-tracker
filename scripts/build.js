@@ -125,6 +125,8 @@ try {
     ['Action status history is displayed', "from('wct_action_status_history')"],
     ['Analytics uses actual completed_at', "a.completed_at||''"],
     ['Analytics completion period is bounded', "completed<=endKey"],
+    ['Analytics uses local timezone date keys', 'function analyticsDay(value)'],
+    ['Meeting detail ignores stale asynchronous response', "meetingModal.dataset.wctP1MeetingId!==String(meeting.id)"],
     ['Multi-HUB Analytics distribution', "Array.isArray(c.hub_codes)"],
     ['Kanban Done requires 100 percent progress', 'progress sudah 100%'],
 
