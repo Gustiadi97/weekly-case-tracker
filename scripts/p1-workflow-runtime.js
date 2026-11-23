@@ -156,6 +156,8 @@ module.exports = function applyP1WorkflowRuntime(html) {
     var meeting=meetings.find(function(m){return String(m.id)===String(meetingId);});
     if(!meeting){toast('Riwayat Meeting tidak ditemukan.');return;}
     openModal('<div class="modal-head"><div><div class="eyebrow">MEETING MINUTES</div><h2>'+escP1(meeting.title)+'</h2></div><button type="button" class="close" onclick="closeModal()">×</button></div><div class="modal-body">Memuat poin pembahasan...</div>',true);
+    var meetingModal=document.getElementById('modal');
+    if(meetingModal)meetingModal.dataset.wctP1MeetingId=String(meeting.id);
     var items=[];
     var client=db();
     if(client){
@@ -194,6 +196,7 @@ module.exports = function applyP1WorkflowRuntime(html) {
       var related=ids.map(function(id){return ((typeof state!=='undefined'&&state&&state.cases)||[]).find(function(c){return String(c.id)===String(id);});}).filter(Boolean);
       if(related.length)body+='<article class="wct-p1-meeting-item"><h4>Case terkait</h4>'+related.map(function(c){return '<p>'+escP1(c.case_code||'CASE')+' · '+escP1(c.title)+'</p><button type="button" class="btn btn-sm" onclick="closeModal();openCaseDetail(\''+escP1(c.id)+'\')">Buka Case</button>';}).join('')+'</article>';
     }
+    if(!meetingModal||meetingModal.dataset.wctP1MeetingId!==String(meeting.id)||!meetingModal.querySelector('.modal-body'))return;
     var html='<div class="modal-head"><div><div class="eyebrow">MEETING MINUTES</div><h2>'+escP1(meeting.title)+'</h2><p class="sub">Dokumentasi pembahasan dan tindak lanjut.</p></div><button type="button" class="close" onclick="closeModal()">×</button></div><div class="modal-body">'+body+'</div><div class="modal-foot"><button type="button" class="btn" onclick="closeModal()">Tutup</button></div>';
     openModal(html,true);
   };
