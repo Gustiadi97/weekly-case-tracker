@@ -86,6 +86,7 @@ try {
   html = require('./case-layer-redesign')(html);
   html = require('./case-form-layout')(html);
   html = require('./case-experience-polish')(html);
+  html = require('./p1-workflow-runtime')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -115,8 +116,17 @@ try {
     ['Icon observer ready marker', 'window.WCTIconSystemReady=true;'],
     ['Tasks, Team, Calendar and Analytics modules', 'id="wct-workspace-modules"'],
     ['Direct Tasks drag-and-drop status handler', 'async function moveTaskActionStatus(actionId,nextStatus)'],
-    ['Direct Tasks status update to Supabase', "db.from('wct_actions')"],
+    ['Direct Tasks role guard', "!isCoordinatorSafe()"],
+    ['Direct Tasks validated status RPC', "db.rpc('wct_move_action_status'"],
     ['Tasks status drop refreshes board', "await window.refreshData()"],
+    ['P1 workflow runtime', 'id="wct-p1-workflow-runtime"'],
+    ['Meeting save through atomic Supabase RPC', "rpc('wct_save_meeting_with_items'"],
+    ['Meeting items are loaded from the normalized table', "from('wct_meeting_items')"],
+    ['Action status history is displayed', "from('wct_action_status_history')"],
+    ['Analytics uses actual completed_at', "a.completed_at||''"],
+    ['Analytics completion period is bounded', "completed<=endKey"],
+    ['Multi-HUB Analytics distribution', "Array.isArray(c.hub_codes)"],
+    ['Kanban Done requires 100 percent progress', 'progress sudah 100%'],
 
     ['Reliable X / Cancel / Close modal controls', 'id="wct-modal-controls"'],
     ['PICAPA modal visual polish stylesheet', 'id="wct-picapa-modal-polish-style"'],
