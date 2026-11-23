@@ -12,7 +12,7 @@ module.exports = function applyCaseUpdateWorkflow(html) {
   const meetingsStart = workflow.indexOf('var meetings=state.meetings.filter(function(m){', timelineStart);
   if (timelineStart < 0 || meetingsStart < 0) throw new Error('Case history section markers were not found.');
 
-  const caseHistory = String.raw\`var caseUpdates=(state.caseUpdates||[]).filter(function(item){return item.case_id===id;}).slice().sort(function(a,b){return String(b.created_at||'').localeCompare(String(a.created_at||''));});
+  const caseHistory = String.raw`var caseUpdates=(state.caseUpdates||[]).filter(function(item){return item.case_id===id;}).slice().sort(function(a,b){return String(b.created_at||'').localeCompare(String(a.created_at||''));});
   var canWriteCaseUpdate=c.status!=='closed'&&currentUser?.role!=='viewer'&&(isCoordinator()||acts.some(function(item){return canUpdateAction(item);}));
   var updateRows=caseUpdates.map(function(item){
     var canEdit=isCoordinator()||item.created_by===currentUser.id;
@@ -22,10 +22,10 @@ module.exports = function applyCaseUpdateWorkflow(html) {
   }).join('');
   var addCaseUpdate=canWriteCaseUpdate?'<button type="button" class="btn btn-primary" onclick="openCaseUpdateForm(\''+id+'\')">＋ Tambah Update</button>':'';
   var history='<section class="wct-case-section wct-case-update-section"><div class="wct-case-section-head"><div><h3>Update Case</h3><p>Kronologi perkembangan umum Case, terpisah dari progres Corrective dan Preventive Action.</p></div><div class="wct-case-update-tools"><span class="wct-case-tag">'+caseUpdates.length+' Update</span>'+addCaseUpdate+'</div></div><div class="wct-case-section-body">'+(updateRows?'<div class="wct-case-update-list">'+updateRows+'</div>':'<div class="wct-case-empty"><b>Belum ada Update Case</b><span>Catat hasil koordinasi, perkembangan penanganan, kendala umum, atau informasi terbaru Case di sini.</span></div>')+'</div></section>';
-  \`;
+  `;
   workflow = workflow.slice(0, timelineStart) + caseHistory + workflow.slice(meetingsStart);
 
-  const injected = String.raw\`
+  const injected = String.raw`
   window.openCaseUpdateForm=function(caseId,updateId){
     var parent=state.cases.find(function(item){return item.id===caseId;});
     if(!parent){toast('Case tidak ditemukan.');return;}
@@ -147,7 +147,7 @@ module.exports = function applyCaseUpdateWorkflow(html) {
       if(button){button.disabled=false;button.textContent=label;}
     }
   };
-  \`;
+  `;
 
   const closeAt = workflow.lastIndexOf('})();');
   if (closeAt < 0) throw new Error('PICAPA workflow closure not found.');
@@ -161,7 +161,7 @@ module.exports = function applyCaseUpdateWorkflow(html) {
     return button.replace(/\bDetail\b/g, 'Update');
   });
 
-  const css = String.raw\`
+  const css = String.raw`
 .wct-case-update-section .wct-case-section-head{align-items:center!important}
 .wct-case-update-tools{display:flex!important;align-items:center!important;gap:9px!important;flex-wrap:wrap!important}
 .wct-case-update-list{display:grid!important;gap:10px!important}
@@ -192,7 +192,7 @@ module.exports = function applyCaseUpdateWorkflow(html) {
  .wct-case-update-top{align-items:center!important}
  .wct-action-progress-quick-control{grid-template-columns:minmax(0,1fr) 54px!important;gap:9px!important}
 }
-\`;
+`;
 
   return withUpdatedLabels.replace('</body>', '<style id="wct-case-update-workflow-style">' + css + '</style></body>');
 };
