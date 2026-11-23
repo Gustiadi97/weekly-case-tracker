@@ -128,8 +128,5 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 }
 `;
 
-  if (html.includes('id="wct-p3-ui-polish"')) {
-    html = html.replace(/<style id="wct-p3-ui-polish">[\\s\\S]*?<\\/style>/, '');
-  }
   return html.replace('</body>', '<style id="wct-p3-ui-polish">' + css + '</style></body>');
 };
