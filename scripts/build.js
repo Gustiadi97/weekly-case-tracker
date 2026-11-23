@@ -91,6 +91,7 @@ try {
   html = require('./case-update-chat')(html);
   html = require('./p3-polish')(html);
   html = require('./p3-visual-redesign')(html);
+  html = require('./notification-system')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -135,6 +136,8 @@ try {
     ['Case Update chat message composer is created at runtime', "form.id='wctCaseUpdateComposer'"],
     ['P3 typography, spacing and interaction polish', 'id="wct-p3-ui-polish"'],
     ['Full P3 visual redesign', 'id="wct-p3-visual-redesign"'],
+    ['Dynamic Island system notifications', 'id="wct-notification-system-runtime"'],
+    ['In-app confirmation dialog system', 'window.wctConfirm=function(message,options)'],
     ['Mobile modal close supports pointer, touch and click', 'document.addEventListener(\'pointerup\',handleCloseInteraction,true)'],
     ['Meeting save through atomic Supabase RPC', "rpc('wct_save_meeting_with_items'"],
     ['Meeting notes remain compatible with Case detail', 'summary:summary,decisions:decisions,next_steps:nextSteps'],
