@@ -224,8 +224,7 @@ module.exports = function applyCaseUpdateChat(html) {
     var actionCount=(stateNow.actions||[]).filter(function(item){return String(item.case_id)===String(caseId);}).length;
     var updateCount=(stateNow.caseUpdates||[]).filter(function(item){return String(item.case_id)===String(caseId);}).length;
     var code=String(current.case_code||current.case_number||'CASE');
-    if(!window.confirm('Hapus permanen '+code+' — '+current.title+'?\\n\\nTindakan CA/PA: '+actionCount+'\\nPesan Update Case: '+updateCount+'\\n\\nRiwayat progress dan audit terkait juga ikut dihapus. Catatan Weekly Meeting tetap ada, tetapi tautan Case akan dilepas. Tindakan ini tidak dapat dibatalkan.'))return;
-    if(!window.confirm('Konfirmasi terakhir: benar-benar hapus '+code+' dari sistem?'))return;
+    if(!await window.wctConfirm('Anda akan menghapus permanen '+code+' — '+current.title+'.\\n\\nTindakan CA/PA: '+actionCount+'\\nPesan Update Case: '+updateCount+'\\n\\nRiwayat progress dan audit terkait ikut dihapus. Catatan Weekly Meeting tetap disimpan dan tautan Case dilepas. Tindakan ini tidak dapat dibatalkan.',{title:'Hapus Case Permanen',confirmText:'Hapus Permanen',danger:true}))return;
     var db=window.wctSupabase;
     if(!db){if(window.toast)window.toast('Koneksi database belum siap.');return;}
     try{
