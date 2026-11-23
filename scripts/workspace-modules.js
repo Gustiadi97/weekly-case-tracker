@@ -413,7 +413,8 @@ module.exports = function applyWorkspaceModules(html) {
   }
   function taskCard(x){
     var a=x.a,c=x.c,p=person(a.assigned_to),myId=String(me().id||''),priority=String(c.priority||'Medium').toLowerCase();
-    var task= '<article class="wct-task-card" draggable="true" data-wct-drag-action="'+esc(a.id)+'"><div class="wct-task-card-top"><span class="wct-task-type '+(a.action_type==='preventive'?'pa':'')+'">'+(a.action_type==='preventive'?'PREVENTIVE':'CORRECTIVE')+'</span>'+badge(a.status||'open')+'</div>'+
+    var canDrag=isCoordinatorSafe();
+    var task= '<article class="wct-task-card'+(canDrag?' is-draggable':'')+'" draggable="'+(canDrag?'true':'false')+'" data-wct-drag-action="'+esc(a.id)+'"'+(canDrag?' title="Seret untuk memindahkan status"':' title="Status dikelola Admin/Koordinator; PIC dapat memakai Update Progress"')+'><div class="wct-task-card-top"><span class="wct-task-type '+(a.action_type==='preventive'?'pa':'')+'">'+(a.action_type==='preventive'?'PREVENTIVE':'CORRECTIVE')+'</span>'+badge(a.status||'open')+'</div>'+
       '<h4>'+esc(a.title)+'</h4><div class="wct-task-case">'+esc(c.case_code||'CASE')+' · '+esc((Array.isArray(c.hub_codes)&&c.hub_codes.length?c.hub_codes:[c.hub_code]).filter(Boolean).join(', ')||'—')+' · Priority '+esc(c.priority||'Medium')+'</div>'+
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px"><span style="color:#718198;font-size:9px">PIC: '+esc(p?p.full_name||p.login_id:'Belum ditentukan')+'</span><span style="color:'+(diffDays(a.due_date)<0&&a.status!=='done'?'#B84550':'#718198')+';font-size:9px;font-weight:800">'+fmtDate(a.due_date)+'</span></div>'+
       '<div style="margin-top:9px"><div class="wct-progress-inline"><div class="wct-progress-bar"><span style="width:'+pctAction(a)+'%"></span></div><b>'+pctAction(a)+'%</b></div></div>'+
@@ -425,6 +426,7 @@ module.exports = function applyWorkspaceModules(html) {
     var cols=[['open','To Do'],['in_progress','In Progress'],['review','In Review'],['done','Done']];
     var html=head('WORKSPACE / TASKS','Tasks','Papan kerja PICAPA untuk mengelola tindakan perbaikan dan pencegahan.',(isCoordinatorSafe()?'<button class="btn btn-primary" type="button" data-wct-new-action="corrective">+ Tambah Action</button>':''));
     html+='<div class="wct-kanban-toolbar"><input type="search" placeholder="Cari Action, Case, HUB, atau PIC..." data-wct-task-search value="'+esc(taskSearch)+'"><button class="wct-filter-chip '+(activeTaskFilter==='all'?'active':'')+'" data-wct-task-filter="all">All Tasks</button><button class="wct-filter-chip '+(activeTaskFilter==='mine'?'active':'')+'" data-wct-task-filter="mine">My Tasks</button><button class="wct-filter-chip '+(activeTaskFilter==='high'?'active':'')+'" data-wct-task-filter="high">High Priority</button><button class="wct-filter-chip '+(activeTaskFilter==='due'?'active':'')+'" data-wct-task-filter="due">Due This Week</button>'+(teamAssignee?'<button class="wct-filter-chip active" data-wct-clear-assignee>Filter PIC: '+esc(personName(teamAssignee))+' ×</button>':'')+'</div>';
+    html+='<div class="wct-task-drag-hint">'+(isCoordinatorSafe()?'Seret kartu ke kolom tujuan untuk mengubah status. Action hanya dapat dipindahkan ke Done jika progress sudah 100%.':'Status papan dikelola Admin/Koordinator. PIC dapat mencatat perubahan status melalui Update Progress.')+'</div>';
     html+='<div class="wct-kanban">'+cols.map(function(col){var arr=records.filter(function(x){return taskStatusList(x.a.status)===col[0];});return '<section class="wct-kanban-col" data-wct-drop-status="'+col[0]+'"><div class="wct-kanban-col-head"><strong>'+col[1]+'</strong><span class="wct-kanban-count">'+arr.length+'</span></div><div class="wct-kanban-cards">'+(arr.length?arr.map(taskCard).join(''):'<div class="wct-empty">Belum ada Action</div>')+'</div></section>';}).join('')+'</div>';
     var root=$('pageContent');if(root)root.innerHTML=html;
   }
@@ -504,13 +506,28 @@ module.exports = function applyWorkspaceModules(html) {
   }
   function rangeLogs(){
     var since=new Date(today);since.setDate(since.getDate()-analyticsRange+1);var key=isoDay(since);
-    return logs().filter(function(l){return String(l.created_at||'').slice(0,10)>=key;});
+    return logs().filter(function(l){var d=String(l.created_at||'').slice(0,10);return d>=key&&d<=todayKey;});
   }
   function renderAnalytics(){
-    var ll=rangeLogs(),done=actions().filter(function(a){return a.status==='done';});
-    var onTime=done.filter(function(a){var parent=caseBy(a.case_id),target=a.due_date||parent&&parent.target_date;return target&&String(target).slice(0,10)>=String((a.updated_at||a.created_at||'')).slice(0,10);});
-    var rate=done.length?Math.round(onTime.length/done.length*100):0;
-    var avg=done.length?Math.round(done.reduce(function(n,a){var created=new Date(a.created_at||today),updated=new Date(a.updated_at||a.created_at||today);return n+Math.max(0,(updated-created)/86400000);},0)/done.length*10)/10:0;
+    var periodStart=new Date(today);periodStart.setDate(today.getDate()-analyticsRange+1);
+    var startKey=isoDay(periodStart),endKey=todayKey;
+    var ll=rangeLogs();
+    // Completion KPIs use the actual completion timestamp and the selected period.
+    var done=actions().filter(function(a){
+      var completed=String(a.completed_at||'').slice(0,10);
+      return a.status==='done'&&completed>=startKey&&completed<=endKey;
+    });
+    var eligibleDone=done.filter(function(a){var parent=caseBy(a.case_id);return !!(a.due_date||parent&&parent.target_date);});
+    var onTime=eligibleDone.filter(function(a){
+      var parent=caseBy(a.case_id),target=String(a.due_date||parent&&parent.target_date||'').slice(0,10);
+      return String(a.completed_at||'').slice(0,10)<=target;
+    });
+    var rate=eligibleDone.length?Math.round(onTime.length/eligibleDone.length*100):0;
+    var avg=done.length?Math.round(done.reduce(function(n,a){
+      var created=new Date(a.created_at||today),completed=new Date(a.completed_at||a.created_at||today);
+      return n+Math.max(0,(completed-created)/86400000);
+    },0)/done.length*10)/10:0;
+    var contributors=profiles().map(function(p){var n=ll.filter(function(l){return String(l.created_by)===String(p.id);}).length;return {p:p,n:n};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
     var contributors=profiles().map(function(p){var n=ll.filter(function(l){return String(l.created_by)===String(p.id);}).length;return {p:p,n:n};}).filter(function(x){return x.n>0;}).sort(function(a,b){return b.n-a.n;});
     var periodStart=new Date(today);periodStart.setDate(today.getDate()-analyticsRange+1);
     var previousStart=new Date(periodStart);previousStart.setDate(periodStart.getDate()-analyticsRange);
@@ -539,8 +556,13 @@ module.exports = function applyWorkspaceModules(html) {
       '<polyline points="'+pathOf(moving)+'" fill="none" stroke="#7FA5D8" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>'+
       '<polyline points="'+pathOf(currentValues)+'" fill="none" stroke="#2864C7" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>'+
       daily.map(function(x,i){return '<circle cx="'+xAt(i)+'" cy="'+yAt(x.n)+'" r="'+(analyticsRange>30?'1.7':'3')+'" fill="#2864C7"><title>'+x.label+': '+x.n+' update</title></circle>';}).join('')+ticks.join('')+'</svg>';
-    var heat=Array.from({length:140},function(_,i){var d=new Date(today);d.setDate(today.getDate()-(139-i));var k=isoDay(d),n=logs().filter(function(l){return String(l.created_at||'').slice(0,10)===k;}).length,level=n===0?'':n===1?'l1':n<=3?'l2':n<=6?'l3':'l4';return '<i class="wct-heat-cell '+level+'" title="'+k+': '+n+' update"></i>';}).join('');
-    var hubCounts={};cases().forEach(function(c){var k=c.hub_code||'Lainnya';hubCounts[k]=(hubCounts[k]||0)+1;});
+    var heatCounts={};
+    logs().forEach(function(l){var k=String(l.created_at||'').slice(0,10);if(k)heatCounts[k]=(heatCounts[k]||0)+1;});
+    var heat=Array.from({length:140},function(_,i){var d=new Date(today);d.setDate(today.getDate()-(139-i));var k=isoDay(d),n=heatCounts[k]||0,level=n===0?'':n===1?'l1':n<=3?'l2':n<=6?'l3':'l4';return '<i class="wct-heat-cell '+level+'" title="'+k+': '+n+' update"></i>';}).join('');
+    var hubCounts={};cases().forEach(function(c){
+      var selected=Array.isArray(c.hub_codes)&&c.hub_codes.length?c.hub_codes:[c.hub_code||'Lainnya'];
+      Array.from(new Set(selected.map(function(v){return String(v||'').trim()||'Lainnya';}))).forEach(function(k){hubCounts[k]=(hubCounts[k]||0)+1;});
+    });
     var colors=['#2864C7','#7D69B2','#47A5A0','#E3A44B','#7DA5D7','#A6B7CC'];
     var hubRows=Object.keys(hubCounts).sort(function(a,b){return hubCounts[b]-hubCounts[a];}).slice(0,6);
     var totalHub=hubRows.reduce(function(n,h){return n+hubCounts[h];},0);
@@ -549,7 +571,7 @@ module.exports = function applyWorkspaceModules(html) {
     var donut='<div class="wct-donut-layout"><div class="wct-donut" style="background:'+donutStyle+'"><div><strong>'+cases().length+'</strong><small>Total Case</small></div></div><div class="wct-donut-legend">'+(hubRows.length?hubRows.map(function(h,i){var share=totalHub?Math.round(hubCounts[h]/totalHub*100):0;return '<div><span><i style="background:'+colors[i%colors.length]+'"></i>'+esc(h)+'</span><b>'+hubCounts[h]+' · '+share+'%</b></div>';}).join(''):'<div class="wct-empty">Belum ada Case.</div>')+'</div></div>';
     var html=head('WORKSPACE / ANALYTICS','Analytics','Analisis penyelesaian tindakan, ketepatan deadline, aktivitas, dan kontribusi PIC.','<div style="display:flex;gap:7px;flex-wrap:wrap"><button type="button" class="wct-workspace-export" data-wct-analytics-export>Export CSV</button></div>');
     html+='<div class="wct-filterbar">'+[7,30,90].map(function(n){return '<button type="button" class="wct-filter-chip '+(analyticsRange===n?'active':'')+'" data-wct-analytics-range="'+n+'">'+n+'D</button>';}).join('')+'<span class="wct-mini-pill">Periode '+analyticsRange+' hari</span></div>';
-    html+='<div class="wct-analytics-kpis"><div class="wct-analytics-kpi"><small>Tasks Completed</small><strong>'+done.length+'</strong><span>Action berstatus selesai</span></div><div class="wct-analytics-kpi"><small>Progress Updates</small><strong>'+ll.length+'</strong><span>Catatan update pada periode</span></div><div class="wct-analytics-kpi"><small>On-time Delivery</small><strong>'+rate+'%</strong><span>'+onTime.length+' dari '+done.length+' Action selesai</span></div><div class="wct-analytics-kpi"><small>Avg. Cycle Time</small><strong>'+avg+'</strong><span>Estimasi hari dari dibuat ke update terakhir</span></div></div>';
+    html+='<div class="wct-analytics-kpis"><div class="wct-analytics-kpi"><small>Tasks Completed</small><strong>'+done.length+'</strong><span>Action berstatus selesai</span></div><div class="wct-analytics-kpi"><small>Progress Updates</small><strong>'+ll.length+'</strong><span>Catatan update pada periode</span></div><div class="wct-analytics-kpi"><small>On-time Delivery</small><strong>'+rate+'%</strong><span>'+onTime.length+' dari '+eligibleDone.length+' Action dengan target</span></div><div class="wct-analytics-kpi"><small>Avg. Cycle Time</small><strong>'+avg+'</strong><span>Hari dari dibuat hingga selesai</span></div></div>';
     html+='<div class="wct-analytics-grid">'+panel('Throughput','Jumlah Progress Update per hari · periode berjalan dibanding periode sebelumnya',throughput,'<span class="wct-mini-pill">'+ll.length+' Update</span>')+panel('Case Distribution by HUB','Distribusi Case berdasarkan HUB · pengganti Time by Project',donut,'<span class="wct-mini-pill">'+hubRows.length+' HUB</span>')+'</div>';
     html+='<div class="wct-analytics-grid">'+panel('Activity','Heatmap aktivitas Progress Update · 20 minggu terakhir','<div class="wct-heatmap">'+heat+'</div><div class="wct-chart-legend" style="justify-content:flex-end;margin-top:10px"><span>Less</span>'+['#EFF3F8','#D9E7F9','#A8C8F0','#6F9EDD','#2864C7'].map(function(c){return '<i style="background:'+c+'"></i>';}).join('')+'<span>More</span></div>')+panel('Top Contributors','Anggota dengan jumlah update terbanyak',contributors.length?'<div>'+contributors.slice(0,6).map(function(x,i){return '<div class="wct-contributor"><span class="wct-contributor-rank">#'+(i+1)+'</span><div><strong>'+esc(x.p.full_name||x.p.login_id||'Anggota')+'</strong><small>'+esc(x.p.role||'Member')+'</small></div><b>'+x.n+'</b></div>';}).join('')+'</div>':'<div class="wct-empty">Belum ada aktivitas pada periode ini.</div>')+'</div>';
     var root=$('pageContent');if(root)root.innerHTML=html;
@@ -764,7 +786,7 @@ module.exports = function applyWorkspaceModules(html) {
   async function moveTaskActionStatus(actionId,nextStatus){
     var allowed=['open','in_progress','review','done'];
     if(allowed.indexOf(nextStatus)<0){toast('Status tujuan tidak valid.');return;}
-    if(me().role==='viewer'){toast('Akun Viewer hanya dapat membaca papan Tasks.');return;}
+    if(!isCoordinatorSafe()){toast('Hanya Admin atau Koordinator yang dapat memindahkan kartu. PIC gunakan Update Progress.');return;}
     var action=actions().find(function(item){return String(item.id)===String(actionId);});
     if(!action){toast('Action tidak ditemukan. Muat ulang papan Tasks.');return;}
     var parent=caseBy(action.case_id);
@@ -774,16 +796,14 @@ module.exports = function applyWorkspaceModules(html) {
     var db=window.wctSupabase;
     if(!db||typeof db.from!=='function'){toast('Koneksi database belum tersedia.');return;}
     taskMovePending=true;
-    var oldStatus=action.status,now=new Date().toISOString();
+    var oldStatus=action.status;
     try{
-      var result=await db.from('wct_actions')
-        .update({status:nextStatus,updated_at:now,updated_by:me().id})
-        .eq('id',action.id)
-        .eq('case_id',action.case_id)
-        .select('*')
-        .maybeSingle();
+      var result=await db.rpc('wct_move_action_status',{
+        p_action_id:action.id,
+        p_status:nextStatus
+      });
       if(result.error)throw result.error;
-      if(!result.data)throw new Error('Perubahan ditolak atau Action tidak ditemukan. Periksa hak akses akun.');
+      if(!result.data||result.data.ok!==true)throw new Error('Database belum mengonfirmasi perpindahan status.');
       if(typeof window.refreshData==='function')await window.refreshData();
       renderTasks();
       toast('Action dipindahkan ke '+statusLabel(nextStatus)+'.');
@@ -800,6 +820,7 @@ module.exports = function applyWorkspaceModules(html) {
   document.addEventListener('dragstart',function(event){
     var card=event.target.closest&&event.target.closest('[data-wct-drag-action]');
     if(!card||!event.dataTransfer)return;
+    if(!isCoordinatorSafe()){event.preventDefault();toast('Hanya Admin atau Koordinator yang dapat memindahkan kartu.');return;}
     draggedAction=card.dataset.wctDragAction;
     event.dataTransfer.effectAllowed='move';
     event.dataTransfer.setData('text/plain',draggedAction);
@@ -812,7 +833,7 @@ module.exports = function applyWorkspaceModules(html) {
   });
   document.addEventListener('dragover',function(event){
     var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');
-    if(col){event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect='move';col.classList.add('is-over');}
+    if(col&&isCoordinatorSafe()){event.preventDefault();if(event.dataTransfer)event.dataTransfer.dropEffect='move';col.classList.add('is-over');}
   });
   document.addEventListener('dragleave',function(event){
     var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');
@@ -820,7 +841,7 @@ module.exports = function applyWorkspaceModules(html) {
   });
   document.addEventListener('drop',function(event){
     var col=event.target.closest&&event.target.closest('[data-wct-drop-status]');
-    if(!col)return;
+    if(!col||!isCoordinatorSafe())return;
     event.preventDefault();
     col.classList.remove('is-over');
     var id=(event.dataTransfer&&event.dataTransfer.getData('text/plain'))||draggedAction;
