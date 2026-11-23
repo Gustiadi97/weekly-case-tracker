@@ -170,7 +170,7 @@ try {
     ['Case Detail modal styling', '#modal.wct-case-detail-modal .modal-body.wct-case-detail'],
     ['Visible error feedback above modal backdrop', 'id="wct-modal-feedback-style"'],
     ['Inline Case form error styling', '.wct-form-error{'],
-    ['Modal close delegated click controller', "closest('#modalBackdrop button')"],
+    ['Modal close delegated pointer, touch and click controller', "document.addEventListener('pointerup',handleCloseInteraction,true)"],
     ['Modal controls normalise cancel buttons to type button', "button.type='button'"],
     ['Escape key closes open modal', "if(event.key!=='Escape')return;"],
     ['Kanban four workflow columns', "var cols=[['open','To Do'],['in_progress','In Progress'],['review','In Review'],['done','Done']]"],
