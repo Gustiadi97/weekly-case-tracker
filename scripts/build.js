@@ -131,6 +131,7 @@ try {
     ['Case Update section separates case timeline from CA PA progress', 'wct-case-update-section'],
     ['WhatsApp-style Case Update chat runtime', 'id="wct-case-update-chat-runtime"'],
     ['Permanent Case deletion handler', 'window.deleteCasePermanently=async function(caseId)'],
+    ['Case Monitoring list permanent delete control', 'wct-case-list-delete'],
     ['Case Update chat message composer is created at runtime', "form.id='wctCaseUpdateComposer'"],
     ['P3 typography, spacing and interaction polish', 'id="wct-p3-ui-polish"'],
     ['Full P3 visual redesign', 'id="wct-p3-visual-redesign"'],
