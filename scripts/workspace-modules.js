@@ -358,7 +358,7 @@ module.exports = function applyWorkspaceModules(html) {
     cases().forEach(function(c){var k=String(c.created_at||'').slice(0,10),d=days.find(function(x){return x.date===k;});if(d)d.cases++;});
     logs().forEach(function(l){var k=String(l.created_at||'').slice(0,10),d=days.find(function(x){return x.date===k;});if(d)d.updates++;});
     var max=Math.max(1,...days.map(function(x){return Math.max(x.cases,x.updates);}));
-    var bars=days.map(function(d,i){var x=52+i*82,h1=(d.cases/max)*112,h2=(d.updates/max)*112;return '<g><rect x="'+x+'" y="'+(143-h1)+'" width="22" height="'+Math.max(2,h1)+'" rx="5" fill="#2864C7" opacity=".95"><title>'+d.label+': '+d.cases+' Case</title></rect><rect x="'+(x+25)+'" y="'+(143-h2)+'" width="22" height="'+Math.max(2,h2)+'" rx="5" fill="#9BBBE8"><title>'+d.label+': '+d.updates+' Update</title></rect><text x="'+(x+23)+'" y="166" text-anchor="middle" class="wct-chart-label">'+esc(d.label)+'</text></g>';}).join('');
+    var bars=days.map(function(d,i){var x=52+i*82,h1=(d.cases/max)*112,h2=(d.updates/max)*112;return '<g><rect x="'+x+'" y="'+(143-h1)+'" width="22" height="'+Math.max(2,h1)+'" rx="5" fill="#F28C18" opacity=".95"><title>'+d.label+': '+d.cases+' Case</title></rect><rect x="'+(x+25)+'" y="'+(143-h2)+'" width="22" height="'+Math.max(2,h2)+'" rx="5" fill="#F8BD78"><title>'+d.label+': '+d.updates+' Update</title></rect><text x="'+(x+23)+'" y="166" text-anchor="middle" class="wct-chart-label">'+esc(d.label)+'</text></g>';}).join('');
     var grid=[0,1,2,3].map(function(i){var y=143-i*37.3;return '<line x1="38" y1="'+y+'" x2="642" y2="'+y+'" class="wct-chart-gridline"/><text x="27" y="'+(y+3)+'" text-anchor="end" class="wct-chart-label">'+Math.round(max*i/3)+'</text>';}).join('');
     return '<svg class="wct-chart-svg" viewBox="0 0 660 180" role="img" aria-label="Aktivitas Case dan Progress Update selama tujuh hari">'+grid+bars+'</svg>';
   };
@@ -393,7 +393,7 @@ module.exports = function applyWorkspaceModules(html) {
     var html=head('WORKSPACE / OVERVIEW','Dashboard','Ringkasan Case, tanggung jawab PIC, deadline, dan progres PICAPA.',(isCoordinatorSafe()?'<button class="btn btn-primary" type="button" data-wct-create-case>'+icon('case')+' Create New Case</button>':''));
     html+=kpis;
     html+='<div class="wct-workspace-grid">'+
-      panel('Project Analytics','Aktivitas Case dan Progress Update · 7 hari terakhir','<div class="wct-chart-legend"><span><i style="background:#2864C7"></i>Case dibuat</span><span><i style="background:#9BBBE8"></i>Progress Update</span></div>'+chartBars(),'<span class="wct-mini-pill">'+cs.length+' Case</span>')+
+      panel('Project Analytics','Aktivitas Case dan Progress Update · 7 hari terakhir','<div class="wct-chart-legend"><span><i style="background:#F28C18"></i>Case dibuat</span><span><i style="background:#F8BD78"></i>Progress Update</span></div>'+chartBars(),'<span class="wct-mini-pill">'+cs.length+' Case</span>')+
       panel('Reminders','Deadline Case dan Action yang perlu diperhatikan',reminderHtml(attention,5),'<span class="wct-mini-pill">'+overdue+' Terlambat</span>')+
     '</div>';
     html+='<div class="wct-workspace-grid three">'+
