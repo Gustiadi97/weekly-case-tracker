@@ -269,7 +269,7 @@ async function deleteCaseOption(kind,index){
   const type=kind==='categories'?'kategori':'divisi';
   const inUse=state.cases.some(c=>String(c[kind==='categories'?'category':'division']||'').toLowerCase()===value.toLowerCase());
   const note=inUse?' Nilai pada case lama tidak akan diubah; hanya pilihan untuk case baru yang dihapus.':'';
-  if(!confirm('Hapus '+type+' "'+value+'" dari daftar pilihan?'+note))return;
+  if(!await window.wctConfirm('Hapus '+type+' "'+value+'" dari daftar pilihan?'+note,{title:'Hapus Pilihan',confirmText:'Hapus Pilihan',danger:true}))return;
   next[kind].splice(index,1);
   await saveCaseOptions(next);
 }
@@ -286,7 +286,7 @@ function renderUsers(){
 }
 async function restoreUser(uid){
  if(!isAdmin())return;const u=state.profiles.find(x=>x.id===uid&&x.deleted===true);if(!u)return;
- if(!confirm('Pulihkan akses '+u.full_name+'? Pengguna dapat login kembali.'))return;
+ if(!await window.wctConfirm('Pulihkan akses '+u.full_name+'? Pengguna dapat login kembali.',{title:'Pulihkan Akun',confirmText:'Pulihkan'}))return;
  try{const changes={active:true,deleted:false,restored_at:new Date().toISOString(),updated_at:new Date().toISOString()},batch=fireDb.batch();batch.update(fireDb.collection('users').doc(uid),changes);batch.set(fireDb.collection('team_directory').doc(uid),wctDirectoryProfile({...u,...changes}));await batch.commit();await refreshData();renderUsers();toast('Akses pengguna berhasil dipulihkan.');}
  catch(err){toast('Gagal memulihkan pengguna: '+err.message);}
 }
@@ -304,7 +304,7 @@ async function saveUserProfile(event,uid){
 }
 async function softDeleteUser(uid){
   if(!isAdmin())return;const u=state.profiles.find(x=>x.id===uid);if(!u||uid===currentUser.id)return;
-  if(!confirm('Hapus akses '+u.full_name+'? Profil disembunyikan dan login diblokir. Akun Authentication tetap tercatat.'))return;
+  if(!await window.wctConfirm('Hapus akses '+u.full_name+'? Profil disembunyikan dan login diblokir. Akun Authentication tetap tercatat.',{title:'Hapus Akses User',confirmText:'Hapus Akses',danger:true}))return;
   try{const changes={active:false,deleted:true,deleted_at:new Date().toISOString(),updated_at:new Date().toISOString()},batch=fireDb.batch();batch.update(fireDb.collection('users').doc(uid),changes);batch.set(fireDb.collection('team_directory').doc(uid),wctDirectoryProfile({...u,...changes}));await batch.commit();await refreshData();renderUsers();toast('Akses pengguna dihapus.');}
   catch(err){toast('Gagal menghapus akses: '+err.message);}
 }
