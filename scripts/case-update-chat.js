@@ -95,9 +95,42 @@ module.exports = function applyCaseUpdateChat(html) {
     toolbar.appendChild(button);
   }
 
+  function addCaseListDeleteButtons(){
+    var user=getCurrentUser();
+    if(user.role!=='admin'&&user.role!=='coordinator')return;
+    document.querySelectorAll('.wct-cases-table tbody tr').forEach(function(row){
+      if(row.querySelector('.wct-case-list-delete'))return;
+      var edit=row.querySelector('button[onclick*="editCaseFormFromButton"],button[onclick*="editCaseForm("],[data-wct-case-edit-id]');
+      if(!edit)return;
+      var caseId=String(edit.dataset.caseId||edit.getAttribute('data-case-id')||edit.dataset.wctCaseEditId||row.dataset.caseId||'');
+      if(!caseId){
+        var source=String(edit.getAttribute('onclick')||'');
+        var match=source.match(/editCaseForm\\s*\\(\\s*['"]([^'"]+)['"]/);
+        if(match)caseId=match[1];
+      }
+      if(!caseId)return;
+      var cell=edit.closest('td')||edit.parentElement;
+      if(!cell)return;
+      var button=document.createElement('button');
+      button.type='button';
+      button.className='btn btn-sm wct-case-list-delete';
+      button.textContent='Hapus';
+      button.title='Hapus permanen Case dan seluruh tindakan terkait';
+      button.setAttribute('aria-label','Hapus Case '+caseId);
+      button.dataset.caseId=caseId;
+      button.addEventListener('click',function(event){
+        event.preventDefault();event.stopPropagation();
+        if(typeof window.deleteCasePermanently==='function')void window.deleteCasePermanently(caseId);
+        else if(window.toast)window.toast('Fitur hapus Case belum siap. Muat ulang halaman.');
+      });
+      edit.insertAdjacentElement('afterend',button);
+    });
+  }
+
   function enhance(){
     document.querySelectorAll('#modal .wct-case-update-section').forEach(decorateCaseChat);
     addDeleteCaseButton(document.getElementById('modal'));
+    addCaseListDeleteButtons();
   }
   if(typeof MutationObserver!=='undefined'){
     var observer=new MutationObserver(enhance);
@@ -251,7 +284,7 @@ module.exports = function applyCaseUpdateChat(html) {
 .wct-action-progress-quick-control input[type=range]{width:100%!important;min-width:0!important;accent-color:#F28C18!important}
 .wct-action-progress-quick-control output{display:inline-grid!important;place-items:center!important;min-height:42px!important;border:1px solid #F0D7BA!important;border-radius:10px!important;background:#FFF4E8!important;color:#A65B0D!important;font-size:18px!important;font-weight:900!important}
 .wct-action-progress-hint{color:#7A8490!important;font-size:10px!important;line-height:1.55!important}
-.wct-delete-case-button{border-color:#F0C7C7!important;background:#FFF4F4!important;color:#B74141!important}
+.wct-delete-case-button,.wct-case-list-delete{border-color:#F0C7C7!important;background:#FFF4F4!important;color:#B74141!important}.wct-case-list-delete{margin-left:6px!important;min-height:30px!important;padding:5px 9px!important;font-size:9px!important;font-weight:850!important}.wct-delete-case-button:hover,.wct-case-list-delete:hover{background:#FDEAEA!important;border-color:#E5AAAA!important;color:#A63232!important}
 .wct-delete-case-button:hover{background:#FDEAEA!important;border-color:#E5AAAA!important}
 @media(max-width:680px){
  .wct-case-update-section .wct-case-section-head{align-items:flex-start!important;flex-direction:column!important}
