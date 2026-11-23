@@ -134,7 +134,10 @@ module.exports = function applyP1WorkflowRuntime(html) {
     try{
       var result=await client.rpc('wct_save_meeting_with_items',{
         p_meeting_id:null,
-        p_meeting:{title:title,meeting_date:meetingDate,hub_code:hubCode},
+        p_meeting:{
+          title:title,meeting_date:meetingDate,hub_code:hubCode,
+          summary:summary,decisions:decisions,next_steps:nextSteps
+        },
         p_items:items
       });
       if(result.error)throw result.error;
