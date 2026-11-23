@@ -32,9 +32,9 @@ module.exports = function applyCaseUpdateChat(html) {
     form.dataset.caseId=caseId;
     form.innerHTML=
       '<input type="hidden" name="update_id" value="">'+
-      '<div class="wct-chat-compose-main"><textarea name="update_text" required maxlength="5000" rows="2" placeholder="Tulis pesan untuk grup Case ini..."></textarea><button type="submit" class="wct-chat-send" aria-label="Kirim Update" title="Kirim Update">➤</button></div>'+
+      '<div class="wct-chat-compose-main"><textarea name="update_text" required maxlength="5000" rows="2" placeholder="Tulis pesan untuk grup Case ini..."></textarea><button type="submit" class="wct-chat-send" data-wct-chat-control aria-label="Kirim Update" title="Kirim Update">➤</button></div>'+
       '<details class="wct-chat-extra-fields"><summary>Tambahkan kendala / langkah berikutnya (opsional)</summary><div class="wct-chat-extra-grid"><label>Kendala<textarea name="blocker" maxlength="2000" rows="2" placeholder="Kendala yang dihadapi..."></textarea></label><label>Langkah berikutnya<textarea name="next_step" maxlength="2000" rows="2" placeholder="Tindak lanjut berikutnya..."></textarea></label></div></details>'+
-      '<div class="wct-chat-compose-footer"><button type="button" class="wct-chat-cancel-edit" hidden>Batal edit</button><small>Update ini terlihat oleh anggota yang memiliki akses ke Case.</small><button type="submit" class="wct-chat-send-label">Kirim Update</button></div>';
+      '<div class="wct-chat-compose-footer"><button type="button" class="wct-chat-cancel-edit" data-wct-chat-control hidden>Batal edit</button><small>Update ini terlihat oleh anggota yang memiliki akses ke Case.</small><button type="submit" class="wct-chat-send-label" data-wct-chat-control>Kirim Update</button></div>';
     form.addEventListener('submit',function(event){void window.submitCaseUpdate(event,caseId);});
     form.querySelector('.wct-chat-cancel-edit').addEventListener('click',function(){window.cancelCaseUpdateEdit(caseId);});
     return form;
