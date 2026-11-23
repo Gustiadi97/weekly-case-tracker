@@ -573,7 +573,7 @@ window.closeCase=async function(id){
   const pending=state.actions.filter(item=>item.case_id===id&&(item.status!=='done'||Number(item.progress)!==100));
   let message='Tutup '+(record.case_code||'Case')+'? Pastikan hasil tindakan telah diperiksa.';
   if(pending.length)message+=' Masih ada '+pending.length+' tindakan yang belum 100%.';
-  if(!confirm(message))return;
+  if(!await window.wctConfirm(message,{title:'Tutup Case',confirmText:'Tutup Case'}))return;
   const now=new Date().toISOString();
   try{
     const result=await sb.from('wct_cases').update({
@@ -646,7 +646,7 @@ window.toggleUserActive=async function(userId,active){
   if(!isAdmin())return;
   const user=state.profiles.find(item=>item.id===userId);
   if(!user||userId===currentUser.id)return;
-  if(!confirm((active?'Aktifkan':'Nonaktifkan')+' akun '+user.full_name+'?'))return;
+  if(!await window.wctConfirm((active?'Aktifkan':'Nonaktifkan')+' akun '+user.full_name+'?',{title:active?'Aktifkan Akun':'Nonaktifkan Akun',confirmText:active?'Aktifkan':'Nonaktifkan',danger:!active}))return;
   try{
     await callAdminFunction({
       action:'set-active',userId,active,deleted:false,
@@ -660,7 +660,7 @@ window.deleteUserPermanently=async function(userId){
   const user=state.profiles.find(item=>item.id===userId);
   if(!user||userId===currentUser.id)return;
   const message='HAPUS PERMANEN akun '+user.full_name+' ('+user.login_id+')?\n\nAkun Supabase Auth dan profil pengguna akan dihapus, sesi login dicabut, keanggotaan Workspace biasa dilepas, serta penugasan CA/PA dikosongkan. Riwayat Case, Action, Update, dan Meeting tetap dipertahankan dengan identitas arsip.\n\nPenghapusan tidak dapat dibatalkan.';
-  if(!confirm(message))return;
+  if(!await window.wctConfirm(message,{title:'Hapus User Permanen',confirmText:'Hapus User',danger:true}))return;
   try{
     await callAdminFunction({action:'delete-permanently',userId});
     await refreshData();
@@ -700,7 +700,7 @@ window.restoreUser=async function(userId){
   if(!isAdmin())return;
   const user=state.profiles.find(item=>item.id===userId);
   if(!user||user.deleted!==true)return;
-  if(!confirm('Pulihkan akses '+user.full_name+'?'))return;
+  if(!await window.wctConfirm('Pulihkan akses '+user.full_name+'?',{title:'Pulihkan Akun',confirmText:'Pulihkan'}))return;
   try{
     await callAdminFunction({
       action:'set-active',userId,active:true,deleted:false,
