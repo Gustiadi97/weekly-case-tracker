@@ -87,6 +87,7 @@ try {
   html = require('./case-form-layout')(html);
   html = require('./case-experience-polish')(html);
   html = require('./p1-workflow-runtime')(html);
+  html = require('./p3-polish')(html);
 
   // Guard against shipping the known UI regressions again.
   const uiChecks = [
@@ -120,6 +121,7 @@ try {
     ['Direct Tasks validated status RPC', "db.rpc('wct_move_action_status'"],
     ['Tasks status drop refreshes board', "await window.refreshData()"],
     ['P1 workflow runtime', 'id="wct-p1-workflow-runtime"'],
+    ['P3 typography, spacing and interaction polish', 'id="wct-p3-ui-polish"'],
     ['Meeting save through atomic Supabase RPC', "rpc('wct_save_meeting_with_items'"],
     ['Meeting notes remain compatible with Case detail', 'summary:summary,decisions:decisions,next_steps:nextSteps'],
     ['Meeting items are loaded from the normalized table', "from('wct_meeting_items')"],
