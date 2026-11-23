@@ -1,6 +1,6 @@
 module.exports = function applyCaseUpdateChat(html) {
   if (!html || !html.includes('</body>')) throw new Error('Could not find body for Case Update chat enhancement.');
-  const runtime = String.raw\`
+  const runtime = String.raw`
 (function(){
   if(window.__WCT_CASE_UPDATE_CHAT__)return;
   window.__WCT_CASE_UPDATE_CHAT__=true;
@@ -202,9 +202,9 @@ module.exports = function applyCaseUpdateChat(html) {
     }
   };
 })();
-\`;
+`;
 
-  const css = String.raw\`
+  const css = String.raw`
 .wct-case-update-section .wct-case-section-head{align-items:center!important}
 .wct-case-update-tools{display:flex!important;align-items:center!important;gap:9px!important;flex-wrap:wrap!important}
 .wct-case-chat-shell{overflow:hidden!important;border:1px solid #D6DCCF!important;border-radius:15px!important;background:#EDEDE3!important}
@@ -267,4 +267,7 @@ module.exports = function applyCaseUpdateChat(html) {
  .wct-chat-compose-footer small{max-width:50%!important}
  .wct-action-progress-quick-control{grid-template-columns:minmax(0,1fr) 54px!important;gap:9px!important}
 }
-\`;
+`;
+
+  return html.replace('</body>', '<style id="wct-case-update-chat-style">' + css + '</style><script id="wct-case-update-chat-runtime">' + runtime + '</script></body>');
+};
