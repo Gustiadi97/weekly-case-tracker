@@ -105,8 +105,15 @@ module.exports = function applyCaseUpdateChat(html) {
       var caseId=String(edit.dataset.caseId||edit.getAttribute('data-case-id')||edit.dataset.wctCaseEditId||row.dataset.caseId||'');
       if(!caseId){
         var source=String(edit.getAttribute('onclick')||'');
-        var match=source.match(/editCaseForm\\s*\\(\\s*['"]([^'"]+)['"]/);
-        if(match)caseId=match[1];
+        var start=source.indexOf('editCaseForm(');
+        if(start>=0){
+          var args=source.slice(start+'editCaseForm('.length).trim();
+          var quote=args.charAt(0);
+          if(quote==="'"||quote==='"'){
+            var end=args.indexOf(quote,1);
+            if(end>1)caseId=args.slice(1,end);
+          }
+        }
       }
       if(!caseId)return;
       var cell=edit.closest('td')||edit.parentElement;
