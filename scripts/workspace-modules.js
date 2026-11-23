@@ -316,6 +316,7 @@ module.exports = function applyWorkspaceModules(html) {
   var cases=function(){return (state&&state.cases)||[];};
   var actions=function(){return (state&&state.actions)||[];};
   var logs=function(){return (state&&state.logs)||[];};
+  var caseUpdates=function(){return (state&&state.caseUpdates)||[];};
   var meetings=function(){return (state&&state.meetings)||[];};
   var profiles=function(){return (state&&state.profiles)||[];};
   var me=function(){try{return currentUser||{};}catch(e){return window.currentUser||{};}};
@@ -356,11 +357,11 @@ module.exports = function applyWorkspaceModules(html) {
   var chartBars=function(){
     var days=[];for(var i=6;i>=0;i--){var d=new Date(today);d.setDate(today.getDate()-i);days.push({date:isoDay(d),label:d.toLocaleDateString('id-ID',{weekday:'short'}),cases:0,updates:0});}
     cases().forEach(function(c){var k=String(c.created_at||'').slice(0,10),d=days.find(function(x){return x.date===k;});if(d)d.cases++;});
-    logs().forEach(function(l){var k=String(l.created_at||'').slice(0,10),d=days.find(function(x){return x.date===k;});if(d)d.updates++;});
+    caseUpdates().forEach(function(l){var k=String(l.created_at||'').slice(0,10),d=days.find(function(x){return x.date===k;});if(d)d.updates++;});
     var max=Math.max(1,...days.map(function(x){return Math.max(x.cases,x.updates);}));
     var bars=days.map(function(d,i){var x=52+i*82,h1=(d.cases/max)*112,h2=(d.updates/max)*112;return '<g><rect x="'+x+'" y="'+(143-h1)+'" width="22" height="'+Math.max(2,h1)+'" rx="5" fill="#F28C18" opacity=".95"><title>'+d.label+': '+d.cases+' Case</title></rect><rect x="'+(x+25)+'" y="'+(143-h2)+'" width="22" height="'+Math.max(2,h2)+'" rx="5" fill="#F8BD78"><title>'+d.label+': '+d.updates+' Update</title></rect><text x="'+(x+23)+'" y="166" text-anchor="middle" class="wct-chart-label">'+esc(d.label)+'</text></g>';}).join('');
     var grid=[0,1,2,3].map(function(i){var y=143-i*37.3;return '<line x1="38" y1="'+y+'" x2="642" y2="'+y+'" class="wct-chart-gridline"/><text x="27" y="'+(y+3)+'" text-anchor="end" class="wct-chart-label">'+Math.round(max*i/3)+'</text>';}).join('');
-    return '<svg class="wct-chart-svg" viewBox="0 0 660 180" role="img" aria-label="Aktivitas Case dan Progress Update selama tujuh hari">'+grid+bars+'</svg>';
+    return '<svg class="wct-chart-svg" viewBox="0 0 660 180" role="img" aria-label="Aktivitas Case dan Update Case selama tujuh hari">'+grid+bars+'</svg>';
   };
   var reminderHtml=function(items,limit){
     if(!items.length)return '<div class="wct-empty">Tidak ada deadline Case atau Action yang perlu diperhatikan.</div>';
@@ -393,7 +394,7 @@ module.exports = function applyWorkspaceModules(html) {
     var html=head('WORKSPACE / OVERVIEW','Dashboard','Ringkasan Case, tanggung jawab PIC, deadline, dan progres PICAPA.',(isCoordinatorSafe()?'<button class="btn btn-primary" type="button" data-wct-create-case>'+icon('case')+' Create New Case</button>':''));
     html+=kpis;
     html+='<div class="wct-workspace-grid">'+
-      panel('Project Analytics','Aktivitas Case dan Progress Update · 7 hari terakhir','<div class="wct-chart-legend"><span><i style="background:#F28C18"></i>Case dibuat</span><span><i style="background:#F8BD78"></i>Progress Update</span></div>'+chartBars(),'<span class="wct-mini-pill">'+cs.length+' Case</span>')+
+      panel('Project Analytics','Aktivitas Case dan Update Case · 7 hari terakhir','<div class="wct-chart-legend"><span><i style="background:#F28C18"></i>Case dibuat</span><span><i style="background:#F8BD78"></i>Update Case</span></div>'+chartBars(),'<span class="wct-mini-pill">'+cs.length+' Case</span>')+
       panel('Reminders','Deadline Case dan Action yang perlu diperhatikan',reminderHtml(attention,5),'<span class="wct-mini-pill">'+overdue+' Terlambat</span>')+
     '</div>';
     html+='<div class="wct-workspace-grid three">'+
@@ -414,7 +415,7 @@ module.exports = function applyWorkspaceModules(html) {
   function taskCard(x){
     var a=x.a,c=x.c,p=person(a.assigned_to),myId=String(me().id||''),priority=String(c.priority||'Medium').toLowerCase();
     var canDrag=isCoordinatorSafe();
-    var task= '<article class="wct-task-card'+(canDrag?' is-draggable':'')+'" draggable="'+(canDrag?'true':'false')+'" data-wct-drag-action="'+esc(a.id)+'"'+(canDrag?' title="Seret untuk memindahkan status"':' title="Status dikelola Admin/Koordinator; PIC dapat memakai Update Progress"')+'><div class="wct-task-card-top"><span class="wct-task-type '+(a.action_type==='preventive'?'pa':'')+'">'+(a.action_type==='preventive'?'PREVENTIVE':'CORRECTIVE')+'</span>'+badge(a.status||'open')+'</div>'+
+    var task= '<article class="wct-task-card'+(canDrag?' is-draggable':'')+'" draggable="'+(canDrag?'true':'false')+'" data-wct-drag-action="'+esc(a.id)+'"'+(canDrag?' title="Seret untuk memindahkan status"':' title="Status dikelola Admin/Koordinator; PIC dapat memakai Atur Progres"')+'><div class="wct-task-card-top"><span class="wct-task-type '+(a.action_type==='preventive'?'pa':'')+'">'+(a.action_type==='preventive'?'PREVENTIVE':'CORRECTIVE')+'</span>'+badge(a.status||'open')+'</div>'+
       '<h4>'+esc(a.title)+'</h4><div class="wct-task-case">'+esc(c.case_code||'CASE')+' · '+esc((Array.isArray(c.hub_codes)&&c.hub_codes.length?c.hub_codes:[c.hub_code]).filter(Boolean).join(', ')||'—')+' · Priority '+esc(c.priority||'Medium')+'</div>'+
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px"><span style="color:#718198;font-size:9px">PIC: '+esc(p?p.full_name||p.login_id:'Belum ditentukan')+'</span><span style="color:'+(diffDays(a.due_date)<0&&a.status!=='done'?'#B84550':'#718198')+';font-size:9px;font-weight:800">'+fmtDate(a.due_date)+'</span></div>'+
       '<div style="margin-top:9px"><div class="wct-progress-inline"><div class="wct-progress-bar"><span style="width:'+pctAction(a)+'%"></span></div><b>'+pctAction(a)+'%</b></div></div>'+
@@ -511,7 +512,7 @@ module.exports = function applyWorkspaceModules(html) {
   }
   function rangeLogs(){
     var since=new Date(today);since.setDate(since.getDate()-analyticsRange+1);var key=isoDay(since);
-    return logs().filter(function(l){var d=analyticsDay(l.created_at);return d>=key&&d<=todayKey;});
+    return caseUpdates().filter(function(l){var d=analyticsDay(l.created_at);return d>=key&&d<=todayKey;});
   }
   function renderAnalytics(){
     var periodStart=new Date(today);periodStart.setDate(today.getDate()-analyticsRange+1);
@@ -537,7 +538,7 @@ module.exports = function applyWorkspaceModules(html) {
     var periodStart=new Date(today);periodStart.setDate(today.getDate()-analyticsRange+1);
     var previousStart=new Date(periodStart);previousStart.setDate(periodStart.getDate()-analyticsRange);
     var prevKey=isoDay(previousStart),startKey=isoDay(periodStart);
-    var prevLogs=logs().filter(function(l){var d=analyticsDay(l.created_at);return d>=prevKey&&d<startKey;});
+    var prevLogs=caseUpdates().filter(function(l){var d=analyticsDay(l.created_at);return d>=prevKey&&d<startKey;});
     var daily=[],currentValues=[],previousValues=[];
     for(var i=analyticsRange-1;i>=0;i--){
       var day=new Date(today);day.setDate(today.getDate()-i);
