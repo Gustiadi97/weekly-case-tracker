@@ -132,6 +132,30 @@ Deno.serve(async (req) => {
       return json({ error: "Pilih akun lain yang akan dikelola." }, 400);
     }
 
+    if (action === "delete-permanently") {
+      const { data: prepared, error: prepareError } = await adminClient.rpc("wct_prepare_user_deletion", {
+        p_user_id: userId,
+        p_actor_id: callerId,
+      });
+      if (prepareError || !prepared?.ok) {
+        return json({ error: prepareError?.message || "Persiapan penghapusan akun gagal." }, 400);
+      }
+
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
+      if (deleteError) {
+        // Do not keep an archive entry if the Auth deletion did not complete.
+        await adminClient.from("wct_deleted_user_archive").delete().eq("user_id", userId);
+        return json({ error: deleteError.message }, 400);
+      }
+
+      return json({
+        ok: true,
+        userId,
+        fullName: prepared.full_name,
+        loginId: prepared.login_id,
+      });
+    }
+
     if (action === "set-active") {
       const active = body.active;
       if (typeof active !== "boolean") return json({ error: "Status akun tidak valid." }, 400);
