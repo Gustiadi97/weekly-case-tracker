@@ -16,12 +16,12 @@ window.wctSupabase = sb;
 const TABLES = {
   users:'wct_users', team_directory:'wct_team_directory', cases:'wct_cases',
   actions:'wct_actions', progress_logs:'wct_progress_logs',
-  progress_log_edits:'wct_progress_log_edits', meetings:'wct_meetings',
+  progress_log_edits:'wct_progress_log_edits', case_updates:'wct_case_updates', meetings:'wct_meetings',
   meeting_cases:'wct_meeting_cases', counters:'wct_counters', app_settings:'wct_app_settings'
 };
 const PK = {
   wct_users:'id', wct_team_directory:'user_id', wct_cases:'id', wct_actions:'id',
-  wct_progress_logs:'id', wct_progress_log_edits:'id', wct_meetings:'id',
+  wct_progress_logs:'id', wct_progress_log_edits:'id', wct_case_updates:'id', wct_meetings:'id',
   wct_meeting_cases:'meeting_id', wct_counters:'counter_key', wct_app_settings:'setting_key'
 };
 const ALLOWED = {
@@ -31,6 +31,7 @@ const ALLOWED = {
   wct_actions:['id','case_id','action_type','title','description','assigned_to','due_date','status','progress','completed_at','latest_progress_log_id','created_by','updated_by','created_at','updated_at'],
   wct_progress_logs:['id','case_id','action_id','update_text','progress_before','progress_after','status_after','blocker','next_step','created_by','created_at','edited_by','edited_at','last_edit_audit_id'],
   wct_progress_log_edits:['id','log_id','case_id','action_id','edited_by','created_at','before_data','after_data','latest_update'],
+  wct_case_updates:['id','case_id','update_text','blocker','next_step','created_by','author_name','created_at','edited_by','edited_at'],
   wct_meetings:['id','title','meeting_date','start_time','end_time','location','notes','status','created_by','created_at','updated_at'],
   wct_meeting_cases:['meeting_id','case_id','discussion_notes','created_at'],
   wct_counters:['counter_key','value','updated_at'],
@@ -249,7 +250,7 @@ async function getProfile(userId){
   return Object.assign({id:result.data.id},result.data,{hub_code:result.data.area_name||''});
 }
 async function loadRuntimeData(){
-  const names=['wct_cases','wct_actions','wct_progress_logs','wct_meetings','wct_users','wct_team_directory','wct_progress_log_edits','wct_app_settings','wct_meeting_cases'];
+  const names=['wct_cases','wct_actions','wct_progress_logs','wct_case_updates','wct_meetings','wct_users','wct_team_directory','wct_progress_log_edits','wct_app_settings','wct_meeting_cases'];
   const results=await Promise.all(names.map(name=>sb.from(name).select('*')));
   results.forEach(result=>{if(result.error)throw result.error;});
   const data=Object.fromEntries(names.map((name,index)=>[name,results[index].data||[]]));
@@ -268,6 +269,7 @@ async function loadRuntimeData(){
     meetings:(data.wct_meetings||[]).map(row=>presentRow('wct_meetings',row)).sort((a,b)=>String(b.meeting_date||'').localeCompare(String(a.meeting_date||''))),
     profiles,
     progressLogEdits:(data.wct_progress_log_edits||[]).map(row=>presentRow('wct_progress_log_edits',row)),
+    caseUpdates:(data.wct_case_updates||[]).map(row=>presentRow('wct_case_updates',row)).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))),
     meetingCases:data.wct_meeting_cases||[],
     caseOptions:{categories:[],divisions:[]}
   };
