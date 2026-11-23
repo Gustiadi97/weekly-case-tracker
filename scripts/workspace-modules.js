@@ -504,9 +504,14 @@ module.exports = function applyWorkspaceModules(html) {
       '</div>';
     var root=$('pageContent');if(root)root.innerHTML=html;
   }
+  function analyticsDay(value){
+    if(!value)return '';
+    var parsed=new Date(value);
+    return isNaN(parsed.getTime())?String(value).slice(0,10):isoDay(parsed);
+  }
   function rangeLogs(){
     var since=new Date(today);since.setDate(since.getDate()-analyticsRange+1);var key=isoDay(since);
-    return logs().filter(function(l){var d=String(l.created_at||'').slice(0,10);return d>=key&&d<=todayKey;});
+    return logs().filter(function(l){var d=analyticsDay(l.created_at);return d>=key&&d<=todayKey;});
   }
   function renderAnalytics(){
     var periodStart=new Date(today);periodStart.setDate(today.getDate()-analyticsRange+1);
@@ -514,13 +519,13 @@ module.exports = function applyWorkspaceModules(html) {
     var ll=rangeLogs();
     // Completion KPIs use the actual completion timestamp and the selected period.
     var done=actions().filter(function(a){
-      var completed=String(a.completed_at||'').slice(0,10);
+      var completed=analyticsDay(a.completed_at);
       return a.status==='done'&&completed>=startKey&&completed<=endKey;
     });
     var eligibleDone=done.filter(function(a){var parent=caseBy(a.case_id);return !!(a.due_date||parent&&parent.target_date);});
     var onTime=eligibleDone.filter(function(a){
       var parent=caseBy(a.case_id),target=String(a.due_date||parent&&parent.target_date||'').slice(0,10);
-      return String(a.completed_at||'').slice(0,10)<=target;
+      return analyticsDay(a.completed_at)<=target;
     });
     var rate=eligibleDone.length?Math.round(onTime.length/eligibleDone.length*100):0;
     var avg=done.length?Math.round(done.reduce(function(n,a){
@@ -532,13 +537,13 @@ module.exports = function applyWorkspaceModules(html) {
     var periodStart=new Date(today);periodStart.setDate(today.getDate()-analyticsRange+1);
     var previousStart=new Date(periodStart);previousStart.setDate(periodStart.getDate()-analyticsRange);
     var prevKey=isoDay(previousStart),startKey=isoDay(periodStart);
-    var prevLogs=logs().filter(function(l){var d=String(l.created_at||'').slice(0,10);return d>=prevKey&&d<startKey;});
+    var prevLogs=logs().filter(function(l){var d=analyticsDay(l.created_at);return d>=prevKey&&d<startKey;});
     var daily=[],currentValues=[],previousValues=[];
     for(var i=analyticsRange-1;i>=0;i--){
       var day=new Date(today);day.setDate(today.getDate()-i);
       var key=isoDay(day),prevDay=new Date(day);prevDay.setDate(day.getDate()-analyticsRange);var prevDayKey=isoDay(prevDay);
-      var currentCount=ll.filter(function(l){return String(l.created_at||'').slice(0,10)===key;}).length;
-      var previousCount=prevLogs.filter(function(l){return String(l.created_at||'').slice(0,10)===prevDayKey;}).length;
+      var currentCount=ll.filter(function(l){return analyticsDay(l.created_at)===key;}).length;
+      var previousCount=prevLogs.filter(function(l){return analyticsDay(l.created_at)===prevDayKey;}).length;
       daily.push({key:key,label:day.toLocaleDateString('id-ID',{day:'2-digit',month:'short'}),n:currentCount,previous:previousCount});
       currentValues.push(currentCount);previousValues.push(previousCount);
     }
@@ -557,7 +562,7 @@ module.exports = function applyWorkspaceModules(html) {
       '<polyline points="'+pathOf(currentValues)+'" fill="none" stroke="#2864C7" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>'+
       daily.map(function(x,i){return '<circle cx="'+xAt(i)+'" cy="'+yAt(x.n)+'" r="'+(analyticsRange>30?'1.7':'3')+'" fill="#2864C7"><title>'+x.label+': '+x.n+' update</title></circle>';}).join('')+ticks.join('')+'</svg>';
     var heatCounts={};
-    logs().forEach(function(l){var k=String(l.created_at||'').slice(0,10);if(k)heatCounts[k]=(heatCounts[k]||0)+1;});
+    logs().forEach(function(l){var k=analyticsDay(l.created_at);if(k)heatCounts[k]=(heatCounts[k]||0)+1;});
     var heat=Array.from({length:140},function(_,i){var d=new Date(today);d.setDate(today.getDate()-(139-i));var k=isoDay(d),n=heatCounts[k]||0,level=n===0?'':n===1?'l1':n<=3?'l2':n<=6?'l3':'l4';return '<i class="wct-heat-cell '+level+'" title="'+k+': '+n+' update"></i>';}).join('');
     var hubCounts={};cases().forEach(function(c){
       var selected=Array.isArray(c.hub_codes)&&c.hub_codes.length?c.hub_codes:[c.hub_code||'Lainnya'];
