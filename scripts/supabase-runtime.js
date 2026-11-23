@@ -14,19 +14,20 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, 
 window.wctSupabase = sb;
 
 const TABLES = {
-  users:'wct_users', team_directory:'wct_team_directory', cases:'wct_cases',
+  users:'wct_users', team_directory:'wct_team_directory', deleted_user_archive:'wct_deleted_user_archive', cases:'wct_cases',
   actions:'wct_actions', progress_logs:'wct_progress_logs',
   progress_log_edits:'wct_progress_log_edits', case_updates:'wct_case_updates', meetings:'wct_meetings',
   meeting_cases:'wct_meeting_cases', counters:'wct_counters', app_settings:'wct_app_settings'
 };
 const PK = {
-  wct_users:'id', wct_team_directory:'user_id', wct_cases:'id', wct_actions:'id',
+  wct_users:'id', wct_team_directory:'user_id', wct_deleted_user_archive:'user_id', wct_cases:'id', wct_actions:'id',
   wct_progress_logs:'id', wct_progress_log_edits:'id', wct_case_updates:'id', wct_meetings:'id',
   wct_meeting_cases:'meeting_id', wct_counters:'counter_key', wct_app_settings:'setting_key'
 };
 const ALLOWED = {
   wct_users:['id','login_id','employee_id','full_name','area_name','role','active','created_at','created_by','updated_at'],
   wct_team_directory:['user_id','full_name','role','active','deleted','updated_at'],
+  wct_deleted_user_archive:['user_id','full_name','role','employee_id','area_name','created_at','deleted_at','deleted_by','deleted_by_name'],
   wct_cases:['id','case_number','hub_code','hub_codes','category','division','divisions','title','problem_identification','occurred_on','target_date','reporter','priority','status','created_by','updated_by','closed_at','closed_by','created_at','updated_at'],
   wct_actions:['id','case_id','action_type','title','description','assigned_to','due_date','status','progress','completed_at','latest_progress_log_id','created_by','updated_by','created_at','updated_at'],
   wct_progress_logs:['id','case_id','action_id','update_text','progress_before','progress_after','status_after','blocker','next_step','created_by','created_at','edited_by','edited_at','last_edit_audit_id'],
@@ -250,7 +251,7 @@ async function getProfile(userId){
   return Object.assign({id:result.data.id},result.data,{hub_code:result.data.area_name||''});
 }
 async function loadRuntimeData(){
-  const names=['wct_cases','wct_actions','wct_progress_logs','wct_case_updates','wct_meetings','wct_users','wct_team_directory','wct_progress_log_edits','wct_app_settings','wct_meeting_cases'];
+  const names=['wct_cases','wct_actions','wct_progress_logs','wct_case_updates','wct_meetings','wct_users','wct_team_directory','wct_deleted_user_archive','wct_progress_log_edits','wct_app_settings','wct_meeting_cases'];
   const results=await Promise.all(names.map(name=>sb.from(name).select('*')));
   results.forEach(result=>{if(result.error)throw result.error;});
   const data=Object.fromEntries(names.map((name,index)=>[name,results[index].data||[]]));
@@ -268,6 +269,7 @@ async function loadRuntimeData(){
     logs:(data.wct_progress_logs||[]).map(row=>presentRow('wct_progress_logs',row)).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))),
     meetings:(data.wct_meetings||[]).map(row=>presentRow('wct_meetings',row)).sort((a,b)=>String(b.meeting_date||'').localeCompare(String(a.meeting_date||''))),
     profiles,
+    deletedUsers:(data.wct_deleted_user_archive||[]).map(row=>presentRow('wct_deleted_user_archive',row)),
     progressLogEdits:(data.wct_progress_log_edits||[]).map(row=>presentRow('wct_progress_log_edits',row)),
     caseUpdates:(data.wct_case_updates||[]).map(row=>presentRow('wct_case_updates',row)).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))),
     meetingCases:data.wct_meeting_cases||[],
@@ -653,19 +655,40 @@ window.toggleUserActive=async function(userId,active){
     await refreshData();renderUsers();toast('Status akun berhasil diperbarui.');
   }catch(error){toast('Gagal memperbarui akun: '+(error.message||error));}
 };
-window.softDeleteUser=async function(userId){
+window.deleteUserPermanently=async function(userId){
   if(!isAdmin())return;
   const user=state.profiles.find(item=>item.id===userId);
   if(!user||userId===currentUser.id)return;
-  if(!confirm('Hapus akses '+user.full_name+'? Pengguna tidak dapat login lagi, profil tetap tersimpan.'))return;
+  const message='HAPUS PERMANEN akun '+user.full_name+' ('+user.login_id+')?\n\nAkun Supabase Auth dan profil pengguna akan dihapus, sesi login dicabut, keanggotaan Workspace biasa dilepas, serta penugasan CA/PA dikosongkan. Riwayat Case, Action, Update, dan Meeting tetap dipertahankan dengan identitas arsip.\n\nPenghapusan tidak dapat dibatalkan.';
+  if(!confirm(message))return;
   try{
-    await callAdminFunction({
-      action:'set-active',userId,active:false,deleted:true,
-      fullName:user.full_name,role:user.role
-    });
-    await refreshData();renderUsers();toast('Akses pengguna berhasil dinonaktifkan.');
-  }catch(error){toast('Gagal menghapus akses: '+(error.message||error));}
+    await callAdminFunction({action:'delete-permanently',userId});
+    await refreshData();
+    renderUsers();
+    toast('Akun '+user.full_name+' berhasil dihapus permanen dari sistem.');
+  }catch(error){
+    toast('Gagal menghapus akun: '+(error.message||error));
+  }
 };
+window.softDeleteUser=window.deleteUserPermanently;
+
+// Existing user-list button is retained, but its wording now states permanent deletion.
+(function(){
+  function relabelDeleteUserButtons(){
+    document.querySelectorAll('button[onclick*="softDeleteUser("],button[onclick*="deleteUserPermanently("]').forEach(function(button){
+      button.textContent='Hapus User';
+      button.title='Hapus permanen akun Auth dan profil pengguna dari sistem';
+      button.setAttribute('aria-label','Hapus User secara permanen');
+    });
+  }
+  var target=document.getElementById('pageContent')||document.body;
+  if(target&&typeof MutationObserver!=='undefined'){
+    var observer=new MutationObserver(relabelDeleteUserButtons);
+    observer.observe(target,{childList:true,subtree:true});
+  }
+  relabelDeleteUserButtons();
+})();
+
 window.restoreUser=async function(userId){
   if(!isAdmin())return;
   const user=state.profiles.find(item=>item.id===userId);
