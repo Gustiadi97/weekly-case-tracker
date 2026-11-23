@@ -88,6 +88,7 @@ try {
   html = require('./case-experience-polish')(html);
   html = require('./p1-workflow-runtime')(html);
   html = require('./case-update-workflow')(html);
+  html = require('./case-update-chat')(html);
   html = require('./p3-polish')(html);
   html = require('./p3-visual-redesign')(html);
 
@@ -128,6 +129,11 @@ try {
     ['CA and PA progress-only update modal', 'window.openActionProgressForm=function(actionId)'],
     ['Quick Action progress secure RPC', "wct_set_action_progress"],
     ['Case Update section separates case timeline from CA PA progress', 'wct-case-update-section'],
+    ['WhatsApp-style Case Update chat runtime', 'id="wct-case-update-chat-runtime"'],
+    ['Permanent Case deletion handler', 'window.deleteCasePermanently=async function(caseId)'],
+    ['Case Update chat message composer', 'id="wctCaseUpdateComposer"'],
+    ['Permanent user deletion action', "action:'delete-permanently'"],
+    ['Deleted user display archive loaded', "wct_deleted_user_archive"],
     ['P3 typography, spacing and interaction polish', 'id="wct-p3-ui-polish"'],
     ['Full P3 visual redesign', 'id="wct-p3-visual-redesign"'],
     ['Mobile modal close supports pointer, touch and click', 'document.addEventListener(\'pointerup\',handleCloseInteraction,true)'],
