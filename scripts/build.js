@@ -87,6 +87,7 @@ try {
   html = require('./case-form-layout')(html);
   html = require('./case-experience-polish')(html);
   html = require('./p1-workflow-runtime')(html);
+  html = require('./case-update-workflow')(html);
   html = require('./p3-polish')(html);
   html = require('./p3-visual-redesign')(html);
 
@@ -122,6 +123,11 @@ try {
     ['Direct Tasks validated status RPC', "db.rpc('wct_move_action_status'"],
     ['Tasks status drop refreshes board', "await window.refreshData()"],
     ['P1 workflow runtime', 'id="wct-p1-workflow-runtime"'],
+    ['Separate Case Update history table', 'wct_case_updates'],
+    ['Dedicated Case Update form and save handler', 'window.submitCaseUpdate=async function(event,caseId,updateId)'],
+    ['CA and PA progress-only update modal', 'window.openActionProgressForm=function(actionId)'],
+    ['Quick Action progress secure RPC', "wct_set_action_progress"],
+    ['Case Update section separates case timeline from CA PA progress', 'wct-case-update-section'],
     ['P3 typography, spacing and interaction polish', 'id="wct-p3-ui-polish"'],
     ['Full P3 visual redesign', 'id="wct-p3-visual-redesign"'],
     ['Mobile modal close supports pointer, touch and click', 'document.addEventListener(\'pointerup\',handleCloseInteraction,true)'],
