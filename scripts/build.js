@@ -171,6 +171,7 @@ try {
     ['Visible error feedback above modal backdrop', 'id="wct-modal-feedback-style"'],
     ['Inline Case form error styling', '.wct-form-error{'],
     ['Modal close delegated pointer, touch and click controller', "document.addEventListener('pointerup',handleCloseInteraction,true)"],
+    ['Close modal clears forced inline mobile backdrop display', "clearInlineStyles(layer,['position','inset','height','max-height','box-sizing','display'"],
     ['Modal controls normalise cancel buttons to type button', "button.type='button'"],
     ['Escape key closes open modal', "if(event.key!=='Escape')return;"],
     ['Kanban four workflow columns', "var cols=[['open','To Do'],['in_progress','In Progress'],['review','In Review'],['done','Done']]"],
@@ -198,7 +199,7 @@ try {
     ['Case Detail modal mobile selector', '.modal.wct-case-detail-modal{'],
     ['mobile Dashboard panels stack into one column', '#pageContent .wct-dashboard-columns,'],
     ['mobile Dashboard case rows keep horizontal text flow', '.wct-dashboard-case-row>div:first-child strong{'],
-    ['mobile Case list cards use dark surfaces', '#pageContent .wct-cases-table tbody tr{'],
+    ['mobile Case list uses compact semantic table layout', 'table.wct-cases-table thead{display:table-header-group!important}'],
     ['mobile Case list rows remove white cell backgrounds', '#pageContent .wct-cases-table tbody td{'],
     ['mobile Case list action row remains visible', '#pageContent .wct-cases-table tbody td:nth-child(9){'],
 
