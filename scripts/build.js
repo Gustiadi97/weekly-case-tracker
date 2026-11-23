@@ -121,6 +121,7 @@ try {
     ['Tasks status drop refreshes board', "await window.refreshData()"],
     ['P1 workflow runtime', 'id="wct-p1-workflow-runtime"'],
     ['Meeting save through atomic Supabase RPC', "rpc('wct_save_meeting_with_items'"],
+    ['Meeting notes remain compatible with Case detail', 'summary:summary,decisions:decisions,next_steps:nextSteps'],
     ['Meeting items are loaded from the normalized table', "from('wct_meeting_items')"],
     ['Action status history is displayed', "from('wct_action_status_history')"],
     ['Analytics uses actual completed_at', 'analyticsDay(a.completed_at)'],
