@@ -659,6 +659,136 @@ label,.field label{display:block!important;color:#515B66!important;font-size:11p
  }
 }
 
+
+/* Mobile Case Monitoring: compact table instead of tall stacked record cards */
+@media(max-width:760px){
+  #pageContent .table-wrap:has(>.wct-cases-table){
+    display:block!important;width:100%!important;max-width:100%!important;
+    overflow-x:auto!important;overflow-y:hidden!important;
+    border:1px solid #E2E6EA!important;border-radius:12px!important;
+    background:#FFFFFF!important;-webkit-overflow-scrolling:touch!important;
+    overscroll-behavior-x:contain!important;
+  }
+  #pageContent table.wct-cases-table{
+    display:table!important;width:100%!important;min-width:680px!important;max-width:none!important;
+    table-layout:fixed!important;border-collapse:separate!important;border-spacing:0!important;
+    background:#FFFFFF!important;overflow:visible!important;
+  }
+  #pageContent table.wct-cases-table thead{display:table-header-group!important}
+  #pageContent table.wct-cases-table tbody{display:table-row-group!important;width:auto!important;min-width:0!important}
+  #pageContent table.wct-cases-table thead tr,
+  #pageContent table.wct-cases-table tbody tr{
+    display:table-row!important;width:auto!important;min-width:0!important;max-width:none!important;
+    height:auto!important;margin:0!important;padding:0!important;overflow:visible!important;
+    border:0!important;border-radius:0!important;background:#FFFFFF!important;
+    box-shadow:none!important;
+  }
+  #pageContent table.wct-cases-table thead th{
+    display:table-cell!important;position:static!important;
+    padding:9px 8px!important;background:#F5F6F7!important;color:#68727E!important;
+    border-bottom:1px solid #E5E8EB!important;font-size:9px!important;
+    line-height:1.3!important;letter-spacing:.035em!important;white-space:nowrap!important;
+  }
+  #pageContent table.wct-cases-table tbody td{
+    display:table-cell!important;position:static!important;vertical-align:middle!important;
+    width:auto!important;min-width:0!important;max-width:none!important;
+    padding:10px 8px!important;border:0!important;border-bottom:1px solid #EEF0F2!important;
+    border-radius:0!important;background:#FFFFFF!important;color:#414A54!important;
+    text-align:left!important;font-size:10px!important;line-height:1.4!important;
+    white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important;
+  }
+  #pageContent table.wct-cases-table tbody tr:nth-child(even) td{background:#FCFCFD!important}
+  #pageContent table.wct-cases-table tbody tr:hover td{background:#FFF8F0!important}
+  #pageContent table.wct-cases-table tbody td:before{display:none!important;content:none!important}
+  #pageContent table.wct-cases-table tbody td:nth-child(1){
+    display:table-cell!important;width:210px!important;min-width:210px!important;
+    padding:10px 9px!important;background:inherit!important;text-align:left!important;
+  }
+  #pageContent table.wct-cases-table tbody td:nth-child(1) strong,
+  #pageContent table.wct-cases-table tbody td:nth-child(1) b{
+    display:block!important;color:#252C33!important;font-size:10px!important;
+    line-height:1.4!important;font-weight:850!important;overflow-wrap:anywhere!important;
+  }
+  #pageContent table.wct-cases-table tbody td:nth-child(1) small,
+  #pageContent table.wct-cases-table tbody td:nth-child(1) span{
+    display:block!important;margin-top:3px!important;color:#84909B!important;
+    font-size:8px!important;line-height:1.35!important;
+  }
+  /* Division and category remain available in Detail, while the list stays compact. */
+  #pageContent table.wct-cases-table thead th:nth-child(3),
+  #pageContent table.wct-cases-table tbody td:nth-child(3),
+  #pageContent table.wct-cases-table thead th:nth-child(4),
+  #pageContent table.wct-cases-table tbody td:nth-child(4){display:none!important}
+  #pageContent table.wct-cases-table thead th:nth-child(2),
+  #pageContent table.wct-cases-table tbody td:nth-child(2){width:58px!important;min-width:58px!important}
+  #pageContent table.wct-cases-table thead th:nth-child(5),
+  #pageContent table.wct-cases-table tbody td:nth-child(5){width:72px!important;min-width:72px!important}
+  #pageContent table.wct-cases-table thead th:nth-child(6),
+  #pageContent table.wct-cases-table tbody td:nth-child(6){width:72px!important;min-width:72px!important}
+  #pageContent table.wct-cases-table thead th:nth-child(7),
+  #pageContent table.wct-cases-table tbody td:nth-child(7){width:82px!important;min-width:82px!important}
+  #pageContent table.wct-cases-table thead th:nth-child(8),
+  #pageContent table.wct-cases-table tbody td:nth-child(8){width:78px!important;min-width:78px!important}
+  #pageContent table.wct-cases-table thead th:nth-child(9),
+  #pageContent table.wct-cases-table tbody td:nth-child(9){
+    width:112px!important;min-width:112px!important;padding:8px 7px!important;
+  }
+  #pageContent table.wct-cases-table tbody td .status,
+  #pageContent table.wct-cases-table tbody td .pill{
+    display:inline-flex!important;max-width:100%!important;white-space:nowrap!important;
+    padding:4px 6px!important;font-size:8px!important;
+  }
+  #pageContent table.wct-cases-table .progress-wrap,
+  #pageContent table.wct-cases-table .wct-progress-inline{
+    display:flex!important;align-items:center!important;gap:5px!important;
+    width:auto!important;min-width:0!important;max-width:none!important;white-space:nowrap!important;
+  }
+  #pageContent table.wct-cases-table .progress-wrap .progress-track,
+  #pageContent table.wct-cases-table .wct-progress-bar{
+    width:34px!important;min-width:34px!important;height:5px!important;flex:0 0 34px!important;
+  }
+  #pageContent table.wct-cases-table .wct-row-actions{
+    display:flex!important;align-items:center!important;justify-content:flex-start!important;
+    flex-wrap:nowrap!important;gap:5px!important;width:auto!important;max-width:none!important;
+  }
+  #pageContent table.wct-cases-table .wct-row-actions .btn{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    width:auto!important;min-width:0!important;min-height:31px!important;
+    padding:6px 7px!important;border-radius:8px!important;font-size:8px!important;
+    white-space:nowrap!important;flex:0 0 auto!important;
+  }
+}
+@media(max-width:390px){
+  #pageContent table.wct-cases-table{min-width:650px!important}
+  #pageContent table.wct-cases-table tbody td{padding-left:6px!important;padding-right:6px!important}
+  #pageContent table.wct-cases-table tbody td:nth-child(1){width:192px!important;min-width:192px!important}
+}
+/* Close controls are above all modal content and have a consistent mobile hit area. */
+#modalBackdrop #modal>.modal-head{
+  position:relative!important;z-index:50!important;isolation:isolate!important;pointer-events:auto!important;
+}
+#modalBackdrop #modal>.modal-head .close,
+#modalBackdrop #modal>.modal-head [data-wct-modal-close]{
+  position:relative!important;z-index:60!important;display:grid!important;place-items:center!important;
+  flex:0 0 44px!important;width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;
+  margin:0!important;padding:0!important;border:1px solid #E0E4E8!important;border-radius:11px!important;
+  background:#F5F6F7!important;color:#39434E!important;font-size:21px!important;font-weight:800!important;
+  line-height:1!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;user-select:none!important;
+}
+#modalBackdrop #modal>.modal-head .close:active,
+#modalBackdrop #modal>.modal-head [data-wct-modal-close]:active{
+  background:#FFEEDC!important;border-color:#E7A04D!important;transform:scale(.96)!important;
+}
+@media(max-width:760px){
+  #modalBackdrop #modal>.modal-head{min-height:66px!important;padding:13px 14px!important}
+  #modalBackdrop #modal>.modal-head .close,
+  #modalBackdrop #modal>.modal-head [data-wct-modal-close]{
+    flex-basis:46px!important;width:46px!important;min-width:46px!important;
+    height:46px!important;min-height:46px!important;
+  }
+}
+
 /* Responsive layout */
 @media(max-width:1100px){
   .content{padding:25px 22px 46px!important}
