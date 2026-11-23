@@ -549,6 +549,70 @@ label,.field label{display:block!important;color:#515B66!important;font-size:11p
 .wct-notification-panel h3,.wct-notification-center h3{color:#252B32!important}
 .wct-notification-panel p,.wct-notification-center p{color:#68727D!important}
 
+/* Case Monitoring filters: compact responsive control row */
+#pageContent .toolbar:has(select),
+#pageContent .wct-case-toolbar:has(select),
+#pageContent .filterbar:has(select),
+#pageContent .filters:has(select){
+  display:grid!important;
+  grid-template-columns:minmax(210px,1.55fr) repeat(4,minmax(135px,1fr)) auto!important;
+  align-items:center!important;gap:9px!important;
+  padding:12px!important;margin:0 0 16px!important;
+  background:#FFFFFF!important;border:1px solid #E2E6EA!important;
+  border-radius:14px!important;box-shadow:0 4px 15px rgba(24,31,40,.035)!important;
+}
+#pageContent .toolbar:has(select)>input[type=search],
+#pageContent .toolbar:has(select)>.search,
+#pageContent .wct-case-toolbar:has(select)>input[type=search],
+#pageContent .wct-case-toolbar:has(select)>.search{
+  grid-column:auto!important;min-width:0!important;width:100%!important;
+}
+#pageContent .toolbar:has(select)>select,
+#pageContent .wct-case-toolbar:has(select)>select,
+#pageContent .filterbar:has(select)>select,
+#pageContent .filters:has(select)>select{
+  display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  min-height:42px!important;padding:9px 34px 9px 12px!important;
+  border:1px solid #DCE1E6!important;border-radius:10px!important;
+  background-color:#FFFFFF!important;background-image:none!important;
+  color:#39434E!important;font-size:11px!important;font-weight:650!important;
+  box-shadow:none!important;
+}
+#pageContent .toolbar:has(select)>select:focus,
+#pageContent .wct-case-toolbar:has(select)>select:focus,
+#pageContent .filterbar:has(select)>select:focus,
+#pageContent .filters:has(select)>select:focus{
+  border-color:#E89A3A!important;box-shadow:0 0 0 3px rgba(242,140,24,.12)!important;
+}
+#pageContent .toolbar:has(select)>select option,
+#pageContent .wct-case-toolbar:has(select)>select option,
+#pageContent .filterbar:has(select)>select option,
+#pageContent .filters:has(select)>select option{
+  background:#FFFFFF!important;color:#29313A!important;
+}
+#pageContent .toolbar:has(select)>.btn,
+#pageContent .toolbar:has(select)>button,
+#pageContent .wct-case-toolbar:has(select)>.btn,
+#pageContent .wct-case-toolbar:has(select)>button{
+  min-height:40px!important;padding:8px 12px!important;white-space:nowrap!important;
+  justify-self:stretch!important;
+}
+#pageContent .toolbar input[type=search],
+#pageContent .wct-case-toolbar input[type=search],
+#pageContent .filterbar input[type=search],
+#pageContent .filters input[type=search]{
+  min-width:0!important;width:100%!important;min-height:42px!important;
+  background:#FFFFFF!important;color:#29313A!important;border-color:#DCE1E6!important;
+}
+#pageContent .toolbar:has(select) label,
+#pageContent .wct-case-toolbar:has(select) label{
+  color:#535E69!important;
+}
+#pageContent .wct-chart-svg rect[fill="#2864C7"]{fill:#F28C18!important}
+#pageContent .wct-chart-svg rect[fill="#9BBBE8"]{fill:#F8BD78!important}
+#pageContent .wct-chart-legend i[style*="#2864C7"]{background:#F28C18!important}
+#pageContent .wct-chart-legend i[style*="#9BBBE8"]{background:#F8BD78!important}
+
 /* Responsive layout */
 @media(max-width:1100px){
   .content{padding:25px 22px 46px!important}
