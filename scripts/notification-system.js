@@ -1,6 +1,6 @@
 module.exports = function addNotificationSystem(html) {
   if (!html || !html.includes('</body>')) throw new Error('Could not find body for notification system.');
-  const css = String.raw\`
+  const css = String.raw`
 .wct-dynamic-island-host{position:fixed!important;top:max(14px,env(safe-area-inset-top))!important;left:50%!important;z-index:1000002!important;width:min(420px,calc(100vw - 28px))!important;display:flex!important;justify-content:center!important;pointer-events:none!important;transform:translate(-50%,-16px)!important;opacity:0!important;visibility:hidden!important;transition:transform .38s cubic-bezier(.2,.85,.25,1),opacity .22s ease,visibility .22s ease!important}
 .wct-dynamic-island-host.is-visible{opacity:1!important;visibility:visible!important;transform:translate(-50%,0)!important}
 .wct-dynamic-island{position:relative!important;display:flex!important;align-items:center!important;gap:11px!important;width:156px!important;min-height:54px!important;max-width:100%!important;box-sizing:border-box!important;padding:8px 13px!important;border:1px solid rgba(255,255,255,.09)!important;border-radius:28px!important;background:linear-gradient(145deg,#17191D,#08090B)!important;color:#F8FAFC!important;box-shadow:0 13px 38px rgba(5,9,15,.28),inset 0 1px 0 rgba(255,255,255,.08)!important;overflow:hidden!important;pointer-events:auto!important;cursor:pointer!important;transition:width .42s cubic-bezier(.18,.86,.25,1),min-height .32s ease,border-radius .32s ease,box-shadow .32s ease!important}
@@ -44,8 +44,8 @@ module.exports = function addNotificationSystem(html) {
 body.wct-system-dialog-open{overflow:hidden!important}
 @media(max-width:560px){.wct-dynamic-island-host{top:max(9px,env(safe-area-inset-top))!important;width:calc(100vw - 22px)!important}.wct-dynamic-island-host.is-visible .wct-dynamic-island.is-expanded{min-height:68px!important;border-radius:21px!important}.wct-di-message{font-size:10px!important}.wct-system-dialog-backdrop{padding:14px!important}.wct-system-dialog{padding:20px!important;border-radius:18px!important}}
 @media(prefers-reduced-motion:reduce){.wct-dynamic-island-host,.wct-dynamic-island,.wct-di-copy,.wct-system-dialog-backdrop,.wct-system-dialog{transition:none!important}.wct-dynamic-island-host.is-visible .wct-di-progress:after{animation:none!important;transform:scaleX(0)!important}}
-\`;
-  const runtime = String.raw\`
+`;
+  const runtime = String.raw`
 (function(){
   'use strict';
   if(window.__WCT_NOTIFICATION_SYSTEM__)return;
@@ -119,6 +119,6 @@ body.wct-system-dialog-open{overflow:hidden!important}
   };
   window.wctAlert=function(message,options){options=options||{};notify(message,{type:options.type||'info',title:options.title||'Informasi',duration:options.duration||5200});};
 })();
-\`;
+`;
   return html.replace('</body>', '<style id="wct-notification-system-style">' + css + '</style><script id="wct-notification-system-runtime">' + runtime + '</script></body>');
 };
