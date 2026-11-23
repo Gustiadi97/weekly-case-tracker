@@ -256,17 +256,10 @@ async function loadRuntimeData(){
   const profiles=(data.wct_users||[]).map(profile=>Object.assign({id:profile.id},profile,{hub_code:profile.area_name||''}));
   (data.wct_team_directory||[]).forEach(directory=>{
     const profile=profiles.find(item=>item.id===directory.user_id);
-    if(profile)Object.assign(profile,{
-      deleted:directory.deleted===true,
-      active:directory.active===true,
-      full_name:directory.full_name||profile.full_name,
-      role:directory.role||profile.role
-    });
-    else profiles.push({
-      id:directory.user_id,full_name:directory.full_name,role:directory.role,
-      active:directory.active,deleted:directory.deleted,login_id:'',
-      area_name:'All Areas',hub_code:'All Areas'
-    });
+    if(profile){
+      // wct_users is canonical for identity and access; the directory only owns soft deletion.
+      profile.deleted=directory.deleted===true;
+    }
   });
   state={
     cases:(data.wct_cases||[]).map(row=>presentRow('wct_cases',row)).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))),
