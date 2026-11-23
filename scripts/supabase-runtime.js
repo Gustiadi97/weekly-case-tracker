@@ -676,14 +676,21 @@ window.softDeleteUser=window.deleteUserPermanently;
 (function(){
   function relabelDeleteUserButtons(){
     document.querySelectorAll('button[onclick*="softDeleteUser("],button[onclick*="deleteUserPermanently("]').forEach(function(button){
-      button.textContent='Hapus User';
-      button.title='Hapus permanen akun Auth dan profil pengguna dari sistem';
-      button.setAttribute('aria-label','Hapus User secara permanen');
+      // Only write changed values. Updating textContent unconditionally creates
+      // a childList mutation, which re-triggers this observer indefinitely.
+      if(button.textContent.trim()!=='Hapus User')button.textContent='Hapus User';
+      var title='Hapus permanen akun Auth dan profil pengguna dari sistem';
+      if(button.title!==title)button.title=title;
+      var aria='Hapus User secara permanen';
+      if(button.getAttribute('aria-label')!==aria)button.setAttribute('aria-label',aria);
     });
   }
   var target=document.getElementById('pageContent')||document.body;
   if(target&&typeof MutationObserver!=='undefined'){
-    var observer=new MutationObserver(relabelDeleteUserButtons);
+    var observer=new MutationObserver(function(){
+      // Defer a single, idempotent pass; already-correct controls cause no new DOM writes.
+      relabelDeleteUserButtons();
+    });
     observer.observe(target,{childList:true,subtree:true});
   }
   relabelDeleteUserButtons();
