@@ -123,7 +123,7 @@ try {
     ['Meeting save through atomic Supabase RPC', "rpc('wct_save_meeting_with_items'"],
     ['Meeting items are loaded from the normalized table', "from('wct_meeting_items')"],
     ['Action status history is displayed', "from('wct_action_status_history')"],
-    ['Analytics uses actual completed_at', "a.completed_at||''"],
+    ['Analytics uses actual completed_at', 'analyticsDay(a.completed_at)'],
     ['Analytics completion period is bounded', "completed<=endKey"],
     ['Analytics uses local timezone date keys', 'function analyticsDay(value)'],
     ['Meeting detail ignores stale asynchronous response', "meetingModal.dataset.wctP1MeetingId!==String(meeting.id)"],
